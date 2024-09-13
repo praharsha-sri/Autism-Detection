@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prenatal History</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Prenatal History</h2>
+        <form id="prenatalform">
+            <div class="mb-3">
+                <label for="antenatalCheckup" class="form-label">Antenatal check-up</label>
+                <textarea class="form-control" id="antenatalCheckup" rows="3" placeholder="Enter antenatal check-up details"></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="malnutrition" class="form-label">Malnutrition</label>
+                <input type="text" class="form-control" id="malnutrition" placeholder="Enter malnutrition details">
+            </div>
+            <div class="mb-3">
+                <label for="hypoglycemia" class="form-label">Hypoglycemia</label>
+                <input type="text" class="form-control" id="hypoglycemia" placeholder="Enter hypoglycemia details">
+            </div>
+            <div class="mb-3">
+                <label for="maternalInfections" class="form-label">Maternal infections</label>
+                <input type="text" class="form-control" id="maternalInfections" placeholder="Enter maternal infections">
+            </div>
+            <div class="mb-3">
+                <label for="maternalHypertension" class="form-label">Maternal hypertension</label>
+                <input type="text" class="form-control" id="maternalHypertension" placeholder="Enter maternal hypertension details">
+            </div>
+            <div class="mb-3">
+                <label for="injuryTrauma" class="form-label">Injury/Trauma/Stress</label>
+                <textarea class="form-control" id="injuryTrauma" rows="3" placeholder="Enter injury/trauma/stress details"></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="drugsDuringPregnancy" class="form-label">Any drugs taken during pregnancy</label>
+                <textarea class="form-control" id="drugsDuringPregnancy" rows="3" placeholder="Enter drugs taken during pregnancy"></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="otherComplaints" class="form-label">Any other complaints</label>
+                <textarea class="form-control" id="otherComplaints" rows="3" placeholder="Enter other complaints"></textarea>
+            </div>
+            <div class="d-flex justify-content-between">
+                <a href="parental.html" class="btn btn-secondary">Previous</a>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+        </form>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('prenatalform').addEventListener('submit', function(event) {
+            event.preventDefault();  // Prevents the default form submission
+            window.location.href = 'perinatal.html';  // Redirects to the Postnatal History page
+        });
+    </script>
+
+</body>
+</html>
