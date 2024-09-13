@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Postnatal History</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Postnatal History</h2>
+        <form id="postnatalForm">
+            <!-- Infections (text input) -->
+            <div class="mb-3">
+                <label for="infections" class="form-label">Any Infections</label>
+                <textarea class="form-control" id="infections" rows="3" placeholder="Enter details of infections"></textarea>
+            </div>
+
+            <!-- Breast Feed with Radio Buttons -->
+            <div class="mb-3">
+                <label class="form-label">Breast Feed (Y/N)</label><br>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="breastFeed" id="breastFeedYes" value="Yes">
+                    <label class="form-check-label" for="breastFeedYes">Yes</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="breastFeed" id="breastFeedNo" value="No">
+                    <label class="form-check-label" for="breastFeedNo">No</label>
+                </div>
+            </div>
+
+            <!-- Head Injury/Trauma (text input) -->
+            <div class="mb-3">
+                <label class="form-label">Head Injury / Trauma</label><br>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="headInjuryTrauma" id="headInjury" value="Head Injury">
+                    <label class="form-check-label" for="headInjury">Head Injury</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="headInjuryTrauma" id="trauma" value="Trauma">
+                    <label class="form-check-label" for="trauma">Trauma</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="headInjuryTrauma" id="noneInjuryTrauma" value="None">
+                    <label class="form-check-label" for="noneInjuryTrauma">None</label>
+                </div>
+            </div>
+
+            <!-- Epilepsy (text input) -->
+            <div class="mb-3">
+                <label for="epilepsy" class="form-label">Epilepsy</label>
+                <input type="text" class="form-control" id="epilepsy" placeholder="Enter details of epilepsy">
+            </div>
+
+            <!-- Fever / Jaundice with Radio Buttons -->
+            <div class="mb-3">
+                <label class="form-label">Fever / Jaundice</label><br>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="feverJaundice" id="fever" value="Fever">
+                    <label class="form-check-label" for="fever">Fever</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="feverJaundice" id="jaundice" value="Jaundice">
+                    <label class="form-check-label" for="jaundice">Jaundice</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="feverJaundice" id="none" value="None">
+                    <label class="form-check-label" for="none">None</label>
+                </div>
+            </div>
+
+            <!-- Age of child when disability noticed (number input) -->
+            <div class="mb-3">
+                <label for="ageOfDisability" class="form-label">Age of child when disability was noticed</label>
+                <input type="number" class="form-control" id="ageOfDisability" placeholder="Enter age">
+            </div>
+
+            <!-- Navigation buttons -->
+            <div class="d-flex justify-content-between">
+                <a href="perinatal.html" class="btn btn-secondary">Previous</a>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.getElementById('postnatalForm').addEventListener('submit', function(event) {
+            event.preventDefault();  // Prevent the default form submission behavior
+            window.location.href = 'medicalhistory.html';
+        });
+    </script>
+</body>
+</html>

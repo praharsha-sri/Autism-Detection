@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Educational History</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+    <h2>Educational History</h2>
+    <form id="educationalhistory">
+            <!-- Age of beginning of school (number input) -->
+            <div class="mb-3">
+                <label for="schoolAge" class="form-label">Age of beginning of school</label>
+                <input type="number" class="form-control" id="schoolAge" placeholder="Enter age">
+            </div>
+
+            <!-- Relationship between peers and teachers (textarea input) -->
+            <div class="mb-3">
+                <label for="peerTeacherRelationship" class="form-label">Relationship between peers and teachers</label>
+                <textarea class="form-control" id="peerTeacherRelationship" rows="3" placeholder="Describe the relationship between peers and teachers"></textarea>
+            </div>
+
+            <!-- School phobia, non-attendance, truancy, reading/writing difficulties (textarea input) -->
+            <div class="mb-3">
+                <label for="schoolIssues" class="form-label">Any school phobia, non-attendance, truancy, any reading or writing difficulties</label>
+                <textarea class="form-control" id="schoolIssues" rows="3" placeholder="Enter details of any school-related difficulties"></textarea>
+            </div>
+
+            <!-- Any other educational issues (textarea input) -->
+            <div class="mb-3">
+                <label for="anyOtherEducational" class="form-label">Any other</label>
+                <textarea class="form-control" id="anyOtherEducational" rows="3" placeholder="Enter other educational details"></textarea>
+            </div>
+
+            <!-- Navigation buttons -->
+            <div class="d-flex justify-content-between">
+                <a href="postnatal.html" class="btn btn-secondary">Previous</a>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+
+        </form>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.getElementById('educationalhistory').addEventListener('submit', function(event) {
+            event.preventDefault();  // Prevent the default form submission behavior
+            window.location.href = 'familyhistory.html';  // Display an alert (or handle form submission)
+        });
+    </script>
+</body>
+</html>
