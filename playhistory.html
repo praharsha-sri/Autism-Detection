@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Play History</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+    <h2>Play History</h2>
+    <form id="playhistory">
+            <div class="mb-3">
+                <label for="playinghistory" class="form-label">Play History of the Child</label>
+                <textarea class="form-control" id="playinghistory" rows="3" placeholder="Enter the play history of the Child"></textarea>
+            </div>
+    </form>
+    <br>
+    <h2>Developmental History</h2>
+    <form id="devhistory">
+            <div class="mb-3">
+                <label for="motordev" class="form-label">Motor Development</label>
+                <textarea class="form-control" id="motordev" rows="1" placeholder=""></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="sensorydev" class="form-label">Sensory Development</label>
+                <textarea class="form-control" id="sensorydev" rows="1" placeholder=""></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="speechdev" class="form-label">Speech and Language Development</label>
+                <textarea class="form-control" id="speechdev" rows="1" placeholder=""></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="socialdev" class="form-label">Social Development</label>
+                <textarea class="form-control" id="socialdev" rows="1" placeholder=""></textarea>
+            </div>
+            <!-- Navigation buttons -->
+            <div class="d-flex justify-content-between">
+                <a href="familyhistory.html" class="btn btn-secondary">Previous</a>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+
+        </form>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.getElementById('devhistory').addEventListener('submit', function(event) {
+            event.preventDefault();  // Prevent the default form submission behavior
+            window.location.href = 'behavioralcognitive.html';  // Display an alert (or handle form submission)
+        });
+    </script>
+</body>
+</html>
