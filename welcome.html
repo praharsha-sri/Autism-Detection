@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome</title>
+    <!-- Optional: Add some basic styling for a better appearance -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        p {
+            font-size: 16px;
+            color: #555;
+        }
+
+        /* Styling for the next button */
+        .next-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .next-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h3>Welcome to the Application</h3>
+    <p>Please fill the details in the form and submit.</p>
+
+    <!-- Next Button to redirect to another page -->
+    <button class="next-btn" onclick="redirectToNextPage()">Next</button>
+
+    <script>
+        function redirectToNextPage() {
+            // Redirect to the next page
+            window.location.href = 'identification.html';  // Change this to the page you want to navigate to
+        }
+    </script>
+</body>
+</html>
