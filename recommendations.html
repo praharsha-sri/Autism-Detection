@@ -3,42 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Play History</title>
+    <title>Previous Diagnosis & Recommendation</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="container mt-5">
-    <h2>Previous Diagnosis & Therapy Details</h2>
-    <form id="previousdiagnosis">
-        <div class="mb-3">
-            <label for="prevtherapy" class="form-label"></label>
-            <textarea class="form-control" id="prevtherapy" rows="3" placeholder=""></textarea>
-        </div>
-    </form>
-
-    <br>
-
-    <h2>Recommendation</h2>
-    <form id="recommendation">
+        <!-- Previous Diagnosis Section -->
+        <h2>Previous Diagnosis & Therapy Details</h2>
+        <form id="previousdiagnosis">
             <div class="mb-3">
-                <label for="recommend" class="form-label"></label>
-                <textarea class="form-control" id="recommend" rows="3" placeholder=""></textarea>
+                <label for="prevtherapy" class="form-label">Previous Therapy Details</label>
+                <textarea class="form-control" id="prevtherapy" rows="3" placeholder="Enter previous therapy details..."></textarea>
+            </div>
+        </form>
+
+        <br>
+
+        <!-- Recommendation Section -->
+        <h2>Recommendation</h2>
+        <form id="recommendation" target="_top"> <!-- Ensure form submits to top-level window -->
+            <div class="mb-3">
+                <label for="recommend" class="form-label">Recommendation</label>
+                <textarea class="form-control" id="recommend" rows="3" placeholder="Enter your recommendation..."></textarea>
             </div>
 
-            <!-- Navigation buttons -->
+            <!-- Navigation Buttons -->
             <div class="d-flex justify-content-between">
                 <a href="selfhelp.html" class="btn btn-secondary">Previous</a>
                 <button type="submit" class="btn btn-primary">Submit</button>
             </div>
-    </form>
+        </form>
     </div>
 
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     
+    <!-- Form Submit Script -->
     <script>
         document.getElementById('recommendation').addEventListener('submit', function(event) {
             event.preventDefault();  // Prevent the default form submission behavior
-            window.location.href = 'selfhelp.html';  // Display an alert (or handle form submission)
+
+            // Redirect to the dashboard page after submission, replacing the current page entirely
+            window.top.location.href = 'parent_dashboard.html';  // Force navigation to the dashboard
         });
     </script>
 </body>

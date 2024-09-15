@@ -1,0 +1,77 @@
+/* Container padding */
+.container {
+    padding: 20px;
+}
+
+/* Header section */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dashboard-header h2 {
+    font-size: 1.8rem;
+    margin: 0;
+}
+
+/* Username and logout button */
+.username-logout {
+    display: flex;
+    align-items: center;
+}
+
+.username {
+    margin-right: 15px;
+    font-weight: bold;
+}
+
+/* Dashboard buttons styling */
+.dashboard-item {
+    font-size: 1.2rem;
+    text-align: center;
+    padding: 40px; /* Increased height */
+    width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #17a2b8; /* Custom button color (teal-like) */
+    color: white;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.dashboard-item:hover {
+    background-color: #138496; /* Darker teal for hover effect */
+    transform: translateY(-3px); /* Slightly raise the button on hover */
+    color: white;
+}
+
+/* Ensure equal spacing */
+.row .col-md-4 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Add some margin to make the layout balanced */
+.mb-4 {
+    margin-bottom: 20px;
+}
+
+/* Logout button styling */
+.btn-danger {
+    background-color: #e74c3c;
+    border-color: #e74c3c;
+}
+
+.btn-danger:hover {
+    background-color: #c0392b;
+    border-color: #c0392b;
+}
+
+/* On smaller screens */
+@media (max-width: 768px) {
+    .dashboard-item {
+        font-size: 1rem;
+        padding: 25px; /* Reduced height for smaller screens */
+    }
+}
