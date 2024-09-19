@@ -1,6 +1,26 @@
-/* Container padding */
-.container {
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    height: 100%;
+    width: 100%;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+}
+
+/* Container styles */
+.container-fluid {
+    min-height: 100vh;
+    width: 100vw;
     padding: 20px;
+    background-color: #d1d1d1; /* Purple background */
+    color: white;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Header section */
@@ -8,11 +28,10 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-}
-
-.dashboard-header h2 {
-    font-size: 1.8rem;
-    margin: 0;
+    margin-bottom: 30px;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
 }
 
 /* Username and logout button */
@@ -24,43 +43,54 @@
 .username {
     margin-right: 15px;
     font-weight: bold;
+    color: white;
+}
+
+/* Dashboard buttons styling */
+.row {
+    flex-grow: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+}
+
+.col-md-4 {
+    width: 33.333%;
+    padding: 10px;
 }
 
 /* Dashboard buttons styling */
 .dashboard-item {
     font-size: 1.2rem;
     text-align: center;
-    padding: 40px; /* Increased height */
+    padding: 40px;
     width: 100%;
+    height: 100%;
     border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    background-color: #17a2b8; /* Custom button color (teal-like) */
-    color: white;
-    transition: background-color 0.3s ease, transform 0.3s ease;
-}
-
-.dashboard-item:hover {
-    background-color: #138496; /* Darker teal for hover effect */
-    transform: translateY(-3px); /* Slightly raise the button on hover */
-    color: white;
-}
-
-/* Ensure equal spacing */
-.row .col-md-4 {
+    background-color: #0392eb; /* New orange background */
+    color: #ffffff; /* White text for visibility */
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.3);
     display: flex;
     justify-content: center;
     align-items: center;
+    cursor: pointer;
 }
 
-/* Add some margin to make the layout balanced */
-.mb-4 {
-    margin-bottom: 20px;
+.dashboard-item:hover {
+    background-color: #1079e2; /* Lighter orange on hover */
+    color: #ffffff; /* Keep text white */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
 /* Logout button styling */
 .btn-danger {
     background-color: #e74c3c;
     border-color: #e74c3c;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 5px;
+    transition: all 0.3s ease;
 }
 
 .btn-danger:hover {
@@ -70,8 +100,21 @@
 
 /* On smaller screens */
 @media (max-width: 768px) {
+    .col-md-4 {
+        width: 100%;
+    }
+    
     .dashboard-item {
-        font-size: 1rem;
-        padding: 25px; /* Reduced height for smaller screens */
+        font-size: 0.9rem; /* Even smaller font size on small screens */
+        padding: 20px;
+    }
+    
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .username-logout {
+        margin-top: 10px;
     }
 }
