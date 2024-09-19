@@ -80,17 +80,18 @@
             const ageInput = document.getElementById('age');
             const dateInput = document.getElementById('date');
             const dobInput = document.getElementById('dob');
-
+        
             form.addEventListener('submit', function (event) {
+                event.preventDefault(); // Prevent the default form submission
                 let valid = true;
-
+        
                 // Validate age
                 const ageValue = parseInt(ageInput.value, 10);
                 if (ageValue < 2) {
                     alert('Age must be 2 years or older.');
                     valid = false;
                 }
-
+        
                 // Validate date and date of birth
                 const today = new Date();
                 const selectedDate = new Date(dateInput.value);
@@ -100,13 +101,15 @@
                     alert('Please enter a valid date.');
                     valid = false;
                 }
-
-                if (!valid) {
-                    event.preventDefault(); // Prevent form submission if validation fails
+        
+                if (valid) {
+                    // Redirect to parental.html after successful validation
+                    window.location.href = 'parental.html';
                 }
             });
         });
     </script>
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

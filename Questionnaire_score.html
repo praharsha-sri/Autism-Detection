@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUESTIONNAIRE BASED ON ISAA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        .header {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .card {
+            margin: 20px auto;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        .highlight {
+            font-weight: bold;
+            color: #007bff;
+        }
+        .score {
+            font-size: 1.2em;
+            color: #28a745;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .note {
+            font-size: 1.1em;
+            color: #dc3545;
+        }
+        .proceed-button {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>QUESTIONNAIRE BASED ON ISAA</h1>
+            <p>Grading Instructions</p>
+        </div>
+
+        <!-- Scale 1 - Rarely -->
+        <div class="card">
+            <h3 class="highlight">Rarely (up to 20%)</h3>
+            <p>Behavior occurs up to 20% of the time and is considered normal for age and socio-educational background.</p>
+            <p class="score">Score: 1</p>
+        </div>
+
+        <!-- Scale 2 - Sometimes -->
+        <div class="card">
+            <h3 class="highlight">Sometimes (21-40%)</h3>
+            <p>Behavior occurs 21-40% of the time. Some behaviors may raise concern but are generally within normal limits for age and socio-educational background.</p>
+            <p class="score">Score: 2</p>
+        </div>
+
+        <!-- Scale 3 - Frequently -->
+        <div class="card">
+            <h3 class="highlight">Frequently (41-60%)</h3>
+            <p>Behavior occurs 41-60% of the time, regularly interfering with daily functioning, and is considered definitely disabling.</p>
+            <p class="score">Score: 3</p>
+        </div>
+
+        <!-- Scale 4 - Mostly -->
+        <div class="card">
+            <h3 class="highlight">Mostly (61-80%)</h3>
+            <p>Behavior occurs 61-80% of the time, often without a clear trigger, significantly hindering daily activities. The person requires assistance with daily tasks.</p>
+            <p class="score">Score: 4</p>
+        </div>
+
+        <!-- Scale 5 - Always -->
+        <div class="card">
+            <h3 class="highlight">Always (81-100%)</h3>
+            <p>Behavior occurs nearly all the time, is rarely appropriate, and is considered a major handicap. The person is completely dependent for daily activities.</p>
+            <p class="score">Score: 5</p>
+        </div>
+
+        <!-- Footer Section with Minimum and Maximum Scores -->
+        <div class="footer">
+            <p class="note">* The minimum score that can be obtained is 40.</p>
+            <p class="note">* The maximum score that can be obtained is 200.</p>
+            <!-- Proceed Button -->
+            <button class="btn btn-primary proceed-button" onclick="validateNext()">Click to Proceed</button>
+        </div>
+    </div>
+
+    <!-- JavaScript to handle navigation -->
+    <script>
+        function validateNext() {
+            // Navigate to the next page (replace 'nextPage.html' with your actual target page)
+            window.location.href = 'Social.html';
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
