@@ -22,6 +22,7 @@ function closeAlert() {
 
 function validateForm() {
     // Get all radio groups
+    
    const questions = document.querySelectorAll('.radio-group');
             
     // Iterate over each question
