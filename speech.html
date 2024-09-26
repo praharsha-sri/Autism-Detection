@@ -4,134 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Speech-Language And Communication Form</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f9f9f9;
-            margin: 0;
-            padding: 20px;
-        }
-
-        h2 {
-            text-align: center;
-            color: #4A90E2;
-        }
-
-        form {
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            max-width: 800px;
-            margin: 20px auto;
-            position: relative;
-        }
-
-        label {
-            font-size: 16px;
-            margin-bottom: 20px;
-            display: block;
-            color: #333;
-        }
-
-        .question {
-            margin-bottom: 20px;
-        }
-
-        .question .required {
-            color: red; /* Red color for asterisks */
-        }
-        .description {
-            font-size: 14px;
-            color: #555555; /* Light black (gray) */
-            margin-bottom: 5px;
-        }
-        .radio-group {
-            margin-top: 10px;
-            display: flex;
-            flex-wrap: wrap;
-        }
-
-        .radio-group label {
-            margin-right: 50px;
-            font-size: 14px;
-            color: #555;
-        }
-
-        .radio-group input {
-            margin-right: 5px;
-        }
-
-        .button-container {
-            position: absolute;
-            bottom: 20px;
-            width: calc(100% - 40px); /* Adjust for padding */
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .button-container button {
-            background-color: #4A90E2;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .button-container button:hover {
-            background-color: #357ABD;
-        }
-
-        .button-container .prev-btn {
-            background-color: #d9534f; /* Optional: Different color for Previous button */
-        }
-
-        .button-container .prev-btn:hover {
-            background-color: #c9302c;
-        }
-
-        /* Custom Modal Styles */
-        .custom-alert {
-            display: none; /* Hidden by default */
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5); /* Black background with opacity */
-            justify-content: center;
-            align-items: center;
-        }
-
-        .custom-alert-content {
-            background-color: #fff;
-            margin: auto;
-            padding: 20px;
-            border-radius: 8px;
-            width: 50%;
-            text-align: center;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .custom-alert-btn {
-            background-color: #4A90E2;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .custom-alert-btn:hover {
-            background-color: #357ABD;
-        }
-    </style>
+    <link rel="stylesheet" href="questionnaire_style.css">
 </head>
 <body>
 
@@ -140,69 +13,39 @@
     <form id="form" action="communication.html" method="post">
         <div class="question">
             <label>15. Acquired speech and lost it <span class="required">*</span></label>
-<div class="description">May have developed speech but lost it later. Around 50% of autistic individuals may be mute.</div>
-            <div class="radio-group">
-                <label><input type="radio" name="q1" value="Rarely"> Rarely</label>
-                <label><input type="radio" name="q1" value="Sometimes"> Sometimes</label>
-                <label><input type="radio" name="q1" value="Frequently"> Frequently</label>
-                <label><input type="radio" name="q1" value="Mostly"> Mostly</label>
-                <label><input type="radio" name="q1" value="Always"> Always</label>
-            </div>
+<div class="question-description">May have developed speech but lost it later. Around 50% of autistic individuals may be mute.</div>
+<div id="acquired" class="radio-group"></div> <!-- Placeholder for radio buttons -->
         </div>
 
         <div class="question">
             <label>16. Has difficulty in using non-verbal language or gestures to communicate <span class="required">*</span></label>
-<div class="description">May struggle to express needs non-verbally, like pointing. They might pull someone's hand to an object instead.</div>
-            <div class="radio-group">
-                <label><input type="radio" name="q2" value="Rarely"> Rarely</label>
-                <label><input type="radio" name="q2" value="Sometimes"> Sometimes</label>
-                <label><input type="radio" name="q2" value="Frequently"> Frequently</label>
-                <label><input type="radio" name="q2" value="Mostly"> Mostly</label>
-                <label><input type="radio" name="q2" value="Always"> Always</label>
-            </div>
+<div class="question-description">May struggle to express needs non-verbally, like pointing. They might pull someone's hand to an object instead.</div>
+<div id="hasDifficulty" class="radio-group"></div> <!-- Placeholder for radio buttons -->
         </div>
 
         <div class="question">
             <label>17. Engages in stereotyped and repetitive use of language <span class="required">*</span></label>
-<div class="description">May repeat words or phrases out of context, saying the same thing many times.</div>
-            <div class="radio-group">
-                <label><input type="radio" name="q3" value="Rarely"> Rarely</label>
-                <label><input type="radio" name="q3" value="Sometimes"> Sometimes</label>
-                <label><input type="radio" name="q3" value="Frequently"> Frequently</label>
-                <label><input type="radio" name="q3" value="Mostly"> Mostly</label>
-                <label><input type="radio" name="q3" value="Always"> Always</label>
-            </div>
+<div class="question-description">May repeat words or phrases out of context, saying the same thing many times.</div>
+<div id="engagesInStereotyped" class="radio-group"></div> <!-- Placeholder for radio buttons -->
         </div>
 
         <div class="question">
             <label>18. Engages in echolalic speech <span class="required">*</span></label>
-<div class="description">May repeat or echo what others say without understanding they need to respond.</div>
-            <div class="radio-group">
-                <label><input type="radio" name="q4" value="Rarely"> Rarely</label>
-                <label><input type="radio" name="q4" value="Sometimes"> Sometimes</label>
-                <label><input type="radio" name="q4" value="Frequently"> Frequently</label>
-                <label><input type="radio" name="q4" value="Mostly"> Mostly</label>
-                <label><input type="radio" name="q4" value="Always"> Always</label>
-            </div>
+<div class="question-description">May repeat or echo what others say without understanding they need to respond.</div>
+<div id="engagesInEcholalic" class="radio-group"></div> <!-- Placeholder for radio buttons -->
         </div>
 
         <div class="question">
             <label>19. Produces infantile squeals/ unusual noises <span class="required">*</span></label>
-<div class="description">May make strange noises or unintelligible sounds that don't have clear meaning.</div>
-            <div class="radio-group">
-                <label><input type="radio" name="q5" value="Rarely"> Rarely</label>
-                <label><input type="radio" name="q5" value="Sometimes"> Sometimes</label>
-                <label><input type="radio" name="q5" value="Frequently"> Frequently</label>
-                <label><input type="radio" name="q5" value="Mostly"> Mostly</label>
-                <label><input type="radio" name="q5" value="Always"> Always</label>
-            </div>
+<div class="question-description">May make strange noises or unintelligible sounds that don't have clear meaning.</div>
+<div id="producesInfantile" class="radio-group"></div> <!-- Placeholder for radio buttons -->
         </div>
 
         
         <br>
          <br>
         <div class="button-container">
-            <button type="button" class="prev-btn" onclick="window.location.href='emotional.html'">Previous</button>
+            <button type="button" class= "prev-btn" onclick="window.location.href='emotional.html'">Previous</button>
             <button type="button" class="next-btn" onclick="validateNext()">Next</button>
         </div>
     </form>
@@ -215,41 +58,12 @@
         </div>
     </div>
 
-    <script>
-                function showAlert() {
-            document.getElementById('customAlert').style.display = 'flex'; // Show the custom alert
-        }
-
-        function closeAlert() {
-            document.getElementById('customAlert').style.display = 'none'; // Hide the custom alert
-        }
-
-        function validateForm() {
-            // Get all radio groups
-            const questions = document.querySelectorAll('.radio-group');
-            
-            // Iterate over each question
-            for (let i = 0; i < questions.length; i++) {
-                const radioButtons = questions[i].querySelectorAll('input[type="radio"]');
-                
-                // Check if at least one radio button is checked
-                let isChecked = false;
-                for (let j = 0; j < radioButtons.length; j++) {
-                    if (radioButtons[j].checked) {
-                        isChecked = true;
-                        break;
-                    }
-                }
-                
-                // If no radio button is checked, show modal and stop form submission
-                if (!isChecked) {
-                    showAlert(); // Show the custom alert
-                    return false; // Prevent form submission
-                }
-            }
-            
-            return true; // All questions are answered, proceed with form submission
-        }
+    <script src="questionnaire_form.js"></script>
+<script>
+// Initialize radio buttons for questions on this page
+window.onload = function() {
+            initializeRadioButtons(['acquired','hasDifficulty','engagesInStereotyped','engagesInEcholalic','producesInfantile']);
+        };    
 
         function validateNext() {
             if (validateForm()) {

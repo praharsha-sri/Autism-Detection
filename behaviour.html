@@ -4,221 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Behaviour Patterns Form</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f9f9f9;
-            margin: 0;
-            padding: 20px;
-        }
-
-        h2 {
-            text-align: center;
-            color: #4A90E2;
-        }
-
-        form {
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            max-width: 900px; /* Increased width */
-            margin: 20px auto;
-        }
-
-        label {
-            font-size: 16px;
-            margin-bottom: 10px;
-            display: block;
-            color: #333;
-        }
-
-        .question {
-            margin-bottom: 20px;
-        }
-
-        .description {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 10px;
-        }
-
-        .question .required {
-            color: red; /* Red color for asterisks */
-        }
-
-        .radio-group {
-            margin-top: 10px;
-            display: flex;
-            flex-wrap: wrap;
-        }
-
-        .radio-group label {
-            margin-right: 20px;
-            font-size: 14px;
-            color: #555;
-        }
-
-        .radio-group input {
-            margin-right: 5px;
-        }
-
-        .button-container {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px; /* Add margin to create space between buttons and the last question */
-        }
-
-        .button-container button {
-            background-color: #4A90E2;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .button-container button:hover {
-            background-color: #357ABD;
-        }
-
-        .button-container .prev-btn {
-            background-color: #d9534f; /* Optional: Different color for Previous button */
-        }
-
-        .button-container .prev-btn:hover {
-            background-color: #c9302c;
-        }
-
-        /* Custom Modal Styles */
-        .custom-alert {
-            display: none; /* Hidden by default */
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5); /* Black background with opacity */
-            justify-content: center;
-            align-items: center;
-        }
-
-        .custom-alert-content {
-            background-color: #fff;
-            margin: auto;
-            padding: 20px;
-            border-radius: 8px;
-            width: 50%;
-            text-align: center;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .custom-alert-btn {
-            background-color: #4A90E2;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .custom-alert-btn:hover {
-            background-color: #357ABD;
-        }
-    </style>
+    <link rel="stylesheet" href="questionnaire_style.css">
 </head>
 <body>
 
     <h2>IV. BEHAVIOUR PATTERNS</h2>
 
-    <form id="form" action="sensory.html" method="post">  
+    <form id= "form" action="sensory.html" method="post">  
         <div class="question">
             <label>24. Engages in stereotyped and repetitive motor mannerisms <span class="required">*</span></label>
-            <p class="description"> Repeated behaviors like hand flapping, body rocking, or using objects to self-stimulate.</p>
-            <div class="radio-group">
-                <label><input type="radio" name="q1" value="Rarely"> Rarely</label>
-                <label><input type="radio" name="q1" value="Sometimes"> Sometimes</label>
-                <label><input type="radio" name="q1" value="Frequently"> Frequently</label>
-                <label><input type="radio" name="q1" value="Mostly"> Mostly</label>
-                <label><input type="radio" name="q1" value="Always"> Always</label>
-            </div>
+            <p class="question-description"> Repeated behaviors like hand flapping, body rocking, or using objects to self-stimulate.</p>
+            <div id="engagesInStereotyped" class="radio-group"></div> <!-- Placeholder for radio buttons -->
         </div>
 
         <div class="question">
             <label>25. Shows attachment to inanimate objects <span class="required">*</span></label>
-            <p class="description"> Strong attachment to items like toys, pens, or sticks, showing resistance or tantrums when separated from them.</p>
-            <div class="radio-group">
-                <label><input type="radio" name="q2" value="Rarely"> Rarely</label>
-                <label><input type="radio" name="q2" value="Sometimes"> Sometimes</label>
-                <label><input type="radio" name="q2" value="Frequently"> Frequently</label>
-                <label><input type="radio" name="q2" value="Mostly"> Mostly</label>
-                <label><input type="radio" name="q2" value="Always"> Always</label>
-            </div>
+            <p class="question-description"> Strong attachment to items like toys, pens, or sticks, showing resistance or tantrums when separated from them.</p>
+            <div id="showsAttachment" class="radio-group"></div> <!-- Placeholder for radio buttons -->
         </div>
 
         <div class="question">
             <label>26. Shows hyperactivity/ restlessness <span class="required">*</span></label>
-            <p class="description"> Excessive energy, making it hard to control and affecting learning.</p>
-            <div class="radio-group">
-                <label><input type="radio" name="q3" value="Rarely"> Rarely</label>
-                <label><input type="radio" name="q3" value="Sometimes"> Sometimes</label>
-                <label><input type="radio" name="q3" value="Frequently"> Frequently</label>
-                <label><input type="radio" name="q3" value="Mostly"> Mostly</label>
-                <label><input type="radio" name="q3" value="Always"> Always</label>
-            </div>
+            <p class="question-description"> Excessive energy, making it hard to control and affecting learning.</p>
+            <div id="showsHyperactivity" class="radio-group"></div> <!-- Placeholder for radio buttons -->
         </div>
 
         <div class="question">
             <label>27. Exhibits aggressive behavior <span class="required">*</span></label>
-            <p class="description"> Unprovoked aggression, such as hitting, kicking, or pinching.</p>
-            <div class="radio-group">
-                <label><input type="radio" name="q4" value="Rarely"> Rarely</label>
-                <label><input type="radio" name="q4" value="Sometimes"> Sometimes</label>
-                <label><input type="radio" name="q4" value="Frequently"> Frequently</label>
-                <label><input type="radio" name="q4" value="Mostly"> Mostly</label>
-                <label><input type="radio" name="q4" value="Always"> Always</label>
-            </div>
+            <p class="question-description"> Unprovoked aggression, such as hitting, kicking, or pinching.</p>
+            <div id="exhibitsAggressive" class="radio-group"></div> <!-- Placeholder for radio buttons -->
         </div>
 
         <div class="question">
             <label>28. Throws temper tantrums <span class="required">*</span></label>
-            <p class="description"> Outbursts like head banging, screaming, or yelling when frustrated.</p>
-            <div class="radio-group">
-                <label><input type="radio" name="q5" value="Rarely"> Rarely</label>
-                <label><input type="radio" name="q5" value="Sometimes"> Sometimes</label>
-                <label><input type="radio" name="q5" value="Frequently"> Frequently</label>
-                <label><input type="radio" name="q5" value="Mostly"> Mostly</label>
-                <label><input type="radio" name="q5" value="Always"> Always</label>
-            </div>
+            <p class="question-description"> Outbursts like head banging, screaming, or yelling when frustrated.</p>
+            <div id="throwsTemper" class="radio-group"></div> <!-- Placeholder for radio buttons -->
         </div>
 
         <div class="question">
             <label>29. Engages in self-injurious behavior <span class="required">*</span></label>
-            <p class="description"> Actions like biting or hitting oneself, needing constant supervision.</p>
-            <div class="radio-group">
-                <label><input type="radio" name="q6" value="Rarely"> Rarely</label>
-                <label><input type="radio" name="q6" value="Sometimes"> Sometimes</label>
-                <label><input type="radio" name="q6" value="Frequently"> Frequently</label>
-                <label><input type="radio" name="q6" value="Mostly"> Mostly</label>
-                <label><input type="radio" name="q6" value="Always"> Always</label>
-            </div>
+            <p class="question-description"> Actions like biting or hitting oneself, needing constant supervision.</p>
+            <div id="engagesInSelf-injuries" class="radio-group"></div> <!-- Placeholder for radio buttons -->
         </div>
 
         <div class="question">
             <label>30. Insists on sameness <span class="required">*</span></label>
-            <p class="description"> Resists changes to routine, showing distress when things are not done a certain way.</p>
-            <div class="radio-group">
-                <label><input type="radio" name="q7" value="Rarely"> Rarely</label>
-                <label><input type="radio" name="q7" value="Sometimes"> Sometimes</label>
-                <label><input type="radio" name="q7" value="Frequently"> Frequently</label>
-                <label><input type="radio" name="q7" value="Mostly"> Mostly</label>
-                <label><input type="radio" name="q7" value="Always"> Always</label>
-            </div>
+            <p class="question-description"> Resists changes to routine, showing distress when things are not done a certain way.</p>
+            <div id="insistsOnsameness" class="radio-group"></div> <!-- Placeholder for radio buttons -->
         </div>
 
         <br>
@@ -237,41 +69,12 @@
         </div>
     </div>
 
-    <script>
-                function showAlert() {
-            document.getElementById('customAlert').style.display = 'flex'; // Show the custom alert
-        }
-
-        function closeAlert() {
-            document.getElementById('customAlert').style.display = 'none'; // Hide the custom alert
-        }
-
-        function validateForm() {
-            // Get all radio groups
-            const questions = document.querySelectorAll('.radio-group');
-            
-            // Iterate over each question
-            for (let i = 0; i < questions.length; i++) {
-                const radioButtons = questions[i].querySelectorAll('input[type="radio"]');
-                
-                // Check if at least one radio button is checked
-                let isChecked = false;
-                for (let j = 0; j < radioButtons.length; j++) {
-                    if (radioButtons[j].checked) {
-                        isChecked = true;
-                        break;
-                    }
-                }
-                
-                // If no radio button is checked, show modal and stop form submission
-                if (!isChecked) {
-                    showAlert(); // Show the custom alert
-                    return false; // Prevent form submission
-                }
-            }
-            
-            return true; // All questions are answered, proceed with form submission
-        }
+    <script src="questionnaire_form.js"></script>
+<script>
+// Initialize radio buttons for questions on this page
+window.onload = function() {
+            initializeRadioButtons(['engagesInStereotyped','showsAttachment','showsHyperactivity','exhibitsAggressive','throwsTemper','engagesInSelf-injuries','insistsOnsameness']);
+        };    
 
         function validateNext() {
             if (validateForm()) {
@@ -281,7 +84,6 @@
             }
         }
     </script>
-
 
 </body>
 </html>
