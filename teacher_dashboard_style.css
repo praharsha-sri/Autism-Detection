@@ -1,6 +1,6 @@
 /* Custom Background */
 body.bg-light-blue {
-    background: linear-gradient(to right, #6a11cb, #2575fc); /* Blue to purple gradient */
+    background: linear-gradient(to right, #b99bd9, #2575fc52);
     color: white;
     min-height: 100vh;
     display: flex;
