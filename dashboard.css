@@ -16,6 +16,10 @@ body, html {
   background-position: center; /* Center the image */
   background-repeat: no-repeat; /* Ensure it doesn't repeat */
 }
+.bg-light {
+  --bs-bg-opacity: 1;
+  background-color: rgba(219, 222, 224, 0.863) !important;
+}
 
 /* Container styles */
 .container-fluid {
