@@ -83,15 +83,15 @@
 window.onload = function() {
             initializeRadioButtons(['poorEyeContact', 'lackSocialSmile','remainAloof','doNotReachOut','inabilityToRelate','inabilityToRespond','engageInSolitary','inabilityToShare']);
         };    
-
-        function validateNext() {
-            if (validateForm()) {
-                window.location.href = 'emotional.html'; // Navigate to the next page
-            } else {
-                showAlert(); // Show the custom alert if form is not valid
-            }
+    // The window.onload function is now in the questionnaire_form.js file, so we can remove it from here
+    // Keep the validateNext function as it is
+    function validateNext() {
+        if (validateForm()) {
+            window.location.href = 'emotional.html'; // Navigate to the next page
+        } else {
+            showAlert(); // Show the custom alert if form is not valid
         }
-    </script>
-
+    }
+</script>
 </body>
 </html>

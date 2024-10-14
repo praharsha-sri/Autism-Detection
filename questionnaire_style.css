@@ -1,6 +1,6 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #f0c3c3;
+    background-color:#ffbf005e;
     margin: 0;
     padding: 20px;
 }
@@ -77,7 +77,8 @@ label {
 }
 
 .button-container .prev-btn {
-    background-color: #d9534f;
+    background-color: #d83934;
+    color:#fff
 }
 
 .button-container .prev-btn:hover {

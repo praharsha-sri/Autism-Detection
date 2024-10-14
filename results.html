@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISAA Assessment Results</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .classification {
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ISAA Assessment Results</h1>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        // Function to get URL parameters
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+
+        // Function to classify autism based on total score
+        function classifyAutism(totalScore) {
+            if (totalScore <= 70) return "No Autism";
+            if (totalScore <= 106) return "Mild Autism";
+            if (totalScore <= 153) return "Moderate Autism";
+            return "Severe Autism";
+        }
+
+        // Get scores from URL parameters
+        const subdomains = [
+            "Social Relationship and Reciprocity",
+            "Emotional Responsiveness",
+            "Speech-Language and Communication",
+            "Behavior Patterns",
+            "Sensory Aspects",
+            "Cognitive Component"
+        ];
+
+        let totalScore = 0;
+        let resultsHTML = '<table><tr><th>Subdomain</th><th>Score</th></tr>';
+
+        subdomains.forEach(subdomain => {
+            const score = parseInt(getUrlParameter(subdomain.toLowerCase().replace(/\s+/g, '')));
+            totalScore += score;
+            resultsHTML += `<tr><td>${subdomain}</td><td>${score}</td></tr>`;
+        });
+
+        resultsHTML += `<tr><th>Total Score</th><th>${totalScore}</th></tr></table>`;
+
+        const classification = classifyAutism(totalScore);
+        resultsHTML += `<div class="classification">Classification: ${classification}</div>`;
+
+        // Display results
+        document.getElementById('results').innerHTML = resultsHTML;
+    </script>
+</body>
+</html>
