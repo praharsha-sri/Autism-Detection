@@ -4,116 +4,69 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Autism Assessment Form</title>
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background-color: #fdf2f2; /* Background color of the page */
-            margin: 0;
-        }
-
-        form {
-            display: flex;
-            flex-direction: column;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
-            width: 500px; /* Increased width for longer title */
-        }
-
-        input, select {
-            margin-bottom: 15px;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 16px;
-        }
-
-        label {
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
-        button, .previous-button {
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        button:hover, .previous-button:hover {
-            background-color: #0056b3;
-        }
-
-        h1 {
-            margin-bottom: 20px;
-            font-size: 24px;
-            text-align: center;
-        }
-
-        .previous-button {
-            align-self: flex-start; /* Aligns "Previous" button to the left */
-            margin-top: 10px;
-            text-decoration: none;
-            text-align: center;
-        }
-
-        .button-container {
-            display: flex;
-            justify-content: space-between;
-        }
-    </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="questionnaire_style.css">
 </head>
 <body>
 
-    <!-- Form submits to nextPage.html -->
+    <h2>Indian Scale for Assessment of Autism</h2>
+
     <form id="autismForm" action="Social.html" method="POST">
-        <h1>Indian Scale for Assessment of Autism</h1>
-        
-        <label for="name">Name of the child:</label>
-        <input type="text" id="name" name="name" required>
-        
-        <label for="gender">Gender:</label>
-        <select id="gender" name="gender" required>
-            <option value="">Select Gender</option>
-            <option value="male">Male</option>
-            <option value="female">Female</option>
-            <option value="other">Other</option>
-        </select>
+        <div class="question">
+            <label for="name">Name of the child <span class="required">*</span></label>
+            <input type="text" id="name" name="name" class="form-control" required>
+        </div>
 
-        <label for="date">Date:</label>
-        <input type="date" id="date" name="date" required>
+        <div class="question">
+            <label for="gender">Gender <span class="required">*</span></label>
+            <select id="gender" name="gender" class="form-select" required>
+                <option value="">Select Gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+            </select>
+        </div>
 
-        <label for="dob">D.O.B.:</label>
-        <input type="date" id="dob" name="dob" required>
+        <div class="question">
+            <label for="date">Date <span class="required">*</span></label>
+            <input type="date" id="date" name="date" class="form-control" required>
+        </div>
 
-        <label for="age">Age:</label>
-        <input type="text" id="age" name="age" required>
+        <div class="question">
+            <label for="dob">D.O.B. <span class="required">*</span></label>
+            <input type="date" id="dob" name="dob" class="form-control" required>
+        </div>
 
-        <label for="examiner">Examiner:</label>
-        <input type="text" id="examiner" name="examiner" required>
+        <div class="question">
+            <label for="age">Age <span class="required">*</span></label>
+            <input type="text" id="age" name="age" class="form-control" required>
+        </div>
 
-        <!-- Buttons container -->
+        <div class="question">
+            <label for="examiner">Examiner <span class="required">*</span></label>
+            <input type="text" id="examiner" name="examiner" class="form-control" required>
+        </div>
+
         <div class="button-container">
-            <!-- Previous page button/link -->
-            <a href="Questionnaire_score.html" class="previous-button">Previous</a>
-            
-            <!-- Submit button -->
+            <a href="Questionnaire_score.html" class="btn prev-btn">Previous</a>
             <button type="submit">Next</button>
         </div>
     </form>
 
+    <!-- Custom Modal for Validation Message -->
+    <div id="customAlert" class="custom-alert">
+        <div class="custom-alert-content">
+            <p>Please fill out all the fields before proceeding.</p>
+            <button class="custom-alert-btn" onclick="closeAlert()">OK</button>
+        </div>
+    </div>
+
     <script>
+        // Form validation
         document.getElementById('autismForm').addEventListener('submit', function(event) {
             var form = this;
             var allFilled = true;
-            
-            // Check if all fields are filled
+
             form.querySelectorAll('input, select').forEach(function(input) {
                 if (!input.value) {
                     allFilled = false;
@@ -122,10 +75,21 @@
 
             if (!allFilled) {
                 event.preventDefault();
-                alert('Please fill out all the fields before proceeding.');
+                showAlert();
             }
         });
+
+        // Display custom alert
+        function showAlert() {
+            document.getElementById('customAlert').style.display = 'flex';
+        }
+
+        // Close custom alert
+        function closeAlert() {
+            document.getElementById('customAlert').style.display = 'none';
+        }
     </script>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

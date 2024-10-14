@@ -1,13 +1,13 @@
 body {
     font-family: Arial, sans-serif;
-    background-image: url("light pink.jpg");
+    background-color: #f0c3c3;
     margin: 0;
     padding: 20px;
 }
 
 h2 {
     text-align: center;
-    color: #4ad0e2;
+    color: #000000;
 }
 
 form {
@@ -56,11 +56,9 @@ label {
 }
 
 .button-container {
-    position: absolute;
-    bottom: 20px;
-    width: calc(100% - 40px);
     display: flex;
     justify-content: space-between;
+    margin-top: 20px; /* Add space between last input field and buttons */
 }
 
 .button-container button {
