@@ -10,46 +10,70 @@
 
     <h2>III. SPEECH-LANGUAGE AND COMMUNICATION</h2>
 
-    <form id="form" action="communication.html" method="post">
+    <form id="form" action="behaviour.html" method="post">
+        <!-- Section 1 -->
         <div class="question">
             <label>15. Acquired speech and lost it <span class="required">*</span></label>
-<div class="question-description">May have developed speech but lost it later. Around 50% of autistic individuals may be mute.</div>
-<div id="acquired" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+            <div class="question-description">May have developed speech but lost it later. Around 50% of autistic individuals may be mute.</div>
+            <div id="acquired" class="radio-group"></div> <!-- Placeholder for radio buttons -->
         </div>
 
         <div class="question">
             <label>16. Has difficulty in using non-verbal language or gestures to communicate <span class="required">*</span></label>
-<div class="question-description">May struggle to express needs non-verbally, like pointing. They might pull someone's hand to an object instead.</div>
-<div id="hasDifficulty" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+            <div class="question-description">May struggle to express needs non-verbally, like pointing. They might pull someone's hand to an object instead.</div>
+            <div id="hasDifficulty" class="radio-group"></div> <!-- Placeholder for radio buttons -->
         </div>
 
         <div class="question">
             <label>17. Engages in stereotyped and repetitive use of language <span class="required">*</span></label>
-<div class="question-description">May repeat words or phrases out of context, saying the same thing many times.</div>
-<div id="engagesInStereotyped" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+            <div class="question-description">May repeat words or phrases out of context, saying the same thing many times.</div>
+            <div id="engagesInStereotyped" class="radio-group"></div> <!-- Placeholder for radio buttons -->
         </div>
 
         <div class="question">
             <label>18. Engages in echolalic speech <span class="required">*</span></label>
-<div class="question-description">May repeat or echo what others say without understanding they need to respond.</div>
-<div id="engagesInEcholalic" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+            <div class="question-description">May repeat or echo what others say without understanding they need to respond.</div>
+            <div id="engagesInEcholalic" class="radio-group"></div> <!-- Placeholder for radio buttons -->
         </div>
 
         <div class="question">
             <label>19. Produces infantile squeals/ unusual noises <span class="required">*</span></label>
-<div class="question-description">May make strange noises or unintelligible sounds that don't have clear meaning.</div>
-<div id="producesInfantile" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+            <div class="question-description">May make strange noises or unintelligible sounds that don't have clear meaning.</div>
+            <div id="producesInfantile" class="radio-group"></div> <!-- Placeholder for radio buttons -->
         </div>
 
-        
+        <!-- Section 2 -->
+        <div class="question">
+            <label>20. Unable to initiate or sustain conversation with others <span class="required">*</span></label>
+            <div class="question-description">May have trouble starting or maintaining a conversation with others.</div>
+            <div id="unableToInitiate" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>21. Uses jargon or meaningless words <span class="required">*</span></label>
+            <div class="question-description">May use words that don't have clear or relevant meaning.</div>
+            <div id="usesJargon" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>22. Uses pronoun reversals <span class="required">*</span></label>
+            <div class="question-description">May refer to themselves as "you" and others as "I".</div>
+            <div id="usesPronounReversals" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>23. Unable to grasp pragmatics of communication (real meaning) <span class="required">*</span></label>
+            <div class="question-description">May not understand the intended meaning behind words or social cues.</div>
+            <div id="unableToGrasp" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
         <br>
-         <br>
         <div class="button-container">
-            <button type="button" class= "prev-btn" onclick="window.location.href='emotional.html'">Previous</button>
+            <button type="button" class="prev-btn" onclick="window.location.href='emotional.html'">Previous</button>
             <button type="button" class="next-btn" onclick="validateNext()">Next</button>
         </div>
     </form>
- 
+
     <!-- Custom Modal for Validation Message -->
     <div id="customAlert" class="custom-alert">
         <div class="custom-alert-content">
@@ -59,21 +83,24 @@
     </div>
 
     <script src="questionnaire_form.js"></script>
-<script>
-// Initialize radio buttons for questions on this page
-window.onload = function() {
-            initializeRadioButtons(['acquired','hasDifficulty','engagesInStereotyped','engagesInEcholalic','producesInfantile']);
-        };    
+    <script>
+        // Initialize radio buttons for questions on this page
+        window.onload = function() {
+            initializeRadioButtons([
+                'acquired', 'hasDifficulty', 'engagesInStereotyped', 
+                'engagesInEcholalic', 'producesInfantile', 
+                'unableToInitiate', 'usesJargon', 
+                'usesPronounReversals', 'unableToGrasp'
+            ]);
+        };
 
         function validateNext() {
             if (validateForm()) {
-                window.location.href = 'communication.html'; // Navigate to the next page
+                window.location.href = 'behaviour.html'; // Navigate to the next page
             } else {
                 showAlert(); // Show the custom alert if form is not valid
             }
         }
     </script>
-
-
 </body>
 </html>

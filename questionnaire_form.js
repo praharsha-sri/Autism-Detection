@@ -88,27 +88,3 @@ function updateScore() {
     2
   )}%)`;
 }
-
-// Initialize radio buttons and score display when the page loads
-window.onload = function () {
-  initializeRadioButtons([
-    "poorEyeContact",
-    "lackSocialSmile",
-    "remainAloof",
-    "doNotReachOut",
-    "inabilityToRelate",
-    "inabilityToRespond",
-    "engageInSolitary",
-    "inabilityToShare",
-  ]);
-  updateScore(); // Initialize score display
-};
-
-function validateNext() {
-  if (validateForm()) {
-    // You can add any additional logic here before navigating
-    window.location.href = "emotional.html"; // Navigate to the next page
-  } else {
-    showAlert(); // Show the custom alert if form is not valid
-  }
-}
