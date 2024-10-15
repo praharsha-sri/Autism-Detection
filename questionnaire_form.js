@@ -87,4 +87,7 @@ function updateScore() {
   scoreDisplay.textContent = `Current Score: ${totalScore} out of ${maxPossibleScore} (${scorePercentage.toFixed(
     2
   )}%)`;
+
+  // Store score in localStorage with a unique key for this domain
+  localStorage.setItem("socialRelationshipScore", totalScore); // Use a unique key for each domain
 }
