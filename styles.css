@@ -11,6 +11,7 @@ body {
     justify-content: center;
     align-items: center;
     color: #2c3e50;
+    margin-top: 80px; /* Add this line to create space below the header */
 }
 
 /* Header Styles */
@@ -25,6 +26,7 @@ body {
     background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent background */
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     z-index: 1000;
+    flex-wrap: wrap; /* Allow wrapping for smaller screens */
 }
 
 .main-header .logo h1 {
@@ -34,27 +36,15 @@ body {
     margin: 0;
 }
 
-/* Adjusting the position of nav menu */
-.nav-menu ul {
+/* Auth Buttons */
+.auth-buttons {
     display: flex;
-    list-style: none;
-    gap: 20px;
-    margin: 0;
-    padding: 0;
-    margin-left: 30px; /* Shift nav items to the left */
-}
-
-.nav-menu ul li a {
-    text-decoration: none;
-    color: #2c3e50;
-    font-weight: 600;
-    font-size: 18px;
+    gap: 10px; /* Adjust space between buttons */
 }
 
 .auth-buttons a {
     text-decoration: none;
     padding: 10px 20px;
-    margin-left: 10px;
     border-radius: 25px;
     font-size: 18px;
     font-weight: 600;
@@ -72,15 +62,6 @@ body {
     color: #ffffff;
 }
 
-.sign-up-btn {
-    background-color: #2c3e50;
-    color: #ffffff;
-}
-
-.sign-up-btn:hover {
-    background-color: #82b4d7;
-}
-
 /* Welcome Section Styles */
 .welcome-container {
     text-align: center;
@@ -89,9 +70,9 @@ body {
     padding: 40px;
     border-radius: 20px;
     box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
-    margin-top: 150px; /* Space below the header */
 }
 
+/* Responsive Typography */
 .title-box h1 {
     font-size: 48px;
     color: #2c3e50;
@@ -104,11 +85,12 @@ body {
     margin-bottom: 40px;
 }
 
+/* Get Started Button */
 .button-box {
     margin-top: 40px;
 }
 
-.get-started-btn, .language-btn {
+.get-started-btn {
     background-color: #2c3e50;
     color: #ffffff;
     font-size: 20px;
@@ -121,32 +103,64 @@ body {
     display: inline-block;
 }
 
-.get-started-btn:hover, .language-btn:hover {
+.get-started-btn:hover {
     background-color: #000000;
 }
 
-/* Adjusting layout for language selection */
-.language-section {
-    margin-top: 150px; /* To give space below header */
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .main-header {
+        flex-direction: column; /* Stack header elements */
+        align-items: flex-start; /* Align items to start */
+        padding: 10px; /* Reduced padding for smaller screens */
+    }
+
+    .main-header .logo h1 {
+        font-size: 24px; /* Smaller logo font size */
+    }
+
+    .auth-buttons {
+        margin-top: 10px; /* Space between logo and buttons */
+        width: 100%; /* Full width for buttons */
+        justify-content: flex-start; /* Align buttons to the start */
+    }
+
+    .welcome-container {
+        padding: 20px; /* Reduced padding for smaller screens */
+    }
+
+    .title-box h1 {
+        font-size: 36px; /* Responsive title size */
+    }
+
+    .description-box p {
+        font-size: 18px; /* Responsive description size */
+    }
+
+    .get-started-btn {
+        font-size: 18px; /* Responsive button size */
+    }
+}
+
+@media (max-width: 480px) {
+    .main-header .logo h1 {
+        font-size: 20px; /* Smaller logo font size for very small screens */
+    }
+
+    .auth-buttons a {
+        font-size: 16px; /* Smaller button text */
+        padding: 8px 16px; /* Smaller button padding */
+    }
 }
 
 .btn-primary-custom {
-    background-color: #2c3e50;
-    color: #ffffff;
-    font-size: 20px;
-    padding: 15px 40px;
-    border: none;
-    border-radius: 25px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    text-decoration: none;
-    display: inline-block;
+    background-color: #2c3e50; /* Match other button background */
+    color: #ffffff; /* Match text color */
+    font-size: 18px;
+    padding: 10px 20px; /* Adjust padding as needed */
+    border: none; /* No border */
+    border-radius: 25px; /* Match other buttons */
+    cursor: pointer; /* Pointer on hover */
+    transition: background-color 0.3s ease; /* Smooth transition */
+    display: inline-block; /* Inline block for proper spacing */
 }
-
-/* Hover effect for a modern, professional feel */
-.btn-primary-custom:hover {
-    background-color: #000000; /* Slightly darker on hover */
-    transform: translateY(-2px); /* Lift the button slightly */
-}
-
-/* Focus state for accessibility */
