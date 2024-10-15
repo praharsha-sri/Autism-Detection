@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISAA ఆధారంగా ప్రశ్నావళి</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
+        margin-top: 0;
+        margin-bottom: .5rem;
+        font-weight: 500;
+        line-height: 1.2;
+        color: green;
+        }
+        body {
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        .header {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .card {
+            margin: 20px auto;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #bbb98d78;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        .highlight {
+            font-weight: bold;
+            color: #dc3545;
+        }
+        .score {
+            font-size: 1.2em;
+            color: #2a39b0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .note {
+            font-size: 1.1em;
+            color: #dc3545;
+        }
+        .proceed-button {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>ISAA ఆధారంగా ప్రశ్నావళి</h1>
+            <p>గ్రేడింగ్ సూచనలు</p>
+        </div>
+
+        <!-- Scale 1 - Rarely -->
+        <div class="card">
+            <h3 class="highlight">అరుదుగా (up to 20%)</h3>
+            <p>ప్రవర్తన 20% వరకు మాత్రమే ఉంటుంది. ఇది వయస్సు మరియు సామాజిక విద్యా నేపథ్యం ప్రకారం సాధారణంగా పరిగణించబడుతుంది.</p>
+            <p class="score">పరిమాణం: 1</p>
+        </div>
+
+        <!-- Scale 2 - Sometimes -->
+        <div class="card">
+            <h3 class="highlight">కొన్నిసార్లు (21-40%)</h3>
+            <p>ప్రవర్తన 21-40% వరకు ఉంటుంది. కొన్ని ప్రవర్తనలు ఆందోళన కలిగించవచ్చు కానీ సాధారణ పరిమితిలో ఉంటాయి.</p>
+            <p class="score">పరిమాణం: 2</p>
+        </div>
+
+        <!-- Scale 3 - Frequently -->
+        <div class="card">
+            <h3 class="highlight">తరచుగా (41-60%)</h3>
+            <p>ప్రవర్తన 41-60% వరకు ఉంటుంది మరియు రోజువారీ పనులకు అంతరాయం కలిగిస్తుంది. ఇది నిర్దిష్ట వికలాంగతంగా పరిగణించబడుతుంది.</p>
+            <p class="score">పరిమాణం: 3</p>
+        </div>
+
+        <!-- Scale 4 - Mostly -->
+        <div class="card">
+            <h3 class="highlight">ఎక్కువగా (61-80%)</h3>
+            <p>ప్రవర్తన 61-80% వరకు కనిపిస్తుంది. ఇది రోజువారీ పనులకు గణనీయమైన ఆటంకం కలిగిస్తుంది మరియు సహాయం అవసరం అవుతుంది.</p>
+            <p class="score">పరిమాణం: 4</p>
+        </div>
+
+        <!-- Scale 5 - Always -->
+        <div class="card">
+            <h3 class="highlight">ఎల్లప్పుడూ (81-100%)</h3>
+            <p>ప్రవర్తన దాదాపు అన్ని సందర్భాల్లో కనిపిస్తుంది మరియు దినచర్యలపై పూర్తిగా ఆధారపడే అవసరం ఉంటుంది.</p>
+            <p class="score">పరిమాణం: 5</p>
+        </div>
+
+        <!-- Footer Section with Minimum and Maximum Scores -->
+        <div class="footer">
+            <p class="note">* కనీస స్కోరు: 40</p>
+            <p class="note">* గరిష్ఠ స్కోరు: 200</p>
+            <!-- Proceed Button -->
+            <button class="btn btn-primary proceed-button" onclick="validateNext()">తరువాతికి వెళ్ళండి</button>
+        </div>
+    </div>
+
+    <!-- JavaScript to handle navigation -->
+    <script>
+        function validateNext() {
+            // Navigate to the next page (replace 'nextPage.html' with your actual target page)
+            window.location.href = 'telugu_Detailsform2.html';
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

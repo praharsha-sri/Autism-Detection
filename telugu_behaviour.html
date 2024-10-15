@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ప్రవర్తనా విధానాలు ఫారం</title>
+    <link rel="stylesheet" href="questionnaire_style.css">
+</head>
+<body>
+
+    <h2>IV. ప్రవర్తనా విధానాలు</h2>
+
+    <form id= "form" action="telugu_sensory.html" method="post">  
+        <div class="question">
+            <label>24. సాధారణ మరియు మళ్లీ మళ్లీ కదలిక ప్రవర్తనలో పాల్గొనటం <span class="required">*</span></label>
+            <p class="question-description"> చేతులు వేయడం, శరీరాన్ని కదిలించడం లేదా స్వీయ సంతోషానికి వస్తువులను ఉపయోగించడం వంటి మళ్లీ మళ్లీ జరిగే ప్రవర్తనలు.</p>
+            <div id="engagesInStereotyped" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>25. జీవాంతర వస్తువులకు అనుబంధాన్ని చూపించడం <span class="required">*</span></label>
+            <p class="question-description"> గాడ్జెట్‌లు, పెన్నులు లేదా కంచె వంటి వస్తువులకు బలమైన అనుబంధం చూపించడం, వాటి నుండి వేరుపడితే నిరాకరణ లేదా ఆగ్రహం వ్యక్తం చేయడం.</p>
+            <div id="showsAttachment" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>26. అధిక చురుకుదనం/అశాంతి చూపించడం <span class="required">*</span></label>
+            <p class="question-description"> అధిక శక్తితో ఉండడం వల్ల నియంత్రించడం కష్టంగా ఉండటం మరియు ఇది అభ్యాసంపై ప్రభావం చూపడం.</p>
+            <div id="showsHyperactivity" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>27. హింసాత్మక ప్రవర్తనలో పాల్గొనడం <span class="required">*</span></label>
+            <p class="question-description">ఎటువంటి ప్రేరణ లేకుండా కొట్టడం, తన్నడం లేదా పిచ్చి ప్రవర్తనలో పాల్గొనడం.</p>
+            <div id="exhibitsAggressive" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>28. కోపం చూపిస్తూ అల్లరి లేదా ఇతర ప్రవర్తనలు చేయడం <span class="required">*</span></label>
+            <p class="question-description"> నిరుత్సాహానికి గురైనప్పుడు తల బాదడం లేదా అరుస్తూ కోపాన్ని ప్రదర్శించడం.
+            </p>
+            <div id="throwsTemper" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>29. స్వయంగా గాయపరచుకునే ప్రవర్తనలో నిమగ్నం  <span class="required">*</span></label>
+            <p class="question-description"> తనను తాను కొరుకుట లేదా కొట్టుకునే ప్రవర్తనతో గాయపరచడం, క్షణక్షణం పర్యవేక్షణ అవసరం.
+            </p>
+            <div id="engagesInSelf-injuries" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>30. అదే విధంగా ఉండాలని పట్టుబడడం  <span class="required">*</span></label>
+            <p class="question-description"> దినచర్యలో మార్పులను నిరాకరించడం మరియు స్పష్టమైన విధంగా కాకుండా ఉంటే అసహనాన్ని చూపించడం.</p>
+            <div id="insistsOnsameness" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <br>
+         <br>
+        <div class="button-container">
+            <button type="button" class="prev-btn" onclick="window.location.href='telugu_speech.html'">మునుపటి (Previous)</button>
+            <button type="button" class="next-btn" onclick="validateNext()">తరువాత (Next)</button>
+        </div>
+    </form>
+ 
+    <!-- Custom Modal for Validation Message -->
+    <div id="customAlert" class="custom-alert">
+        <div class="custom-alert-content">
+            <p>తరువాత పేజీలోకి వెళ్లడానికి ముందు అన్ని ప్రశ్నలకు సమాధానం ఇవ్వండి.</p>
+            <button class="custom-alert-btn" onclick="closeAlert()">సరే (OK)</button>
+        </div>
+    </div>
+
+    <script src="telugu_Questionnaire_form.js"></script>
+<script>
+// Initialize radio buttons for questions on this page
+window.onload = function() {
+            initializeRadioButtons(['engagesInStereotyped','showsAttachment','showsHyperactivity','exhibitsAggressive','throwsTemper','engagesInSelf-injuries','insistsOnsameness']);
+        };    
+
+        function validateNext() {
+            if (validateForm()) {
+                window.location.href = 'telugu_sensory.html'; // Navigate to the next page
+            } else {
+                showAlert(); // Show the custom alert if form is not valid
+            }
+        }
+    </script>
+
+</body>
+</html>
+

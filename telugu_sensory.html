@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>సంవేదన సంబంధిత అంశాలు ఫారం</title>
+    <link rel="stylesheet" href="questionnaire_style.css">
+</head>
+<body>
+
+    <h2>V. సంవేదన సంబంధిత అంశాలు</h2>
+
+    <form id="form" action="telugu_cognitive.html" method="post">  
+        <div class="question">
+            <label>31. సంవేదనలపై అసాధారణంగా సున్నితంగా ఉండటం <span class="required">*</span></label>
+            <p class="question-description"> శబ్దాలు, వెలుగులు, స్పర్శ లేదా రుచి గురించి బలంగా ప్రతిస్పందిస్తూ చెవులను, కళ్లను మూయడం లేదా కొన్ని ఆహారాలను వద్దనించడం.</p>
+            <div id="unusuallySensitive" class ="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>32. ఎక్కువ సమయం ఖాళీగా చూస్తూ ఉండడం <span class="required">*</span></label>
+            <p class="question-description"> దూరపు ప్రదేశాలను ఎక్కువ సమయం చుడటం, చుట్టు పరిసరాలపై తెలియనట్టుగా కనిపించడం.</p>
+            <div id="staresIntoSpace" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>33. వస్తువులను అనుసరించడంలో కష్టం ఉంటుంది <span class="required">*</span></label>
+            <p class="question-description"> కదులుతున్న వస్తువులు లేదా వ్యక్తులను అనుసరించడంలో కష్టపడుతాడు, వాటిని ఎక్కువ సమయం చూడడం సాధ్యం కాదు.</p>
+            <div id="hasDifficulty" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>34. అసాధారణ దృష్టి <span class="required">*</span></label>
+            <p class="question-description"> వస్తువుల చిన్న, అసంతృప్తి భాగాలను పరిశీలించడం లేదా వాటిని కళ్లకు దగ్గరగా చూడడం.
+            </p>
+            <div id="hasUnusualVision" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>35. నొప్పికి తక్కువ స్పందన  <span class="required">*</span></label>
+            <p class="question-description"> నొప్పికి స్పందించని, అధిక నొప్పి సహనాన్ని చూపడం.
+            </p>
+            <div id="insensitive" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>36. వస్తువులు/వ్యక్తులకు అసాధారణంగా స్పందించడం: వాసన, స్పర్శ లేదా రుచి ద్వారా  <span class="required">*</span></label>
+            <p class="question-description"> వస్తువులను వాసన, స్పర్శ లేదా రుచి ద్వారా అన్వేషించడం, మరియు వాటిని సరైన రీతిలో ఉపయోగించకపోవడం.
+            </p>
+            <div id="responds" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+         <br>
+         <br>
+        <div class="button-container">
+            <button type="button" class="prev-btn" onclick="window.location.href='telugu_behaviour.html'">మునుపటి (Previous)</button>
+            <button type="button"  class="next-btn" onclick="validateNext()">తరువాత (Next)</button>
+        </div>
+    </form>
+ 
+    <!-- Custom Modal for Validation Message -->
+    <div id="customAlert" class="custom-alert">
+        <div class="custom-alert-content">
+            <p>తరువాత పేజీలోకి వెళ్లడానికి ముందు అన్ని ప్రశ్నలకు సమాధానం ఇవ్వండి.</p>
+            <button class="custom-alert-btn" onclick="closeAlert()">సరే (OK)</button>
+        </div>
+    </div>
+
+    <script src="telugu_questionnaire_form.js"></script>
+<script>
+// Initialize radio buttons for questions on this page
+window.onload = function() {
+            initializeRadioButtons(['unusuallySensitive','staresIntoSpace','hasDifficulty','hasUnusualVision','insensitive','responds']);
+        };    
+
+        function validateNext() {
+            if (validateForm()) {
+                window.location.href = 'telugu_cognitive.html'; // Navigate to the next page
+            } else {
+                showAlert(); // Show the custom alert if form is not valid
+            }
+        }
+    </script>
+
+
+</body>
+</html>

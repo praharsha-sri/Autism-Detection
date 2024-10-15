@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>భావ ప్రక్రియల ఫారం</title>
+    <link rel="stylesheet" href="questionnaire_style.css">
+</head>
+<body>
+
+    <h2>II. భావ ప్రక్రియలు</h2>
+
+    <form id ="form" action="telugu_speech.html" method="post">
+        <div class="question">
+            <label>10. తగినట్టైన భావోద్వేగ ప్రతిస్పందన ఇవ్వకపోవడం <span class="required">*</span></label>
+            <div class="question-description">మందలించినప్పుడు నవ్వడం లేదా చిన్న విషయాలకే ఎక్కువగా ఏడవడం వంటి ఊహించని భావాలను చూపించడం.
+            </div>
+            <div id="inappropriate" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>11. అతిశయ భావోద్వేగాలు <span class="required">*</span></label>
+            <div class="question-description">ఎలాంటి స్పష్టమైన కారణం లేకుండానే తీవ్ర భయం లేదా ఆందోళన చెందడం.
+            </div>
+            <div id="exaggerated" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>12. స్వయం ప్రేరిత భావోద్వేగాలు <span class="required">*</span></label>
+            <div class="question-description"> వయస్సుకు తగినట్టు కాకుండా, తాము మాట్లాడుకోవడం, అర్థం లేని సమయాల్లో నవ్వడం లేదా చిరునవ్వు చూపించడం.
+            </div>
+            <div id="self-stimulating" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>13. ప్రమాదాన్ని గుర్తించకపోవడం <span class="required">*</span></label>
+            <div class="question-description">ప్రమాదం ఉన్నప్పటికీ భయపడకపోవడం, జాగ్రత్తలు పాటించకపోవడం.
+            </div>
+            <div id="lackOfFear" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>14. కారణం లేకుండా ఉత్తేజితంగా లేదా ఆందోళనగా ఉండడం <span class="required">*</span></label>
+            <div class="question-description">స్పష్టమైన కారణం లేకుండా మరీంతగా ఉత్సాహంగా లేదా ఆందోళనగా ఉండడం, సర్దుకోవడం కష్టమవడం.
+            </div>
+            <div id="excited" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <br>
+         <br>
+        <div class="button-container">
+            <button type="button" class="prev-btn" onclick="window.location.href='telugu_social.html'">మునుపటి (Previous)</button>
+            <button type="button" class="next-btn" onclick="validateNext()">తరువాత (Next)</button>
+        </div>
+    </form>
+ 
+    <!-- Custom Modal for Validation Message -->
+    <div id="customAlert" class="custom-alert">
+        <div class="custom-alert-content">
+            <p>తరువాత పేజీలోకి వెళ్లడానికి ముందు అన్ని ప్రశ్నలకు సమాధానం ఇవ్వండి.</p>
+            <button class="custom-alert-btn" onclick="closeAlert()">సరే (OK)</button>
+        </div>
+    </div>
+
+    <script src="telugu_questionnaire_form.js"></script>
+<script>
+// Initialize radio buttons for questions on this page
+window.onload = function() {
+            initializeRadioButtons(['inappropriate','exaggerated','self-stimulating','lackOfFear','excited']);
+        };    
+
+        function validateNext() {
+            if (validateForm()) {
+                window.location.href = 'telugu_speech.html'; // Navigate to the next page
+            } else {
+                showAlert(); // Show the custom alert if form is not valid
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>జ్ఞాన భాగం ఫారం</title>
+    <link rel="stylesheet" href="questionnaire_style.css">
+</head>
+<body>
+
+    <h2>VI. జ్ఞాన భాగం</h2>
+
+    <form id="form" action ="parent_dashboard.html" method="post">
+        <div class="question">
+            <label>37. దేనిమీద శ్రద్ధ లేకపోవడం <span class="required">*</span></label>
+            <div class="question-description"> శ్రద్ధ  పెట్టలేకపోవడం  లేక  అనవసరమైన  వాటి  పై  శ్రద్ధ  పెట్టడం 
+            </div>
+            <div id="inconsistent" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>38. ఆలస్యంగా ప్రతిస్పందించడం <span class="required">*</span></label>
+            <div class="question-description">ప్రతిస్పందనకి  బాగా  ఎక్కువ  సమయం  తీసుకోవడం  లేదా  మళ్లీ  మళ్లీ  సూచనలు  అవసరం
+            </div>
+            <div id="showsDelay" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>39. అసాధారణ జ్ఞపక శక్తి <span class="required">*</span></label>
+            <div class="question-description">గత  సంఘటనలు  లేదా  నీతాకృతయలు  వంటి  చాలా  మంది  మర్చిపోయే  విషయాలు  గుర్తు  ఉంటాయి
+            </div>
+            <div id="hasUnusualMemory" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>40. సావంత్ సామర్ధ్యం ఉంది <span class="required">*</span></label>
+            <div class="question-description">గణితం  లేదా  కళలో  అసాధారణ  నైపుణ్యం 
+            </div>
+            <div id="hasSavantAbility" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <br>
+        <br>
+        <div class="button-container">
+            <button type="button" class="prev-btn" onclick="window.location.href='telugu_sensory.html'">మునుపటి (Previous)</button>
+            <button type="button" class="next-btn" onclick="validateNext()">తరువాత (Next)</button>
+        </div>
+    </form>
+
+    <!-- Custom Modal for Validation Message -->
+    <div id="customAlert" class="custom-alert">
+        <div class="custom-alert-content">
+            <p>తరువాత పేజీలోకి వెళ్లడానికి ముందు అన్ని ప్రశ్నలకు సమాధానం ఇవ్వండి.</p>
+            <button class="custom-alert-btn" onclick="closeAlert()">సరే (OK)</button>
+        </div>
+    </div>
+
+    <script src="telugu_questionnaire_form.js"></script>
+<script>
+// Initialize radio buttons for questions on this page
+window.onload = function() {
+            initializeRadioButtons(['inconsistent','showsDelay','hasUnusualMemory','hasSavantAbility']);
+        };    
+
+        function validateNext() {
+            if (validateForm()) {
+                window.location.href = 'final_page.html'; // Navigate to the next page
+            } else {
+                showAlert(); // Show the custom alert if form is not valid
+            }
+        }
+    </script>
+</body>
+</html>
