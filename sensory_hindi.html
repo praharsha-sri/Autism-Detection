@@ -10,7 +10,7 @@
 
     <h2>V. संवेदी पहलू</h2>
 
-    <form id="form" action="cognitive.html" method="post">  
+    <form id="form" action="cognitive_hindi.html" method="post">  
         <div class="question">
             <label>31. संवेदना की उत्तेजना के प्रति असामान्य रूप से संवेदनशील होना <span class="required">*</span></label>
             <div id="unusuallySensitive" class ="radio-group"></div> <!-- Placeholder for radio buttons -->
@@ -44,20 +44,20 @@
          <br>
          <br>
         <div class="button-container">
-            <button type="button" class="prev-btn" onclick="window.location.href='behaviour.html'">Previous</button>
-            <button type="button"  class="next-btn" onclick="validateNext()">Next</button>
+            <button type="button" class="prev-btn" onclick="window.location.href='behaviour_hindi.html'">पिछला(Previous)</button>
+            <button type="button"  class="next-btn" onclick="validateNext()">अगला(Next)</button>
         </div>
     </form>
  
     <!-- Custom Modal for Validation Message -->
     <div id="customAlert" class="custom-alert">
         <div class="custom-alert-content">
-            <p>Please answer all the questions before proceeding to the next page.</p>
-            <button class="custom-alert-btn" onclick="closeAlert()">OK</button>
+            <p>कृपया अगले पृष्ठ पर जाने से पहले सभी प्रश्नों का उत्तर दें।</p>
+            <button class="custom-alert-btn" onclick="closeAlert()">ठीक है(OK)</button>
         </div>
     </div>
 
-    <script src="questionnaire_form.js"></script>
+    <script src="questionnaire_form_hindi.js"></script>
 <script>
 // Initialize radio buttons for questions on this page
 window.onload = function() {
@@ -66,7 +66,7 @@ window.onload = function() {
 
         function validateNext() {
             if (validateForm()) {
-                window.location.href = 'cognitive.html'; // Navigate to the next page
+                window.location.href = 'cognitive_hindi.html'; // Navigate to the next page
             } else {
                 showAlert(); // Show the custom alert if form is not valid
             }

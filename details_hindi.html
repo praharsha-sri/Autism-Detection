@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ऑटिज़्म आकलन फ़ॉर्म</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="questionnaire_style.css">
+</head>
+<body>
+
+    <h2>भारतीय ऑटिज़्म आकलन पैमाना</h2>
+
+    <form id="autismForm" action="Social.html" method="POST">
+        <div class="question">
+            <label for="name">बच्चे का नाम <span class="required">*</span></label>
+            <input type="text" id="name" name="name" class="form-control" required>
+        </div>
+
+        <div class="question">
+            <label for="gender">लिंग <span class="required">*</span></label>
+            <select id="gender" name="gender" class="form-select" required>
+                <option value="">लिंग चुनें</option>
+                <option value="male">पुरुष</option>
+                <option value="female">महिला</option>
+                <option value="other">अन्य</option>
+            </select>
+        </div>
+
+        <div class="question">
+            <label for="date">तारीख <span class="required">*</span></label>
+            <input type="date" id="date" name="date" class="form-control" required>
+        </div>
+
+        <div class="question">
+            <label for="dob">जन्म तिथि <span class="required">*</span></label>
+            <input type="date" id="dob" name="dob" class="form-control" required>
+        </div>
+
+        <div class="question">
+            <label for="age">आयु <span class="required">*</span></label>
+            <input type="text" id="age" name="age" class="form-control" required>
+        </div>
+
+        <div class="question">
+            <label for="examiner">परीक्षक <span class="required">*</span></label>
+            <input type="text" id="examiner" name="examiner" class="form-control" required>
+        </div>
+
+        <div class="button-container">
+            <a href="Questionnaire_score.html" class="btn prev-btn">पिछला</a>
+            <button type="submit">अगला</button>
+        </div>
+    </form>
+
+    <!-- कस्टम मान्यकरण संदेश के लिए मॉडेल -->
+    <div id="customAlert" class="custom-alert">
+        <div class="custom-alert-content">
+            <p>कृपया आगे बढ़ने से पहले सभी फ़ील्ड भरें।</p>
+            <button class="custom-alert-btn" onclick="closeAlert()">ठीक है</button>
+        </div>
+    </div>
+
+    <script>
+        // फ़ॉर्म मान्यकरण
+        document.getElementById('autismForm').addEventListener('submit', function(event) {
+            var form = this;
+            var allFilled = true;
+
+            form.querySelectorAll('input, select').forEach(function(input) {
+                if (!input.value) {
+                    allFilled = false;
+                }
+            });
+
+            if (!allFilled) {
+                event.preventDefault();
+                showAlert();
+            }
+        });
+
+        // कस्टम अलर्ट दिखाएँ
+        function showAlert() {
+            document.getElementById('customAlert').style.display = 'flex';
+        }
+
+        // कस्टम अलर्ट बंद करें
+        function closeAlert() {
+            document.getElementById('customAlert').style.display = 'none';
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

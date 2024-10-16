@@ -10,7 +10,7 @@
 
     <h2>I. समाजिक संबंध और आदान-प्रदान</h2>
 
-    <form action="emotional.html" method="post" onsubmit="return validateForm()">  
+    <form action="emotional_hindi.html" method="post" onsubmit="return validateForm()">  
         <div class="question">
             <label>1. आंखों से संपर्क बहुत कम स्थापित करना <span class="required">*</span></label>
             
@@ -23,7 +23,7 @@
             <div id="lackSocialSmile" class ="radio-group"></div> <!-- Placeholder for radio buttons -->
         </div>
 
-        < class="question">
+        <div class="question">
             <label>3. अलग-थलग रहना <span class="required">*</span></label>
             
             <div id="remainAloof" class="radio-group"></div> <!-- Placeholder for radio buttons -->
@@ -61,16 +61,15 @@
 
         <div class="question">
             <label>9. बराबर के व्यक्तियों के साथ सम्बन्ध न बनाए रख पाना <span class="required">*</span></label>
-            <div class="question-description">Struggles to maintain relationships with peers. Often finds it difficult to connect and engage with others.</div>
-            <div id="inabilityToShare" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+            <div id="doesNotMaintain" class="radio-group"></div> <!-- Placeholder for radio buttons -->
         </div>
 
         <!-- Add more questions here if needed -->
        <br>
        <br>
         <div class="button-container">
-            <button class="prev-btn" type="button" onclick="window.location.href='Detailsform2.html'">Previous</button>
-            <button type="submit">Next</button>
+            <button class="prev-btn" type="button" onclick="window.location.href='details_hindi.html'">पिछला(Previous)</button>
+            <button type="submit">अगला(Next)</button>
         </div>
     </form>
 
@@ -78,23 +77,23 @@
     <!-- Custom Modal for Validation Message -->
     <div id="customAlert" class="custom-alert">
         <div class="custom-alert-content">
-            <p>Please answer all the questions before proceeding to the next page.</p>
-            <button class="custom-alert-btn" onclick="closeAlert()">OK</button>
+            <p>कृपया अगले पृष्ठ पर जाने से पहले सभी प्रश्नों का उत्तर दें।</p>
+            <button class="custom-alert-btn" onclick="closeAlert()">ठीक है(OK)</button>
         </div>
     </div>
 
-    <script src="questionnaire_form.js"></script>
+    <script src="questionnaire_form_hindi.js"></script>
 <script>
 // Initialize radio buttons for questions on this page
 window.onload = function() {
-            initializeRadioButtons(['poorEyeContact', 'lackSocialSmile','remainAloof','doNotReachOut','inabilityToRelate','inabilityToRespond','engageInSolitary','inabilityToShare']);
+            initializeRadioButtons(['poorEyeContact', 'lackSocialSmile','remainAloof','doNotReachOut','inabilityToRelate','inabilityToRespond','engageInSolitary','inabilityToShare','doesNotMaintain']);
             updateScore(); // Initialize score display
         };    
     // The window.onload function is now in the questionnaire_form.js file, so we can remove it from here
     // Keep the validateNext function as it is
     function validateNext() {
         if (validateForm()) {
-            window.location.href = 'emotional.html'; // Navigate to the next page
+            window.location.href = 'emotional_hindi.html'; // Navigate to the next page
         } else {
             showAlert(); // Show the custom alert if form is not valid
         }
