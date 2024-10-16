@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>वाणी-भाषा और सम्प्रेषण</title>
+    <link rel="stylesheet" href="questionnaire_style.css">
+</head>
+<body>
+
+    <h2>III. वाणी-भाषा और सम्प्रेषण</h2>
+
+    <form id="form" action="behaviour_hindi.html" method="post">
+        <!-- Section 1 -->
+        <div class="question">
+            <label>15. बोली सीख जाने के बाद बोलने की क्षमता खो देना <span class="required">*</span></label>
+            <div id="acquired" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>16. संवाद करने के लिये संकेतक भाषा या संकेतों का प्रयोग करने में कठिनाई महसूस करना <span class="required">*</span></label>
+            <div id="hasDifficulty" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>17.  भाषा का एक ही सांचे में या बार-बार दोहराकर प्रयोग करना <span class="required">*</span></label>
+            <div id="engagesInStereotyped" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>18. सुने हुए शब्दों को बार-बार दोहराना <span class="required">*</span></label>
+            <div id="engagesInEcholalic" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>19. छोटे बच्चे जैसी किलकारियां या असामान्य आवाजें पैदा करना <span class="required">*</span></label>
+            <div id="producesInfantile" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <!-- Section 2 -->
+        <div class="question">
+            <label>20. लोगों के साथ न बातचीत की शुरुआत न उसे बनाए रख पाना <span class="required">*</span></label>
+            <div id="unableToInitiate" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>21. अपनी खास बोली या निरर्थक शब्दों का उपयोग करना <span class="required">*</span></label>
+            <div id="usesJargon" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>22. सर्वनामों का उल्टा प्रयोग करना (मैं के लिये तू कह देना <span class="required">*</span></label>
+            <div id="usesPronounReversals" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>23. संवाद के तथ्यों को न समझ पाना<span class="required">*</span></label>
+            <div id="unableToGrasp" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <br>
+        <div class="button-container">
+            <button type="button" class="prev-btn" onclick="window.location.href='emotional_hindi.html'">पिछला(Previous)</button>
+            <button type="button" class="next-btn" onclick="validateNext()">अगला(Next)</button>
+        </div>
+    </form>
+
+    <!-- Custom Modal for Validation Message -->
+    <div id="customAlert" class="custom-alert">
+        <div class="custom-alert-content">
+            <p>कृपया अगले पृष्ठ पर जाने से पहले सभी प्रश्नों का उत्तर दें।</p>
+            <button class="custom-alert-btn" onclick="closeAlert()">ठीक है(OK)</button>
+        </div>
+    </div>
+
+    <script src="questionnaire_form_hindi.js"></script>
+    <script>
+        // Initialize radio buttons for questions on this page
+        window.onload = function() {
+            initializeRadioButtons([
+                'acquired', 'hasDifficulty', 'engagesInStereotyped', 
+                'engagesInEcholalic', 'producesInfantile', 
+                'unableToInitiate', 'usesJargon', 
+                'usesPronounReversals', 'unableToGrasp'
+            ]);
+        };
+
+        function validateNext() {
+            if (validateForm()) {
+                window.location.href = 'behaviour_hindi.html'; // Navigate to the next page
+            } else {
+                showAlert(); // Show the custom alert if form is not valid
+            }
+        }
+    </script>
+</body>
+</html>

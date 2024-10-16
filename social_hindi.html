@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>समाजिक संबंध और आदान-प्रदान</title>
+    <link rel="stylesheet" href="questionnaire_style.css">
+</head>
+<body>
+
+    <h2>I. समाजिक संबंध और आदान-प्रदान</h2>
+
+    <form action="emotional_hindi.html" method="post" onsubmit="return validateForm()">  
+        <div class="question">
+            <label>1. आंखों से संपर्क बहुत कम स्थापित करना <span class="required">*</span></label>
+            
+            <div id="poorEyeContact" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>2. सामाजिक मुस्कुराहट का अभाव <span class="required">*</span></label>
+            
+            <div id="lackSocialSmile" class ="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>3. अलग-थलग रहना <span class="required">*</span></label>
+            
+            <div id="remainAloof" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>4. लोगों से स्वयं बढ़कर संपर्क नहीं करना <span class="required">*</span></label>
+            
+            <div id="doNotReachOut" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>5. लोगों से भावात्मक सामाजिक संबंध स्थापित न कर पाना <span class="required">*</span></label>
+          
+            <div id="inabilityToRelate" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>6. सामाजिक या आस-पास के संकेतों पर प्रतिक्रिया न दिखा पाना <span class="required">*</span></label>
+           
+            <div id="inabilityToRespond" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>7.  खेल एकाकी या दूसरे जैन वालों होना <span class="required">*</span></label>
+            
+            <div id="engageInSolitary" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>8. सामाजिक प्रतिक्रियाओं में बारी-बारी से भाग न ले पाना <span class="required">*</span></label>
+            
+            <div id="inabilityToShare" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>9. बराबर के व्यक्तियों के साथ सम्बन्ध न बनाए रख पाना <span class="required">*</span></label>
+            <div id="doesNotMaintain" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <!-- Add more questions here if needed -->
+       <br>
+       <br>
+        <div class="button-container">
+            <button class="prev-btn" type="button" onclick="window.location.href='details_hindi.html'">पिछला(Previous)</button>
+            <button type="submit">अगला(Next)</button>
+        </div>
+    </form>
+
+     
+    <!-- Custom Modal for Validation Message -->
+    <div id="customAlert" class="custom-alert">
+        <div class="custom-alert-content">
+            <p>कृपया अगले पृष्ठ पर जाने से पहले सभी प्रश्नों का उत्तर दें।</p>
+            <button class="custom-alert-btn" onclick="closeAlert()">ठीक है(OK)</button>
+        </div>
+    </div>
+
+    <script src="questionnaire_form_hindi.js"></script>
+<script>
+// Initialize radio buttons for questions on this page
+window.onload = function() {
+            initializeRadioButtons(['poorEyeContact', 'lackSocialSmile','remainAloof','doNotReachOut','inabilityToRelate','inabilityToRespond','engageInSolitary','inabilityToShare','doesNotMaintain']);
+            updateScore(); // Initialize score display
+        };    
+    // The window.onload function is now in the questionnaire_form.js file, so we can remove it from here
+    // Keep the validateNext function as it is
+    function validateNext() {
+        if (validateForm()) {
+            window.location.href = 'emotional_hindi.html'; // Navigate to the next page
+        } else {
+            showAlert(); // Show the custom alert if form is not valid
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>व्यवहारगत पैटर्न</title>
+    <link rel="stylesheet" href="questionnaire_style.css">
+</head>
+<body>
+
+    <h2>IV. व्यवहारगत पैटर्न</h2>
+
+    <form id= "form" action="sensory_hindi.html" method="post">  
+        <div class="question">
+            <label>24.  एक ही सांचे के या घिसटाए जाने वाली आदतन क्रियाओं में उलझ रहना <span class="required">*</span></label>
+            <div id="engagesInStereotyped" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>25.  निर्जीव वस्तुओं से लगाव दिखाना <span class="required">*</span></label>
+            <div id="showsAttachment" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>26. अतिक्रियाशीलता या बेचैनी दिखाना <span class="required">*</span></label>
+            <div id="showsHyperactivity" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>27. आक्रामक व्यवहार दिखाना <span class="required">*</span></label>
+            <div id="exhibitsAggressive" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>28. गुस्से में बर्बरता/झल्लाहट दिखाना <span class="required">*</span></label>
+            <div id="throwsTemper" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>29. स्वयं को चोट पहुँचाने वाला व्यवहार करना <span class="required">*</span></label>
+            <div id="engagesInSelf-injuries" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>30. समानता पर जोर देना <span class="required">*</span></label>
+            <div id="insistsOnsameness" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <br>
+         <br>
+        <div class="button-container">
+            <button type="button" class="prev-btn" onclick="window.location.href='speech_hindi.html'">पिछला(Previous)</button>
+            <button type="button" class="next-btn" onclick="validateNext()">अगला(Next)</button>
+        </div>
+    </form>
+ 
+    <!-- Custom Modal for Validation Message -->
+    <div id="customAlert" class="custom-alert">
+        <div class="custom-alert-content">
+            <p>कृपया अगले पृष्ठ पर जाने से पहले सभी प्रश्नों का उत्तर दें।</p>
+            <button class="custom-alert-btn" onclick="closeAlert()">ठीक है(OK)</button>
+        </div>
+    </div>
+
+    <script src="questionnaire_form_hindi.js"></script>
+<script>
+// Initialize radio buttons for questions on this page
+window.onload = function() {
+            initializeRadioButtons(['engagesInStereotyped','showsAttachment','showsHyperactivity','exhibitsAggressive','throwsTemper','engagesInSelf-injuries','insistsOnsameness']);
+        };    
+
+        function validateNext() {
+            if (validateForm()) {
+                window.location.href = 'sensory_hindi.html'; // Navigate to the next page
+            } else {
+                showAlert(); // Show the custom alert if form is not valid
+            }
+        }
+    </script>
+
+</body>
+</html>
+

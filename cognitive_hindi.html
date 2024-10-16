@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>संज्ञानात्मक अवयव</title>
+    <link rel="stylesheet" href="questionnaire_style.css">
+</head>
+<body>
+
+    <h2>VI. संज्ञानात्मक अवयव</h2>
+
+    <form id="form" action ="parent_dashboard.html" method="post">
+        <div class="question">
+            <label>37. बाहरी ध्यान या एकाग्रता दिखाना <span class="required">*</span></label>
+            <div id="inconsistent" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>38.  देर से प्रतिक्रिया दिखाना <span class="required">*</span></label>
+            <div id="showsDelay" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>39. किसी प्रकार की असामान्य यादाश्त होना <span class="required">*</span></label>
+            <div id="hasUnusualMemory" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>40. विह्त प्रतिमा का होना <span class="required">*</span></label>
+            <div id="hasSavantAbility" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <br>
+        <br>
+        <div class="button-container">
+            <button type="button" class="prev-btn" onclick="window.location.href='sensory_hindi.html'">पिछला(Previous)</button>
+            <button type="button" class="next-btn" onclick="validateNext()">अगला(Next)</button>
+        </div>
+    </form>
+
+    <!-- Custom Modal for Validation Message -->
+    <div id="customAlert" class="custom-alert">
+        <div class="custom-alert-content">
+            <p>कृपया अगले पृष्ठ पर जाने से पहले सभी प्रश्नों का उत्तर दें।</p>
+            <button class="custom-alert-btn" onclick="closeAlert()">ठीक है(OK)</button>
+        </div>
+    </div>
+
+    <script src="questionnaire_form_hindi.js"></script>
+<script>
+// Initialize radio buttons for questions on this page
+window.onload = function() {
+            initializeRadioButtons(['inconsistent','showsDelay','hasUnusualMemory','hasSavantAbility']);
+        };    
+
+        function validateNext() {
+            if (validateForm()) {
+                window.location.href = 'final_page.html'; // Navigate to the next page
+            } else {
+                showAlert(); // Show the custom alert if form is not valid
+            }
+        }
+    </script>
+</body>
+</html>

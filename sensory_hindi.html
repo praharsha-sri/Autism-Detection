@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>संवेदी पहलू</title>
+    <link rel="stylesheet" href="questionnaire_style.css">
+</head>
+<body>
+
+    <h2>V. संवेदी पहलू</h2>
+
+    <form id="form" action="cognitive_hindi.html" method="post">  
+        <div class="question">
+            <label>31. संवेदना की उत्तेजना के प्रति असामान्य रूप से संवेदनशील होना <span class="required">*</span></label>
+            <div id="unusuallySensitive" class ="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>32. बहुत समय तक कहीं दूर तक टकटकी लगाए रहना <span class="required">*</span></label>
+            <div id="staresIntoSpace" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>33. गतिशील वस्तुओं पर नजर टिकाने में कठिनाई <span class="required">*</span></label>
+            <div id="hasDifficulty" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>34. असामान्य दृष्टि होना <span class="required">*</span></label>
+            <div id="hasUnusualVision" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>35.  दर्द के प्रति असंवेदनशील होना <span class="required">*</span></label>
+            <div id="insensitive" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>36. वस्तुओं का असामान्य रूप से सूंघकर, छूकर, या चखकर प्रतिक्रिया दिखाना <span class="required">*</span></label>
+            <div id="responds" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+         <br>
+         <br>
+        <div class="button-container">
+            <button type="button" class="prev-btn" onclick="window.location.href='behaviour_hindi.html'">पिछला(Previous)</button>
+            <button type="button"  class="next-btn" onclick="validateNext()">अगला(Next)</button>
+        </div>
+    </form>
+ 
+    <!-- Custom Modal for Validation Message -->
+    <div id="customAlert" class="custom-alert">
+        <div class="custom-alert-content">
+            <p>कृपया अगले पृष्ठ पर जाने से पहले सभी प्रश्नों का उत्तर दें।</p>
+            <button class="custom-alert-btn" onclick="closeAlert()">ठीक है(OK)</button>
+        </div>
+    </div>
+
+    <script src="questionnaire_form_hindi.js"></script>
+<script>
+// Initialize radio buttons for questions on this page
+window.onload = function() {
+            initializeRadioButtons(['unusuallySensitive','staresIntoSpace','hasDifficulty','hasUnusualVision','insensitive','responds']);
+        };    
+
+        function validateNext() {
+            if (validateForm()) {
+                window.location.href = 'cognitive_hindi.html'; // Navigate to the next page
+            } else {
+                showAlert(); // Show the custom alert if form is not valid
+            }
+        }
+    </script>
+
+
+</body>
+</html>

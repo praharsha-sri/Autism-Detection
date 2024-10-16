@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>भावात्मक अनुक्रियाशीलता</title>
+    <link rel="stylesheet" href="questionnaire_style.css">
+</head>
+<body>
+
+    <h2>II. भावात्मक अनुक्रियाशीलता</h2>
+
+    <form id ="form" action="speech_hindi.html" method="post">
+        <div class="question">
+            <label>10. भावात्मक प्रतिक्रिया असंगत दिखलाना<span class="required">*</span></label>
+            <div class="question-description">May show unexpected emotions, like laughing when scolded or crying too much over small things.</div>
+            <div id="inappropriate" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>11. अत्याधिक भावनाएं दर्शाना <span class="required">*</span></label>
+            <div id="exaggerated" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>12. अपने आपको उत्तेजित करने वाली भावनाओं में उलझना <span class="required">*</span></label>
+            <div id="self-stimulating" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>13. खतरे से भय का अभाव <span class="required">*</span></label>
+            <div id="lackOfFear" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>14. बिना किसी स्पष्ट कारण के उत्तेजित या अशांत होना <span class="required">*</span></label>
+            <div id="excited" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <br>
+         <br>
+        <div class="button-container">
+            <button type="button" class="prev-btn" onclick="window.location.href='social_hindi.html'">पिछला(Previous)</button>
+            <button type="button" class="next-btn" onclick="validateNext()">अगला(Next)</button>
+        </div> 
+    </form>
+ 
+    <!-- Custom Modal for Validation Message -->
+    <div id="customAlert" class="custom-alert">
+        <div class="custom-alert-content">
+            <p>कृपया अगले पृष्ठ पर जाने से पहले सभी प्रश्नों का उत्तर दें।</p>
+            <button class="custom-alert-btn" onclick="closeAlert()">ठीक है(OK)</button>
+        </div>
+    </div>
+
+    <script src="questionnaire_form_hindi.js"></script>
+<script>
+// Initialize radio buttons for questions on this page
+window.onload = function() {
+            initializeRadioButtons(['inappropriate','exaggerated','self-stimulating','lackOfFear','excited']);
+        };    
+
+        function validateNext() {
+            if (validateForm()) {
+                window.location.href = 'speech_hindi.html'; // Navigate to the next page
+            } else {
+                showAlert(); // Show the custom alert if form is not valid
+            }
+        }
+    </script>
+</body>
+</html>
