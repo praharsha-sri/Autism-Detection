@@ -59,6 +59,12 @@
             <div id="inabilityToShare" class="radio-group"></div> <!-- Placeholder for radio buttons -->
         </div>
 
+        <div class="question">
+            <label>9. Does not maintain peer relationships <span class="required">*</span></label>
+            <div class="question-description">Struggles to maintain relationships with peers. Often finds it difficult to connect and engage with others.</div>
+            <div id="doesNotMaintain" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
         <!-- Add more questions here if needed -->
        <br>
        <br>
@@ -81,7 +87,7 @@
 <script>
 // Initialize radio buttons for questions on this page
 window.onload = function() {
-            initializeRadioButtons(['poorEyeContact', 'lackSocialSmile','remainAloof','doNotReachOut','inabilityToRelate','inabilityToRespond','engageInSolitary','inabilityToShare']);
+            initializeRadioButtons(['poorEyeContact', 'lackSocialSmile','remainAloof','doNotReachOut','inabilityToRelate','inabilityToRespond','engageInSolitary','inabilityToShare','doesNotMaintain']);
             updateScore(); // Initialize score display
         };    
     // The window.onload function is now in the questionnaire_form.js file, so we can remove it from here

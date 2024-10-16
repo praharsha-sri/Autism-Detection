@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>సామాజిక సంబంధాలు మరియు పరస్పర స్పందన ఫారం</title>
+    <link rel="stylesheet" href="questionnaire_style.css">
+</head>
+<body>
+
+    <h2>I. సామాజిక సంబంధాలు మరియు పరస్పర స్పందన</h2>
+
+    <form action="telugu_emotional.html" method="post" onsubmit="return validateForm()">  
+        <div class="question">
+            <label>1. తక్కువ కన్నుల సంప్రదింపు <span class="required">*</span></label>
+            <div class="question-description">కన్నుల సంప్రదింపును కొనసాగించడంలో కష్టం లేదా అసాధారణ కన్నుల సంప్రదింపు.
+            </div>
+            <div id="poorEyeContact" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>2. సామాజిక చిరునవ్వు లోపం <span class="required">*</span></label>
+            <div class="question-description">ఇతరుల నవ్వులకు లేదా సంభాషణలకు ప్రతిస్పందనగా నవ్వకపోవడం.
+            </div>
+            <div id="lackSocialSmile" class ="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>3. ఒంటరిగా ఉండటం <span class="required">*</span></label>
+            <div class="question-description">ఇతరులతో సంబంధం లేకుండా, తనలోనే మునిగిపోయినట్లు కనిపిస్తాడు.
+            </div>
+            <div id="remainAloof" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>4. ఇతరులను కలవడానికి ప్రయత్నించడు
+                <span class="required">*</span></label>
+            <div class="question-description">సంబంధాలను ప్రారంభించడంలో లేదా ప్రతిస్పందించడంలో వెనుకబడటం.
+            </div>
+            <div id="doNotReachOut" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>5. ప్రజలతో సంబంధం పెట్టుకునే సామర్థ్యం లేదు.<span class="required">*</span></label>
+            <div class="question-description">సంభాషణను ప్రారంభించడంలో లేదా కొనసాగించడంలో ఇబ్బంది పడడం, వీటిపట్ల నిరాసక్తంగా ఉండటం.
+            </div>
+            <div id="inabilityToRelate" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>6. సూచనలకు స్పందించలేని సామర్థ్యం లేదు
+                <span class="required">*</span></label>
+            <div class="question-description">సామాజిక/పర్యావరణ అవసరాలకు సరైన విధంగా స్పందించదు.
+            </div>
+            <div id="inabilityToRespond" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>7. ఒంటరి క్రీడలతో నిమగ్నం <span class="required">*</span></label>
+            <div class="question-description">సమూహ క్రీడల కంటే ఒంటరిగా లేదా పునరావృత చర్యలతో క్రీడలు చేయడం ఇష్టపడడం.
+            </div>
+            <div id="engageInSolitary" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>8. క్రీడలలో/ఆనందంలో భాగస్వామ్యం చేయడంలో విఫలం<span class="required">*</span></label>
+            <div class="question-description">ఇతరులతో కలిసి కార్యక్రమాల్లో పాల్గొనక పోవడం లేదా ఆటల్లో ఆనందం చూపించకపోవడం.
+            </div>
+            <div id="inabilityToShare" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>9. స్నేహితులతో సంబంధాలను కొనసాగించలేరు <span class="required">*</span></label>
+            <div class="question-description">స్నేహితులతో సంబంధాలను కొనసాగించడంలో కష్టపడుతుంది.
+            </div>
+            <div id="doesNotMaintain" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <!-- Add more questions here if needed -->
+       <br>
+       <br>
+        <div class="button-container">
+            <button class="prev-btn" type="button" onclick="window.location.href='telugu_Detailsform2.html'">మునుపటి (Previous)</button>
+            <button type="submit">తరువాత (Next)</button>
+        </div>
+    </form>
+
+     
+    <!-- Custom Modal for Validation Message -->
+    <div id="customAlert" class="custom-alert">
+        <div class="custom-alert-content">
+            <p>తరువాత పేజీలోకి వెళ్లడానికి ముందు అన్ని ప్రశ్నలకు సమాధానం ఇవ్వండి.</p>
+            <button class="custom-alert-btn" onclick="closeAlert()">సరే (OK)</button>
+        </div>
+    </div>
+
+    <script src="telugu_Questionnaire_form.js"></script>
+<script>
+// Initialize radio buttons for questions on this page
+window.onload = function() {
+            initializeRadioButtons(['poorEyeContact', 'lackSocialSmile','remainAloof','doNotReachOut','inabilityToRelate','inabilityToRespond','engageInSolitary','inabilityToShare','doesNotMaintain']);
+            updateScore(); // Initialize score display
+        };    
+    // The window.onload function is now in the questionnaire_form.js file, so we can remove it from here
+    // Keep the validateNext function as it is
+    function validateNext() {
+        if (validateForm()) {
+            window.location.href = 'telugu_emotional.html'; // Navigate to the next page
+        } else {
+            showAlert(); // Show the custom alert if form is not valid
+        }
+    }
+</script>
+</body>
+</html>
