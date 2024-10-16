@@ -24,12 +24,28 @@
         <h1 class="display-4">Select Your Preferred Language</h1>
         <!-- Language buttons styled like 'Get Started' button -->
         <div class="button-box mt-4">
-            <a href="parent_dashboard.html" class="get-started-btn">English</a>
-            <a href="login.html" class="get-started-btn">हिन्दी</a>
-            <a href="login.html" class="get-started-btn">తెలుగు</a>
+            <button id="english-btn" class="get-started-btn">English</button>
+            <button id="hindi-btn" class="get-started-btn">हिन्दी</button>
+            <button id="telugu-btn" class="get-started-btn">తెలుగు</button>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Handle button clicks for language selection and redirect accordingly
+        document.getElementById('english-btn').addEventListener('click', function () {
+            window.location.href = 'parent_dashboard_en.html'; // English Dashboard
+        });
+
+        document.getElementById('hindi-btn').addEventListener('click', function () {
+            window.location.href = 'parent_dashboard_hi.html'; // Hindi Dashboard
+        });
+
+        document.getElementById('telugu-btn').addEventListener('click', function () {
+            window.location.href = 'parent_dashboard_te.html'; // Telugu Dashboard
+        });
+    </script>
+
 </body>
 </html>
