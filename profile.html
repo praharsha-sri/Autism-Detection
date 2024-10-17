@@ -9,8 +9,21 @@
             font-family: Arial, sans-serif;
             color: #333;
             margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            background-color: #fff;
             padding: 20px;
-            box-sizing: border-box;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
         }
 
         h3 {
@@ -22,10 +35,12 @@
         .user-info p {
             font-size: 16px;
             margin-bottom: 10px;
+            text-align: center;
         }
 
         button {
-            padding: 8px 15px;
+            width: 100%;
+            padding: 10px;
             background-color: #3498db;
             color: white;
             border: none;
@@ -61,66 +76,53 @@
             color: red;
             font-size: 12px;
             display: none;
+            text-align: center;
         }
 
         .success {
             color: green;
             font-size: 12px;
             display: none;
+            text-align: center;
         }
     </style>
 </head>
 <body>
 
-    <h3>Manage Profile</h3>
+    <div class="container">
+        <h3>Manage Profile</h3>
 
-    <!-- User Information -->
-    <div class="user-info">
-        <p><strong>Name:</strong> <span id="username">Loading...</span></p>
-        <p><strong>Email:</strong> <span id="email">Loading...</span></p>
-    </div>
+        <!-- User Information -->
+        <div class="user-info">
+            <p><strong>Name:</strong> <span id="username">Loading...</span></p>
+            <p><strong>Email:</strong> <span id="email">Loading...</span></p>
+        </div>
 
-    <!-- Buttons to Toggle Forms -->
-    <button onclick="togglePasswordForm()">Change Password</button>
-    <button onclick="toggleEmailForm()">Change Email</button>
+        <!-- Buttons to Toggle Forms -->
+        <button onclick="togglePasswordForm()">Change Password</button>
+        <button onclick="sendEmailChange()">Change Email</button>
 
-    <!-- Password Change Form (Initially Hidden) -->
-    <div id="password-form" class="hidden">
-        <label for="current-password">Current Password:</label>
-        <input type="password" id="current-password" placeholder="Current Password">
+        <!-- Password Change Form (Initially Hidden) -->
+        <div id="password-form" class="hidden">
+            <label for="current-password">Current Password:</label>
+            <input type="password" id="current-password" placeholder="Current Password">
 
-        <label for="new-password">New Password:</label>
-        <input type="password" id="new-password" placeholder="New Password">
+            <label for="new-password">New Password:</label>
+            <input type="password" id="new-password" placeholder="New Password">
 
-        <label for="confirm-new-password">Confirm New Password:</label>
-        <input type="password" id="confirm-new-password" placeholder="Confirm New Password">
+            <label for="confirm-new-password">Confirm New Password:</label>
+            <input type="password" id="confirm-new-password" placeholder="Confirm New Password">
 
-        <div class="alert" id="password-alert">Passwords do not match!</div>
-        <div class="success" id="password-success">Password updated successfully!</div>
+            <div class="alert" id="password-alert">Passwords do not match!</div>
+            <div class="success" id="password-success">Password updated successfully!</div>
 
-        <button onclick="updatePassword()">Submit</button>
-    </div>
-
-    <!-- Email Change Form (Initially Hidden) -->
-    <div id="email-form" class="hidden">
-        <label for="current-email">Current Email:</label>
-        <input type="email" id="current-email" value="********@example.com" disabled>
-
-        <label for="new-email">New Email:</label>
-        <input type="email" id="new-email" placeholder="New Email">
-
-        <label for="confirm-new-email">Confirm New Email:</label>
-        <input type="email" id="confirm-new-email" placeholder="Confirm New Email">
-
-        <div class="alert" id="email-alert">Emails do not match!</div>
-        <div class="success" id="email-success">Email updated successfully!</div>
-
-        <button onclick="updateEmail()">Submit</button>
+            <button onclick="sendPasswordReset()">Send Password Reset Email</button>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, sendPasswordResetEmail, updateEmail } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -137,20 +139,16 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // Check if user is logged in and fetch their data
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
                 window.location.href = 'login.html';
             } else {
-                // Fetch user's name and email from Firestore
                 const userDoc = await getDoc(doc(db, "users", user.uid));
                 if (userDoc.exists()) {
                     const userData = userDoc.data();
-                    const userName = userData.name || "User";
-                    const userEmail = userData.email || "user@example.com";
-                    
-                    // Update the HTML with the user's name and email
-                    document.getElementById('username').textContent = userName;
-                    document.getElementById('email').textContent = userEmail;
+                    document.getElementById('username').textContent = userData.name || "User";
+                    document.getElementById('email').textContent = userData.email || "user@example.com";
                 }
             }
         });
@@ -161,44 +159,30 @@
             passwordForm.classList.toggle('hidden');
         }
 
-        // Toggle Email Form visibility
-        function toggleEmailForm() {
-            const emailForm = document.getElementById('email-form');
-            emailForm.classList.toggle('hidden');
+        // Send Password Reset Email
+        function sendPasswordReset() {
+            const user = auth.currentUser;
+            sendPasswordResetEmail(auth, user.email)
+                .then(() => {
+                    document.getElementById('password-success').style.display = 'block';
+                })
+                .catch((error) => {
+                    console.error("Error sending password reset email: ", error);
+                });
         }
 
-        // Password Update Logic
-        function updatePassword() {
-            const newPassword = document.getElementById('new-password').value;
-            const confirmPassword = document.getElementById('confirm-new-password').value;
-            const passwordAlert = document.getElementById('password-alert');
-            const passwordSuccess = document.getElementById('password-success');
+        // Send Email Change Request
+        function sendEmailChange() {
+            const newEmail = prompt("Please enter your new email:");
+            const user = auth.currentUser;
 
-            if (newPassword !== confirmPassword) {
-                passwordAlert.style.display = 'block';
-                passwordSuccess.style.display = 'none';
-            } else {
-                passwordAlert.style.display = 'none';
-                passwordSuccess.style.display = 'block';
-                // Add logic here to update the password on the backend
-            }
-        }
-
-        // Email Update Logic
-        function updateEmail() {
-            const newEmail = document.getElementById('new-email').value;
-            const confirmEmail = document.getElementById('confirm-new-email').value;
-            const emailAlert = document.getElementById('email-alert');
-            const emailSuccess = document.getElementById('email-success');
-
-            if (newEmail !== confirmEmail) {
-                emailAlert.style.display = 'block';
-                emailSuccess.style.display = 'none';
-            } else {
-                emailAlert.style.display = 'none';
-                emailSuccess.style.display = 'block';
-                // Add logic here to update the email on the backend
-            }
+            updateEmail(user, newEmail)
+                .then(() => {
+                    alert("Email updated successfully!");
+                })
+                .catch((error) => {
+                    console.error("Error updating email: ", error);
+                });
         }
     </script>
 
