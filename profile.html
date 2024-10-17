@@ -4,105 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Profile</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            color: #333;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f4f4f4;
-        }
-
-        .container {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
-        }
-
-        h3 {
-            text-align: center;
-            color: #3498db;
-            margin-bottom: 20px;
-        }
-
-        .user-info p {
-            font-size: 16px;
-            margin-bottom: 10px;
-            text-align: center;
-        }
-
-        button {
-            width: 100%;
-            padding: 10px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-bottom: 15px;
-            font-size: 14px;
-        }
-
-        button:hover {
-            background-color: #2980b9;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        label {
-            display: block;
-            margin: 10px 0 5px;
-            font-size: 14px;
-        }
-
-        input {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-
-        .alert {
-            color: red;
-            font-size: 12px;
-            display: none;
-            text-align: center;
-        }
-
-        .success {
-            color: green;
-            font-size: 12px;
-            display: none;
-            text-align: center;
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="profile.css">
 </head>
 <body>
-
     <div class="container">
         <h3>Manage Profile</h3>
 
-        <!-- User Information -->
         <div class="user-info">
-            <p><strong>Name:</strong> <span id="username">Loading...</span></p>
-            <p><strong>Email:</strong> <span id="email">Loading...</span></p>
+            <p><strong>Name:</strong> <span id="username"></span></p>
+            <p><strong>Email:</strong> <span id="email"></span></p>
         </div>
 
-        <!-- Buttons to Toggle Forms -->
         <button onclick="togglePasswordForm()">Change Password</button>
-        <button onclick="sendEmailChange()">Change Email</button>
 
-        <!-- Password Change Form (Initially Hidden) -->
         <div id="password-form" class="hidden">
             <label for="current-password">Current Password:</label>
             <input type="password" id="current-password" placeholder="Current Password">
@@ -113,17 +28,17 @@
             <label for="confirm-new-password">Confirm New Password:</label>
             <input type="password" id="confirm-new-password" placeholder="Confirm New Password">
 
-            <div class="alert" id="password-alert">Passwords do not match!</div>
-            <div class="success" id="password-success">Password updated successfully!</div>
+            <div class="alert" id="password-alert"></div>
+            <div class="success" id="password-success"></div>
 
-            <button onclick="sendPasswordReset()">Send Password Reset Email</button>
+            <button onclick="updatePassword()">Update Password</button>
         </div>
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, sendPasswordResetEmail, updateEmail } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js";
+        import { getAuth, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
@@ -139,52 +54,90 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Check if user is logged in and fetch their data
-        onAuthStateChanged(auth, async (user) => {
-            if (!user) {
-                window.location.href = 'login.html';
-            } else {
-                const userDoc = await getDoc(doc(db, "users", user.uid));
+        window.togglePasswordForm = () => {
+            const form = document.getElementById("password-form");
+            form.classList.toggle("hidden");
+        };
+
+        window.updatePassword = async () => {
+    const currentPassword = document.getElementById("current-password").value;
+    const newPassword = document.getElementById("new-password").value;
+    const confirmNewPassword = document.getElementById("confirm-new-password").value;
+    const passwordAlert = document.getElementById("password-alert");
+    const passwordSuccess = document.getElementById("password-success");
+    
+    // Reset alert and success messages
+    passwordAlert.style.display = "none";
+    passwordSuccess.style.display = "none";
+
+    // Check if any of the password fields are empty
+    if (!currentPassword || !newPassword || !confirmNewPassword) {
+        passwordAlert.textContent = "Please fill in all fields.";
+        passwordAlert.style.display = "block";
+        return; // Exit the function if fields are empty
+    }
+
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
+
+    // Validate new password format
+    if (!passwordRegex.test(newPassword)) {
+        passwordAlert.textContent = "Password must have 8+ characters, including a letter, number, and symbol";
+        passwordAlert.style.display = "block";
+        return;
+    }
+
+    // Check if new passwords match
+    if (newPassword !== confirmNewPassword) {
+        passwordAlert.textContent = "New passwords do not match";
+        passwordAlert.style.display = "block";
+        return;
+    }
+
+    try {
+        const user = auth.currentUser;
+        const credential = EmailAuthProvider.credential(user.email, currentPassword);
+        await reauthenticateWithCredential(user, credential);
+        await updatePassword(user, newPassword);
+        
+        passwordSuccess.textContent = "Password updated successfully!";
+        passwordSuccess.style.display = "block";
+        
+        // Clear form fields only after successful password update
+        document.getElementById("current-password").value = "";
+        document.getElementById("new-password").value = "";
+        document.getElementById("confirm-new-password").value = "";
+        
+    } catch (error) {
+        passwordAlert.textContent = error.message;
+        passwordAlert.style.display = "block";
+    }
+};
+
+
+        // Function to fetch user data from Firestore
+        async function getUserData(userId) {
+            try {
+                const userDoc = await getDoc(doc(db, 'users', userId));
                 if (userDoc.exists()) {
                     const userData = userDoc.data();
-                    document.getElementById('username').textContent = userData.name || "User";
-                    document.getElementById('email').textContent = userData.email || "user@example.com";
+                    document.getElementById('username').textContent = userData.name || 'User';
+                    document.getElementById('email').textContent = userData.email;
                 }
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+            }
+        }
+
+        // Load user info on page load
+        auth.onAuthStateChanged(async user => {
+            if (user) {
+                document.getElementById('email').textContent = user.email;
+                // Fetch additional user data from Firestore
+                await getUserData(user.uid);
+            } else {
+                window.location.href = 'login.html';
             }
         });
-
-        // Toggle Password Form visibility
-        function togglePasswordForm() {
-            const passwordForm = document.getElementById('password-form');
-            passwordForm.classList.toggle('hidden');
-        }
-
-        // Send Password Reset Email
-        function sendPasswordReset() {
-            const user = auth.currentUser;
-            sendPasswordResetEmail(auth, user.email)
-                .then(() => {
-                    document.getElementById('password-success').style.display = 'block';
-                })
-                .catch((error) => {
-                    console.error("Error sending password reset email: ", error);
-                });
-        }
-
-        // Send Email Change Request
-        function sendEmailChange() {
-            const newEmail = prompt("Please enter your new email:");
-            const user = auth.currentUser;
-
-            updateEmail(user, newEmail)
-                .then(() => {
-                    alert("Email updated successfully!");
-                })
-                .catch((error) => {
-                    console.error("Error updating email: ", error);
-                });
-        }
     </script>
-
 </body>
 </html>
