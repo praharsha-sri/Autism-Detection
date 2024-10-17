@@ -4,42 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cognitive Component Form</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="questionnaire_style.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 </head>
 <body>
 
     <h2>VI. COGNITIVE COMPONENT</h2>
 
-    <form id="form" action ="parent_dashboard.html" method="post">
+    <form id="form" action="parent_dashboard.html" method="post" onsubmit="return validateForm()">  
         <div class="question">
             <label>37. Inconsistent attention and concentration <span class="required">*</span></label>
-            <div class="question-description">Difficulty focusing or focusing on irrelevant things.</div>
-            <div id="inconsistent" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+            <p class="question-description">Difficulty focusing or focusing on irrelevant things.</p>
+            <div id="inconsistent" class="radio-group"></div>
         </div>
 
         <div class="question">
             <label>38. Shows delay in responding <span class="required">*</span></label>
-            <div class="question-description">Takes longer to respond or needs repeated instructions.</div>
-            <div id="showsDelay" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+            <p class="question-description">Takes longer to respond or needs repeated instructions.</p>
+            <div id="showsDelay" class="radio-group"></div>
         </div>
 
         <div class="question">
             <label>39. Has unusual memory of some kind <span class="required">*</span></label>
-            <div class="question-description">Remembers things most people forget, like past events or routines.</div>
-            <div id="hasUnusualMemory" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+            <p class="question-description">Remembers things most people forget, like past events or routines.</p>
+            <div id="hasUnusualMemory" class="radio-group"></div>
         </div>
 
         <div class="question">
             <label>40. Has ‘savant’ ability <span class="required">*</span></label>
-            <div class="question-description">Exceptional skill in specific areas like reading, math, or art.</div>
-            <div id="hasSavantAbility" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+            <p class="question-description">Exceptional skill in specific areas like reading, math, or art.</p>
+            <div id="hasSavantAbility" class="radio-group"></div>
         </div>
 
-        <br>
-        <br>
         <div class="button-container">
             <button type="button" class="prev-btn" onclick="window.location.href='sensory.html'">Previous</button>
-            <button type="button" class="next-btn" onclick="validateNext()">Next</button>
+            <button type="submit" class="next-btn">Next</button>
         </div>
     </form>
 
@@ -51,20 +54,136 @@
         </div>
     </div>
 
-    <script src="questionnaire_form.js"></script>
-<script>
-// Initialize radio buttons for questions on this page
-window.onload = function() {
-            initializeRadioButtons(['inconsistent','showsDelay','hasUnusualMemory','hasSavantAbility']);
-        };    
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+            authDomain: "autism-evaluation-platform.firebaseapp.com",
+            projectId: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform.appspot.com",
+            messagingSenderId: "748226978662",
+            appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+            measurementId: "G-1TGEHTTJF4"
+        };
 
-        function validateNext() {
-            if (validateForm()) {
-                window.location.href = 'final_page.html'; // Navigate to the next page
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        const radioOptions = ["Rarely", "Sometimes", "Frequently", "Mostly", "Always"];
+        const scoreValues = {
+            Rarely: 1,
+            Sometimes: 2,
+            Frequently: 3,
+            Mostly: 4,
+            Always: 5,
+        };
+
+        function generateRadioButtons(questionId) {
+            const radioGroup = document.getElementById(questionId);
+            radioOptions.forEach((option) => {
+                const label = document.createElement("label");
+                label.innerHTML = `<input type="radio" name="${questionId}" value="${option}"> ${option}`;
+                radioGroup.appendChild(label);
+            });
+        }
+
+        function initializeRadioButtons(questionIds) {
+            questionIds.forEach(generateRadioButtons);
+        }
+
+        function showAlert() {
+            document.getElementById("customAlert").style.display = "flex";
+        }
+
+        function closeAlert() {
+            document.getElementById("customAlert").style.display = "none";
+        }
+
+        function validateForm() {
+            const questions = document.querySelectorAll(".radio-group");
+            for (let i = 0; i < questions.length; i++) {
+                const radioButtons = questions[i].querySelectorAll('input[type="radio"]');
+                let isChecked = false;
+                for (let j = 0; j < radioButtons.length; j++) {
+                    if (radioButtons[j].checked) {
+                        isChecked = true;
+                        break;
+                    }
+                }
+                if (!isChecked) {
+                    showAlert();
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function calculateScore() {
+            const questions = document.querySelectorAll(".radio-group");
+            let totalScore = 0;
+            const maxPossibleScore = questions.length * 5;
+            const responses = {};
+
+            questions.forEach((question) => {
+                const selectedOption = question.querySelector('input[type="radio"]:checked');
+                if (selectedOption) {
+                    totalScore += scoreValues[selectedOption.value];
+                    responses[selectedOption.name] = selectedOption.value;
+                }
+            });
+
+            const scorePercentage = (totalScore / maxPossibleScore) * 100;
+
+            return {
+                score: totalScore,
+                maxScore: maxPossibleScore,
+                percentage: scorePercentage.toFixed(2),
+                responses: responses
+            };
+        }
+
+        function storeQuestionnaireDataInFirebase(data) {
+            const user = firebase.auth().currentUser;
+
+            if (user) {
+                const userRef = firebase.firestore().collection('users').doc(user.uid);
+                const questionnaireRef = userRef.collection('questionnaires').doc();
+
+                questionnaireRef.set({
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    domain: 'cognitiveComponent',
+                    score: data.score,
+                    maxScore: data.maxScore,
+                    percentage: data.percentage,
+                    responses: data.responses
+                })
+                .then(() => {
+                    console.log("Questionnaire data successfully stored in Firebase");
+                    window.location.href = 'parent_dashboard_en.html'; // Navigate to the next page
+                })
+                .catch((error) => {
+                    console.error("Error storing questionnaire data in Firebase: ", error);
+                });
             } else {
-                showAlert(); // Show the custom alert if form is not valid
+                console.error("No user is signed in");
             }
         }
+
+        window.onload = function() {
+            initializeRadioButtons(['inconsistent', 'showsDelay', 'hasUnusualMemory', 'hasSavantAbility']);
+        };
+
+        // Modify the form submission
+        document.querySelector('form').onsubmit = function(e) {
+            e.preventDefault(); // Prevent default form submission
+            if (validateForm()) {
+                const data = calculateScore();
+                storeQuestionnaireDataInFirebase(data);
+            } else {
+                showAlert();
+            }
+        };
     </script>
+
 </body>
 </html>
