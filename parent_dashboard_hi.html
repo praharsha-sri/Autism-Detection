@@ -1,23 +1,85 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parent's Dashboard</title>
+    <title>अभिभावक डैशबोर्ड</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet"> <!-- Font Awesome -->
-    <link href="parent_dashboard.css" rel="stylesheet"> <!-- Link to custom CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="parent_dashboard.css" rel="stylesheet">
+
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+            authDomain: "autism-evaluation-platform.firebaseapp.com",
+            projectId: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform.appspot.com",
+            messagingSenderId: "748226978662",
+            appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+            measurementId: "G-1TGEHTTJF4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+            } else {
+                // Fetch user's name from Firestore
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    const userName = userDoc.data().name || "User";
+                    document.getElementById('user-name').textContent = `${userName}'s डैशबोर्ड`;
+                }
+
+                // Redirect to language-specific dashboard
+                const selectedLanguage = localStorage.getItem('selectedLanguage') || 'en';
+                if (window.location.pathname.indexOf(`parent_dashboard_${selectedLanguage}.html`) === -1) {
+                    window.location.href = `parent_dashboard_${selectedLanguage}.html`;
+                }
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('logout-btn').addEventListener('click', function() {
+                signOut(auth).then(() => {
+                    localStorage.removeItem('selectedLanguage'); // Clear selected language
+                    window.location.href = 'login.html';
+                }).catch((error) => {
+                    console.error('Error signing out:', error);
+                });
+            });
+
+            // Add language switcher functionality
+            document.getElementById('language-switcher').addEventListener('change', function() {
+                const newLanguage = this.value;
+                localStorage.setItem('selectedLanguage', newLanguage);
+                window.location.href = `parent_dashboard_${newLanguage}.html`;
+            });
+        });
+    </script>
 </head>
 <body class="d-flex flex-column bg-light-blue">
-
-<!-- Navbar (Fixed at the top) -->
     <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">Parent's Dashboard</a>
-            <button class="btn btn-danger">Logout</button>
+            <a class="navbar-brand" href="#" id="user-name">डैशबोर्ड</a>
+            <div>
+                <select id="language-switcher" class="form-select me-2">
+                    <option value="en">English</option>
+                    <option value="hi" selected>हिन्दी</option>
+                    <option value="te">తెలుగు</option>
+                </select>
+                <button id="logout-btn" class="btn btn-danger">लॉगआउट</button>
+            </div>
         </div>
     </nav>
-
     <div class="container mt-4">
         <div class="row g-4">
             <div class="col-lg-4 col-md-6">
@@ -50,18 +112,6 @@
                     </div>
                 </div>
             </div>
-            <!---
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 text-center shadow-lg">
-                    <div class="card-body d-flex align-items-center justify-content-center">
-                        <a href="parent_inbox.html" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-decoration-none text-dark">
-                            <span class="fas fa-inbox fa-2x mb-3"></span>
-                            <h5>Inbox</h5>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        -->
             <div class="col-lg-4 col-md-6">
                 <div class="card h-100 text-center shadow-lg">
                     <div class="card-body d-flex align-items-center justify-content-center">
