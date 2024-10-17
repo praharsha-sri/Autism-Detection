@@ -1,88 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manage Profile</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      color: #333;
-      margin: 0;
-      padding: 20px;
-      box-sizing: border-box;  /*body*/
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Profile</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
 
-    h3 {
-      text-align: center;
-      color: #3498db;
-      margin-bottom: 20px;
-    }
+        h3 {
+            text-align: center;
+            color: #3498db;
+            margin-bottom: 20px;
+        }
 
-    .user-info p {
-      font-size: 16px;
-      margin-bottom: 10px;
-    }
+        .user-info p {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
 
-    button {
-  padding: 5px 10px; /* Reducing padding */
-  background-color: #3498db;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-bottom: 15px;
-  width: auto; /* Change width to auto for better flexibility */
-  font-size: 14px; /* Optional: reduce the font size */
-}
+        button {
+            padding: 8px 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
 
-button:hover {
-  background-color: #2980b9;
-}
+        button:hover {
+            background-color: #2980b9;
+        }
 
-    .hidden {
-      display: none;
-    }
+        .hidden {
+            display: none;
+        }
 
-    label {
-      display: block;
-      margin: 10px 0 5px;
-      font-size: 14px;
-    }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            font-size: 14px;
+        }
 
-    input {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
 
-    .alert {
-      color: red;
-      font-size: 12px;
-      display: none;
-    }
+        .alert {
+            color: red;
+            font-size: 12px;
+            display: none;
+        }
 
-    .success {
-      color: green;
-      font-size: 12px;
-      display: none;
-    }
-  </style>
+        .success {
+            color: green;
+            font-size: 12px;
+            display: none;
+        }
+    </style>
 </head>
 <body>
 
-    <h3>Manage Profile (Parent)</h3>
+    <h3>Manage Profile</h3>
 
     <!-- User Information -->
     <div class="user-info">
-      <p><strong>Username:</strong> Jane Doe</p>
-      <p><strong>Date of Birth:</strong> 03-05-2004</p>
-
-      <!-- Hidden Email and Password Info -->
-      <p><strong>Password:</strong> ********</p>
-      <p><strong>Email:</strong> ********@gmail.com</p>
+        <p><strong>Name:</strong> <span id="username">Loading...</span></p>
+        <p><strong>Email:</strong> <span id="email">Loading...</span></p>
     </div>
 
     <!-- Buttons to Toggle Forms -->
@@ -91,85 +86,121 @@ button:hover {
 
     <!-- Password Change Form (Initially Hidden) -->
     <div id="password-form" class="hidden">
-      <label for="current-password">Current Password:</label>
-      <input type="password" id="current-password" placeholder="Current Password">
+        <label for="current-password">Current Password:</label>
+        <input type="password" id="current-password" placeholder="Current Password">
 
-      <label for="new-password">New Password:</label>
-      <input type="password" id="new-password" placeholder="New Password">
+        <label for="new-password">New Password:</label>
+        <input type="password" id="new-password" placeholder="New Password">
 
-      <label for="confirm-new-password">Confirm New Password:</label>
-      <input type="password" id="confirm-new-password" placeholder="Confirm New Password">
+        <label for="confirm-new-password">Confirm New Password:</label>
+        <input type="password" id="confirm-new-password" placeholder="Confirm New Password">
 
-      <div class="alert" id="password-alert">Passwords do not match!</div>
-      <div class="success" id="password-success">Password updated successfully!</div>
+        <div class="alert" id="password-alert">Passwords do not match!</div>
+        <div class="success" id="password-success">Password updated successfully!</div>
 
-      <button onclick="updatePassword()">Submit</button>
+        <button onclick="updatePassword()">Submit</button>
     </div>
 
     <!-- Email Change Form (Initially Hidden) -->
     <div id="email-form" class="hidden">
-      <label for="current-email">Current Email:</label>
-      <input type="email" id="current-email" value="********@example.com" disabled>
+        <label for="current-email">Current Email:</label>
+        <input type="email" id="current-email" value="********@example.com" disabled>
 
-      <label for="new-email">New Email:</label>
-      <input type="email" id="new-email" placeholder="New Email">
+        <label for="new-email">New Email:</label>
+        <input type="email" id="new-email" placeholder="New Email">
 
-      <label for="confirm-new-email">Confirm New Email:</label>
-      <input type="email" id="confirm-new-email" placeholder="Confirm New Email">
+        <label for="confirm-new-email">Confirm New Email:</label>
+        <input type="email" id="confirm-new-email" placeholder="Confirm New Email">
 
-      <div class="alert" id="email-alert">Emails do not match!</div>
-      <div class="success" id="email-success">Email updated successfully!</div>
+        <div class="alert" id="email-alert">Emails do not match!</div>
+        <div class="success" id="email-success">Email updated successfully!</div>
 
-      <button onclick="updateEmail()">Submit</button>
+        <button onclick="updateEmail()">Submit</button>
     </div>
 
-  <script>
-    // Toggle Password Form visibility
-    function togglePasswordForm() {
-      const passwordForm = document.getElementById('password-form');
-      passwordForm.classList.toggle('hidden');
-    }
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-    // Toggle Email Form visibility
-    function toggleEmailForm() {
-      const emailForm = document.getElementById('email-form');
-      emailForm.classList.toggle('hidden');
-    }
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+            authDomain: "autism-evaluation-platform.firebaseapp.com",
+            projectId: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform.appspot.com",
+            messagingSenderId: "748226978662",
+            appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+            measurementId: "G-1TGEHTTJF4"
+        };
 
-    // Password Update Logic
-    function updatePassword() {
-      const newPassword = document.getElementById('new-password').value;
-      const confirmPassword = document.getElementById('confirm-new-password').value;
-      const passwordAlert = document.getElementById('password-alert');
-      const passwordSuccess = document.getElementById('password-success');
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-      if (newPassword !== confirmPassword) {
-        passwordAlert.style.display = 'block';
-        passwordSuccess.style.display = 'none';
-      } else {
-        passwordAlert.style.display = 'none';
-        passwordSuccess.style.display = 'block';
-        // Add logic here to update the password on the backend
-      }
-    }
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+            } else {
+                // Fetch user's name and email from Firestore
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    const userName = userData.name || "User";
+                    const userEmail = userData.email || "user@example.com";
+                    
+                    // Update the HTML with the user's name and email
+                    document.getElementById('username').textContent = userName;
+                    document.getElementById('email').textContent = userEmail;
+                }
+            }
+        });
 
-    // Email Update Logic
-    function updateEmail() {
-      const newEmail = document.getElementById('new-email').value;
-      const confirmEmail = document.getElementById('confirm-new-email').value;
-      const emailAlert = document.getElementById('email-alert');
-      const emailSuccess = document.getElementById('email-success');
+        // Toggle Password Form visibility
+        function togglePasswordForm() {
+            const passwordForm = document.getElementById('password-form');
+            passwordForm.classList.toggle('hidden');
+        }
 
-      if (newEmail !== confirmEmail) {
-        emailAlert.style.display = 'block';
-        emailSuccess.style.display = 'none';
-      } else {
-        emailAlert.style.display = 'none';
-        emailSuccess.style.display = 'block';
-        // Add logic here to update the email on the backend
-      }
-    }
-  </script>
+        // Toggle Email Form visibility
+        function toggleEmailForm() {
+            const emailForm = document.getElementById('email-form');
+            emailForm.classList.toggle('hidden');
+        }
+
+        // Password Update Logic
+        function updatePassword() {
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-new-password').value;
+            const passwordAlert = document.getElementById('password-alert');
+            const passwordSuccess = document.getElementById('password-success');
+
+            if (newPassword !== confirmPassword) {
+                passwordAlert.style.display = 'block';
+                passwordSuccess.style.display = 'none';
+            } else {
+                passwordAlert.style.display = 'none';
+                passwordSuccess.style.display = 'block';
+                // Add logic here to update the password on the backend
+            }
+        }
+
+        // Email Update Logic
+        function updateEmail() {
+            const newEmail = document.getElementById('new-email').value;
+            const confirmEmail = document.getElementById('confirm-new-email').value;
+            const emailAlert = document.getElementById('email-alert');
+            const emailSuccess = document.getElementById('email-success');
+
+            if (newEmail !== confirmEmail) {
+                emailAlert.style.display = 'block';
+                emailSuccess.style.display = 'none';
+            } else {
+                emailAlert.style.display = 'none';
+                emailSuccess.style.display = 'block';
+                // Add logic here to update the email on the backend
+            }
+        }
+    </script>
 
 </body>
 </html>
