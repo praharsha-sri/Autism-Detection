@@ -5,13 +5,13 @@ body {
     font-family: 'Poppins', 'Nunito', sans-serif;
     background: url('background.jpg') no-repeat center center fixed; 
     background-size: cover;
-    height: 100vh;
+    min-height: 100vh; /* Changed to min-height to accommodate overflow */
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start; /* Adjusted to ensure content starts below header */
     align-items: center;
     color: #2c3e50;
-    margin-top: 80px; /* Add this line to create space below the header */
+    margin-top: 100px; /* Ensures proper space between header and form */
 }
 
 /* Header Styles */
@@ -107,6 +107,46 @@ body {
     background-color: #000000;
 }
 
+/* Form Styling */
+form {
+    background-color: rgba(255, 255, 255, 0.85); /* Light background for readability */
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 600px; /* Ensure form doesn't take up entire width */
+    margin-top: 20px;
+}
+
+form input, form select {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+form label {
+    font-weight: bold;
+}
+
+/* Custom Primary Button */
+.btn-primary-custom {
+    background-color: #2c3e50; /* Match other button background */
+    color: #ffffff; /* Match text color */
+    font-size: 18px;
+    padding: 10px 20px; /* Adjust padding as needed */
+    border: none; /* No border */
+    border-radius: 25px; /* Match other buttons */
+    cursor: pointer; /* Pointer on hover */
+    transition: background-color 0.3s ease; /* Smooth transition */
+    display: inline-block; /* Inline block for proper spacing */
+}
+
+.btn-primary-custom:hover {
+    background-color: #000000; /* Darker background on hover */
+}
+
 /* Responsive Styles */
 @media (max-width: 768px) {
     .main-header {
@@ -140,6 +180,11 @@ body {
     .get-started-btn {
         font-size: 18px; /* Responsive button size */
     }
+
+    form {
+        padding: 20px; /* Adjust padding on small screens */
+        margin-top: 60px; /* More space on small screens for better readability */
+    }
 }
 
 @media (max-width: 480px) {
@@ -151,16 +196,14 @@ body {
         font-size: 16px; /* Smaller button text */
         padding: 8px 16px; /* Smaller button padding */
     }
-}
 
-.btn-primary-custom {
-    background-color: #2c3e50; /* Match other button background */
-    color: #ffffff; /* Match text color */
-    font-size: 18px;
-    padding: 10px 20px; /* Adjust padding as needed */
-    border: none; /* No border */
-    border-radius: 25px; /* Match other buttons */
-    cursor: pointer; /* Pointer on hover */
-    transition: background-color 0.3s ease; /* Smooth transition */
-    display: inline-block; /* Inline block for proper spacing */
+    .get-started-btn {
+        font-size: 16px; /* Smaller button size */
+        padding: 10px 30px; /* Adjust padding */
+    }
+
+    form {
+        padding: 15px; /* More compact padding for very small screens */
+        margin-top: 80px; /* Ensure form has enough space below the header */
+    }
 }
