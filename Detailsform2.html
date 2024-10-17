@@ -6,6 +6,54 @@
     <title>Autism Assessment Form</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="questionnaire_style.css">
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+            authDomain: "autism-evaluation-platform.firebaseapp.com",
+            projectId: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform.appspot.com",
+            messagingSenderId: "748226978662",
+            appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+            measurementId: "G-1TGEHTTJF4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('autismForm').addEventListener('submit', async function (event) {
+                event.preventDefault();
+
+                const name = document.getElementById('name').value;
+                const gender = document.getElementById('gender').value;
+                const date = document.getElementById('date').value;
+                const dob = document.getElementById('dob').value;
+                const age = document.getElementById('age').value;
+                const examiner = document.getElementById('examiner').value;
+
+                // Store details in Firestore
+                try {
+                    const userId = "some-user-id"; // Replace with the actual user ID
+                    await setDoc(doc(db, "assessments", userId), {
+                        name: name,
+                        gender: gender,
+                        date: date,
+                        dob: dob,
+                        age: age,
+                        examiner: examiner
+                    });
+                    // Redirect to next page after storing data
+                    window.location.href = "Social.html"; // Update with your actual next page
+                } catch (error) {
+                    console.error("Error adding document: ", error);
+                }
+            });
+        });
+    </script>
 </head>
 <body>
 
