@@ -29,33 +29,38 @@
         document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('autismForm').addEventListener('submit', async function (event) {
                 event.preventDefault();
-
+    
                 const name = document.getElementById('name').value;
                 const gender = document.getElementById('gender').value;
                 const date = document.getElementById('date').value;
                 const dob = document.getElementById('dob').value;
                 const age = document.getElementById('age').value;
                 const examiner = document.getElementById('examiner').value;
-                // Store details in Firestore
-                try {
-                    const userId = ""; // Replace with the actual user ID
-                    await setDoc(doc(db, "assessments", userId), {
-                        name: name,
-                        gender: gender,
-                        date: date,
-                        dob: dob,
-                        age: age,
-                        examiner: examiner
-                    });
-                    // Redirect to next page after storing data
-                    window.location.href = "Social.html"; // Update with your actual next page
-                } catch (error) {
-                    console.error("Error adding document: ", error);
+
+                const user = auth.currentUser;
+
+                if (user) {
+                    const userId = user.uid;
+
+                    try {
+                        await setDoc(doc(db, "assessments", userId), {
+                            name: name,
+                            gender: gender,
+                            date: date,
+                            dob: dob,
+                            age: age,
+                            examiner: examiner
+                        });
+                        window.location.href = "Social.html";
+                    } catch (error) {
+                        console.error("Error adding document: ", error);
+                    }
+                } else {
+                    console.error("No user is signed in.");
                 }
             });
         });
     </script>
-    
 </head>
 <body>
 
