@@ -6,86 +6,10 @@
     <title>Speech-Language And Communication Form</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="questionnaire_style.css">
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-</head>
-<body>
-
-    <h2>III. SPEECH-LANGUAGE AND COMMUNICATION</h2>
-
-    <form id="form" method="post" onsubmit="return validateAndSubmit()"> 
-        <div class="question">
-            <label>15. Acquired speech and lost it <span class="required">*</span></label>
-            <p class="question-description">May have developed speech but lost it later. Around 50% of autistic individuals may be mute.</p>
-            <div id="acquired" class="radio-group"></div>
-        </div>
-
-        <div class="question">
-            <label>16. Has difficulty in using non-verbal language or gestures to communicate <span class="required">*</span></label>
-            <p class="question-description">May struggle to express needs non-verbally, like pointing. They might pull someone's hand to an object instead.</p>
-            <div id="hasDifficulty" class="radio-group"></div>
-        </div>
-
-        <div class="question">
-            <label>17. Engages in stereotyped and repetitive use of language <span class="required">*</span></label>
-            <p class="question-description">May repeat words or phrases out of context, saying the same thing many times.</p>
-            <div id="engagesInStereotyped" class="radio-group"></div>
-        </div>
-
-        <div class="question">
-            <label>18. Engages in echolalic speech <span class="required">*</span></label>
-            <p class="question-description">May repeat or echo what others say without understanding they need to respond.</p>
-            <div id="engagesInEcholalic" class="radio-group"></div>
-        </div>
-
-        <div class="question">
-            <label>19. Produces infantile squeals/unusual noises <span class="required">*</span></label>
-            <p class="question-description">May make strange noises or unintelligible sounds that don't have clear meaning.</p>
-            <div id="producesInfantile" class="radio-group"></div>
-        </div>
-
-        <div class="question">
-            <label>20. Unable to initiate or sustain conversation with others <span class="required">*</span></label>
-            <p class="question-description">May have trouble starting or maintaining a conversation with others.</p>
-            <div id="unableToInitiate" class="radio-group"></div>
-        </div>
-
-        <div class="question">
-            <label>21. Uses jargon or meaningless words <span class="required">*</span></label>
-            <p class="question-description">May use words that don't have clear or relevant meaning.</p>
-            <div id="usesJargon" class="radio-group"></div>
-        </div>
-
-        <div class="question">
-            <label>22. Uses pronoun reversals <span class="required">*</span></label>
-            <p class="question-description">May refer to themselves as "you" and others as "I".</p>
-            <div id="usesPronounReversals" class="radio-group"></div>
-        </div>
-
-        <div class="question">
-            <label>23. Unable to grasp pragmatics of communication (real meaning) <span class="required">*</span></label>
-            <p class="question-description">May not understand the intended meaning behind words or social cues.</p>
-            <div id="unableToGrasp" class="radio-group"></div>
-        </div>
-
-        <div class="button-container">
-            <button type="button" class="prev-btn" onclick="window.location.href='emotional.html'">Previous</button>
-            <button type="submit" class="next-btn">Next</button>
-        </div>
-    </form>
-
-    <!-- Custom Modal for Validation Message -->
-    <div id="customAlert" class="custom-alert">
-        <div class="custom-alert-content">
-            <p>Please answer all the questions before proceeding to the next page.</p>
-            <button class="custom-alert-btn" onclick="closeAlert()">OK</button>
-        </div>
-    </div>
-
-    <script>
-        // Firebase configuration
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
         const firebaseConfig = {
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
             authDomain: "autism-evaluation-platform.firebaseapp.com",
@@ -96,10 +20,12 @@
             measurementId: "G-1TGEHTTJF4"
         };
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
 
         const radioOptions = ["Rarely", "Sometimes", "Frequently", "Mostly", "Always"];
+
         const scoreValues = {
             Rarely: 1,
             Sometimes: 2,
@@ -107,6 +33,13 @@
             Mostly: 4,
             Always: 5,
         };
+
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
 
         function generateRadioButtons(questionId) {
             const radioGroup = document.getElementById(questionId);
@@ -172,50 +105,126 @@
             };
         }
 
-        function storeQuestionnaireDataInFirebase(data) {
-            const user = firebase.auth().currentUser;
+        async function storeQuestionnaireDataInFirebase(data) {
+            const user = auth.currentUser;
+            const collectionName = getUrlParameter('collectionName');
 
             if (user) {
-                const userRef = firebase.firestore().collection('users').doc(user.uid);
-                const questionnaireRef = userRef.collection('questionnaires').doc();
-
-                questionnaireRef.set({
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                    domain: 'speechLanguageCommunication',
-                    score: data.score,
-                    maxScore: data.maxScore,
-                    percentage: data.percentage,
-                    responses: data.responses
-                })
-                .then(() => {
+                try {
+                    const docRef = doc(db, "users", user.uid, collectionName, "speechLanguageCommunication");
+                    await setDoc(docRef, {
+                        timestamp: new Date(),
+                        domain: 'speechLanguageCommunication',
+                        score: data.score,
+                        maxScore: data.maxScore,
+                        percentage: data.percentage,
+                        responses: data.responses
+                    });
                     console.log("Questionnaire data successfully stored in Firebase");
-                    window.location.href = 'behaviour.html'; // Navigate to the next page
-                })
-                .catch((error) => {
+                    window.location.href = 'behaviour.html?collectionName=' + encodeURIComponent(collectionName);
+                } catch (error) {
                     console.error("Error storing questionnaire data in Firebase: ", error);
-                });
+                }
             } else {
                 console.error("No user is signed in");
             }
         }
 
-        window.onload = function() {
+        document.addEventListener('DOMContentLoaded', function() {
             initializeRadioButtons([
                 'acquired', 'hasDifficulty', 'engagesInStereotyped', 
                 'engagesInEcholalic', 'producesInfantile', 
                 'unableToInitiate', 'usesJargon', 'usesPronounReversals', 
                 'unableToGrasp'
             ]);
-        };
 
-        function validateAndSubmit() {
-            if (validateForm()) {
-                const scoreData = calculateScore();
-                storeQuestionnaireDataInFirebase(scoreData);
-                return false; // Prevent default form submission
-            }
-            return false; // Prevent default form submission
-        }
+
+            document.querySelector('form').onsubmit = function(e) {
+                e.preventDefault();
+                if (validateForm()) {
+                    const data = calculateScore();
+                    storeQuestionnaireDataInFirebase(data);
+                } else {
+                    showAlert();
+                }
+            };
+            // Ensure the close button works after DOM is loaded.
+    document.querySelector('.custom-alert-btn').addEventListener('click', closeAlert);
+        });
     </script>
+</head>
+<body>
+
+    <h2>III. SPEECH-LANGUAGE AND COMMUNICATION</h2>
+
+    <form action="behaviour.html" method="post"> 
+        <div class="question">
+            <label>15. Acquired speech and lost it <span class="required">*</span></label>
+            <p class="question-description">May have developed speech but lost it later. Around 50% of autistic individuals may be mute.</p>
+            <div id="acquired" class="radio-group"></div>
+        </div>
+
+        <div class="question">
+            <label>16. Has difficulty in using non-verbal language or gestures to communicate <span class="required">*</span></label>
+            <p class="question-description">May struggle to express needs non-verbally, like pointing. They might pull someone's hand to an object instead.</p>
+            <div id="hasDifficulty" class="radio-group"></div>
+        </div>
+
+        <div class="question">
+            <label>17. Engages in stereotyped and repetitive use of language <span class="required">*</span></label>
+            <p class="question-description">May repeat words or phrases out of context, saying the same thing many times.</p>
+            <div id="engagesInStereotyped" class="radio-group"></div>
+        </div>
+
+        <div class="question">
+            <label>18. Engages in echolalic speech <span class="required">*</span></label>
+            <p class="question-description">May repeat or echo what others say without understanding they need to respond.</p>
+            <div id="engagesInEcholalic" class="radio-group"></div>
+        </div>
+
+        <div class="question">
+            <label>19. Produces infantile squeals/unusual noises <span class="required">*</span></label>
+            <p class="question-description">May make strange noises or unintelligible sounds that don't have clear meaning.</p>
+            <div id="producesInfantile" class="radio-group"></div>
+        </div>
+
+        <div class="question">
+            <label>20. Unable to initiate or sustain conversation with others <span class="required">*</span></label>
+            <p class="question-description">May have trouble starting or maintaining a conversation with others.</p>
+            <div id="unableToInitiate" class="radio-group"></div>
+        </div>
+
+        <div class="question">
+            <label>21. Uses jargon or meaningless words <span class="required">*</span></label>
+            <p class="question-description">May use words that don't have clear or relevant meaning.</p>
+            <div id="usesJargon" class="radio-group"></div>
+        </div>
+
+        <div class="question">
+            <label>22. Uses pronoun reversals <span class="required">*</span></label>
+            <p class="question-description">May refer to themselves as "you" and others as "I".</p>
+            <div id="usesPronounReversals" class="radio-group"></div>
+        </div>
+
+        <div class="question">
+            <label>23. Unable to grasp pragmatics of communication (real meaning) <span class="required">*</span></label>
+            <p class="question-description">May not understand the intended meaning behind words or social cues.</p>
+            <div id="unableToGrasp" class="radio-group"></div>
+        </div>
+
+        <br>
+        <div class="button-container">
+            <button class="prev-btn" type="button" onclick="window.location.href='emotional.html'">Previous</button>
+            <button type="submit">Next</button>
+        </div>
+    </form>
+
+    <!-- Custom Modal for Validation Message -->
+    <div id="customAlert" class="custom-alert">
+        <div class="custom-alert-content">
+            <p>Please answer all the questions before proceeding to the next page.</p>
+            <button class="custom-alert-btn" onclick="closeAlert()">OK</button>
+        </div>
+    </div>
 </body>
 </html>
