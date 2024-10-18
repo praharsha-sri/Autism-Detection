@@ -9,7 +9,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
         import { getAuth } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 
         const firebaseConfig = {
@@ -27,39 +27,48 @@
         const auth = getAuth(app);
 
         document.addEventListener('DOMContentLoaded', function () {
-            document.getElementById('autismForm').addEventListener('submit', async function (event) {
-                event.preventDefault();
-    
-                const name = document.getElementById('name').value;
-                const gender = document.getElementById('gender').value;
-                const date = document.getElementById('date').value;
-                const dob = document.getElementById('dob').value;
-                const age = document.getElementById('age').value;
-                const examiner = document.getElementById('examiner').value;
+    document.getElementById('autismForm').addEventListener('submit', async function (event) {
+        event.preventDefault();
 
-                const user = auth.currentUser;
+        const name = document.getElementById('name').value;
+        const gender = document.getElementById('gender').value;
+        const date = document.getElementById('date').value;
+        const dob = document.getElementById('dob').value;
+        const age = document.getElementById('age').value;
+        const examiner = document.getElementById('examiner').value;
 
-                if (user) {
-                    const userId = user.uid;
+        const user = auth.currentUser;
 
-                    try {
-                        await setDoc(doc(db, "assessments", userId), {
-                            name: name,
-                            gender: gender,
-                            date: date,
-                            dob: dob,
-                            age: age,
-                            examiner: examiner
-                        });
-                        window.location.href = "Social.html";
-                    } catch (error) {
-                        console.error("Error adding document: ", error);
-                    }
-                } else {
-                    console.error("No user is signed in.");
-                }
-            });
-        });
+        if (user) {
+            const userId = user.uid;
+
+            try {
+                // Create a unique collection name using the current timestamp
+                const uniqueCollectionName = `assessment_${Date.now()}`;
+
+                // Create a new collection for the user with the unique name
+                const userAssessmentsRef = collection(db, "users", userId, uniqueCollectionName);
+
+                // Add a new document to the user's unique assessments collection
+                await addDoc(userAssessmentsRef, {
+                    name: name,
+                    gender: gender,
+                    date: date,
+                    dob: dob,
+                    age: age,
+                    examiner: examiner,
+                    timestamp: new Date()
+                });
+
+                window.location.href = `social.html?collectionName=${encodeURIComponent(uniqueCollectionName)}`;
+            } catch (error) {
+                console.error("Error adding document: ", error);
+            }
+        } else {
+            console.error("No user is signed in.");
+        }
+    });
+});
     </script>
 </head>
 <body>

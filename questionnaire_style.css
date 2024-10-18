@@ -66,6 +66,9 @@ label {
 .radio-group input {
     margin-right: 8px;
 }
+.btn{
+   color: #f8f9fa;
+}
 
 .button-container {
     display: flex;
