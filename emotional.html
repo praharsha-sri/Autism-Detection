@@ -6,62 +6,11 @@
     <title>Emotional Responsiveness Form</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="questionnaire_style.css">
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-</head>
-<body>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 
-    <h2>II. EMOTIONAL RESPONSIVENESS</h2>
-
-    <form id="form" method="post"> 
-        <div class="question">
-            <label>10. Inappropriate emotional response <span class="required">*</span></label>
-            <div class="question-description">May show unexpected emotions, like laughing when scolded or crying too much over small things.</div>
-            <div id="inappropriate" class="radio-group"></div>
-        </div>
-
-        <div class="question">
-            <label>11. Exaggerated emotions <span class="required">*</span></label>
-            <div class="question-description">May feel extreme fear or anxiety without a clear reason.</div>
-            <div id="exaggerated" class="radio-group"></div>
-        </div>
-
-        <div class="question">
-            <label>12. Self-stimulating emotions <span class="required">*</span></label>
-            <div class="question-description">People talk to themselves, smile, or laugh for no clear reason, even when it seems unusual for their age.</div>
-            <div id="self-stimulating" class="radio-group"></div>
-        </div>
-
-        <div class="question">
-            <label>13. Lack of fear of danger <span class="required">*</span></label>
-            <div class="question-description">May get overly excited or restless without a clear cause, and hard to calm down.</div>
-            <div id="lackOfFear" class="radio-group"></div>
-        </div>
-
-        <div class="question">
-            <label>14. Excited or agitated without reason <span class="required">*</span></label>
-            <div class="question-description">People with autism may become overly excited or restless without a clear cause, and they may be hard to calm down.</div>
-            <div id="excited" class="radio-group"></div>
-        </div>
-
-        <div class="button-container">
-            <button type="button" class="prev-btn" onclick="window.location.href='social.html'">Previous</button>
-            <button type="button" class="next-btn" onclick="validateNext()">Next</button>
-        </div>
-    </form>
- 
-    <!-- Custom Modal for Validation Message -->
-    <div id="customAlert" class="custom-alert">
-        <div class="custom-alert-content">
-            <p>Please answer all the questions before proceeding to the next page.</p>
-            <button class="custom-alert-btn" onclick="closeAlert()">OK</button>
-        </div>
-    </div>
-
-    <script>
-        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
             authDomain: "autism-evaluation-platform.firebaseapp.com",
@@ -72,10 +21,12 @@
             measurementId: "G-1TGEHTTJF4"
         };
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
 
         const radioOptions = ["Rarely", "Sometimes", "Frequently", "Mostly", "Always"];
+
         const scoreValues = {
             Rarely: 1,
             Sometimes: 2,
@@ -83,6 +34,13 @@
             Mostly: 4,
             Always: 5,
         };
+
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
 
         function generateRadioButtons(questionId) {
             const radioGroup = document.getElementById(questionId);
@@ -117,6 +75,7 @@
                     }
                 }
                 if (!isChecked) {
+                    showAlert();
                     return false;
                 }
             }
@@ -147,45 +106,94 @@
             };
         }
 
-        function storeQuestionnaireDataInFirebase(data) {
-            const user = firebase.auth().currentUser;
+        async function storeQuestionnaireDataInFirebase(data) {
+            const user = auth.currentUser;
+            const collectionName = getUrlParameter('collectionName');
 
             if (user) {
-                const userRef = firebase.firestore().collection('users').doc(user.uid);
-                const questionnaireRef = userRef.collection('questionnaires').doc();
-
-                questionnaireRef.set({
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                    domain: 'emotionalResponsiveness',
-                    score: data.score,
-                    maxScore: data.maxScore,
-                    percentage: data.percentage,
-                    responses: data.responses
-                })
-                .then(() => {
+                try {
+                    const docRef = doc(db, "users", user.uid, collectionName, "emotionalResponsiveness");
+                    await setDoc(docRef, {
+                        timestamp: new Date(),
+                        domain: 'emotionalResponsiveness',
+                        score: data.score,
+                        maxScore: data.maxScore,
+                        percentage: data.percentage,
+                        responses: data.responses
+                    });
                     console.log("Questionnaire data successfully stored in Firebase");
-                    window.location.href = 'speech.html'; // Navigate to the next page
-                })
-                .catch((error) => {
+                    window.location.href = 'speech.html?collectionName=' + encodeURIComponent(collectionName);
+                } catch (error) {
                     console.error("Error storing questionnaire data in Firebase: ", error);
-                });
+                }
             } else {
                 console.error("No user is signed in");
             }
         }
 
-        window.onload = function() {
+        document.addEventListener('DOMContentLoaded', function() {
             initializeRadioButtons(['inappropriate', 'exaggerated', 'self-stimulating', 'lackOfFear', 'excited']);
-        };
 
-        function validateNext() {
-            if (validateForm()) {
-                const data = calculateScore();
-                storeQuestionnaireDataInFirebase(data);
-            } else {
-                showAlert(); // Show the custom alert if form is not valid
-            }
-        }
+            document.querySelector('form').onsubmit = function(e) {
+                e.preventDefault();
+                if (validateForm()) {
+                    const data = calculateScore();
+                    storeQuestionnaireDataInFirebase(data);
+                } else {
+                    showAlert();
+                }
+            };
+        });
     </script>
+</head>
+<body>
+
+    <h2>II. EMOTIONAL RESPONSIVENESS</h2>
+
+    <form action="speech.html" method="post"> 
+        <div class="question">
+            <label>10. Inappropriate emotional response <span class="required">*</span></label>
+            <div class="question-description">May show unexpected emotions, like laughing when scolded or crying too much over small things.</div>
+            <div id="inappropriate" class="radio-group"></div>
+        </div>
+
+        <div class="question">
+            <label>11. Exaggerated emotions <span class="required">*</span></label>
+            <div class="question-description">May feel extreme fear or anxiety without a clear reason.</div>
+            <div id="exaggerated" class="radio-group"></div>
+        </div>
+
+        <div class="question">
+            <label>12. Self-stimulating emotions <span class="required">*</span></label>
+            <div class="question-description">People talk to themselves, smile, or laugh for no clear reason, even when it seems unusual for their age.</div>
+            <div id="self-stimulating" class="radio-group"></div>
+        </div>
+
+        <div class="question">
+            <label>13. Lack of fear of danger <span class="required">*</span></label>
+            <div class="question-description">May get overly excited or restless without a clear cause, and hard to calm down.</div>
+            <div id="lackOfFear" class="radio-group"></div>
+        </div>
+
+        <div class="question">
+            <label>14. Excited or agitated without reason <span class="required">*</span></label>
+            <div class="question-description">People with autism may become overly excited or restless without a clear cause, and they may be hard to calm down.</div>
+            <div id="excited" class="radio-group"></div>
+        </div>
+
+        <br>
+        <div class="button-container">
+            <button class="prev-btn" type="button" onclick="window.location.href='social.html'">Previous</button>
+            <button type="submit">Next</button>
+        </div>
+    </form>
+
+    <!-- Custom Modal for Validation Message -->
+    <div id="customAlert" class="custom-alert">
+        <div class="custom-alert-content">
+            <p>Please answer all the questions before proceeding to the next page.</p>
+            <button class="custom-alert-btn" onclick="closeAlert()">OK</button>
+        </div>
+    </div>
 </body>
 </html>
