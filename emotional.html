@@ -143,6 +143,8 @@
                     showAlert();
                 }
             };
+            // Ensure the close button works after DOM is loaded.
+    document.querySelector('.custom-alert-btn').addEventListener('click', closeAlert);
         });
     </script>
 </head>
