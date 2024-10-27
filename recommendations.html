@@ -76,8 +76,11 @@
                 console.log("Previous diagnosis and recommendation data successfully stored in Firebase.");
                 alert('Previous diagnosis and recommendation submitted successfully.');
 
-                // Redirect to the next page after submission
-                window.location.href = 'parent_dashboard_en.html'; // Change to your desired page
+                // Clear the stored form data after successful submission
+                localStorage.removeItem('recommendationsFormData');
+
+                // Redirect to the main dashboard using top-level navigation
+                window.top.location.href = 'parent_dashboard_en.html';
             } catch (error) {
                 console.error("Error storing previous diagnosis and recommendation data in Firebase:", error);
                 alert('Failed to submit data. Please try again.');
@@ -94,7 +97,6 @@
                 <label for="prevtherapy" class="form-label">Previous Therapy Details</label>
                 <textarea class="form-control" id="prevtherapy" rows="3" placeholder="Enter previous therapy details..."></textarea>
             </div>
-
 
             <br>
 
@@ -116,6 +118,5 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
 </html>
