@@ -21,123 +21,209 @@
             width: 250px;
         }
     </style>
+
+    <script type="module">
+        // Import Firebase libraries
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+            authDomain: "autism-evaluation-platform.firebaseapp.com",
+            projectId: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform.appspot.com",
+            messagingSenderId: "748226978662",
+            appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+            measurementId: "G-1TGEHTTJF4"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFormData();  // Load saved data on page load
+            const form = document.getElementById('selfhelp');
+            form.addEventListener('submit', handleFormSubmit);
+            // Save form data on every input change
+            document.querySelectorAll('input, textarea').forEach(input => {
+                input.addEventListener('input', saveFormData);
+            });
+        });
+
+        // Save form data to localStorage
+        function saveFormData() {
+            const data = {
+                eating: document.querySelector('input[name="eating"]:checked')?.value,
+                bathing: document.querySelector('input[name="bathing"]:checked')?.value,
+                grooming: document.querySelector('input[name="grooming"]:checked')?.value,
+                dressing: document.querySelector('input[name="dressing"]:checked')?.value,
+                toileting: document.querySelector('input[name="toileting"]:checked')?.value
+            };
+            localStorage.setItem('selfhelpFormData', JSON.stringify(data));
+        }
+
+        // Load saved data from localStorage
+        function loadFormData() {
+            const savedData = JSON.parse(localStorage.getItem('selfhelpFormData'));
+            if (savedData) {
+                if (savedData.eating) {
+                    document.querySelector(`input[name="eating"][value="${savedData.eating}"]`).checked = true;
+                }
+                if (savedData.bathing) {
+                    document.querySelector(`input[name="bathing"][value="${savedData.bathing}"]`).checked = true;
+                }
+                if (savedData.grooming) {
+                    document.querySelector(`input[name="grooming"][value="${savedData.grooming}"]`).checked = true;
+                }
+                if (savedData.dressing) {
+                    document.querySelector(`input[name="dressing"][value="${savedData.dressing}"]`).checked = true;
+                }
+                if (savedData.toileting) {
+                    document.querySelector(`input[name="toileting"][value="${savedData.toileting}"]`).checked = true;
+                }
+            }
+        }
+
+        async function handleFormSubmit(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const user = auth.currentUser; // Get current user
+            if (!user) {
+                alert('Please sign in to submit the form.');
+                return;
+            }
+
+            const formData = JSON.parse(localStorage.getItem('selfhelpFormData')) || {};
+            formData.timestamp = new Date();  // Add timestamp
+            try {
+                // Store data in Firestore under users/{userId}/casehistory/selfhelp
+                const docRef = doc(db, "users", user.uid, "casehistory", "selfhelp");
+                await setDoc(docRef, formData);
+
+                console.log("Self-help skills data successfully stored in Firebase.");
+                alert('Self-help skills submitted successfully.');
+
+                // Redirect to the next page after submission
+                window.location.href = 'recommendations.html'; // Change to your desired page
+            } catch (error) {
+                console.error("Error storing self-help skills data in Firebase:", error);
+                alert('Failed to submit data. Please try again.');
+            }
+        }
+    </script>
 </head>
 <body>
 
 <div class="container mt-5">
     <h2 class="mb-4">Self-Help Skills</h2>
-    <!-- Eating -->
-     <form id="selfhelp">
-    <div class="form-group row align-items-center">
-        <label class="col-form-label col-md-3 skill-label">Eating:</label>
-        <div class="col-md-9">
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="eating" id="eating1" value="independent">
-                <label class="form-check-label" for="eating1">Independent</label>
-            </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="eating" id="eating2" value="semi-dependent">
-                <label class="form-check-label" for="eating2">Semi-dependent</label>
-            </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="eating" id="eating3" value="fully-dependent">
-                <label class="form-check-label" for="eating3">Fully dependent</label>
-            </div>
-        </div>
-    </div>
-
-    <!-- Bathing -->
-    <div class="form-group row align-items-center">
-        <label class="col-form-label col-md-3 skill-label">Bathing:</label>
-        <div class="col-md-9">
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="bathing" id="bathing1" value="independent">
-                <label class="form-check-label" for="bathing1">Independent</label>
-            </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="bathing" id="bathing2" value="semi-dependent">
-                <label class="form-check-label" for="bathing2">Semi-dependent</label>
-            </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="bathing" id="bathing3" value="fully-dependent">
-                <label class="form-check-label" for="bathing3">Fully dependent</label>
+    <form id="selfhelp">
+        <!-- Eating -->
+        <div class="form-group row align-items-center">
+            <label class="col-form-label col-md-3 skill-label">Eating:</label>
+            <div class="col-md-9">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="eating" id="eating1" value="independent">
+                    <label class="form-check-label" for="eating1">Independent</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="eating" id="eating2" value="semi-dependent">
+                    <label class="form-check-label" for="eating2">Semi-dependent</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="eating" id="eating3" value="fully-dependent">
+                    <label class="form-check-label" for="eating3">Fully dependent</label>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Grooming -->
-    <div class="form-group row align-items-center">
-        <label class="col-form-label col-md-3 skill-label">Grooming:</label>
-        <div class="col-md-9">
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="grooming" id="grooming1" value="independent">
-                <label class="form-check-label" for="grooming1">Independent</label>
-            </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="grooming" id="grooming2" value="semi-dependent">
-                <label class="form-check-label" for="grooming2">Semi-dependent</label>
-            </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="grooming" id="grooming3" value="fully-dependent">
-                <label class="form-check-label" for="grooming3">Fully dependent</label>
+        <!-- Bathing -->
+        <div class="form-group row align-items-center">
+            <label class="col-form-label col-md-3 skill-label">Bathing:</label>
+            <div class="col-md-9">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="bathing" id="bathing1" value="independent">
+                    <label class="form-check-label" for="bathing1">Independent</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="bathing" id="bathing2" value="semi-dependent">
+                    <label class="form-check-label" for="bathing2">Semi-dependent</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="bathing" id="bathing3" value="fully-dependent">
+                    <label class="form-check-label" for="bathing3">Fully dependent</label>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Dressing -->
-    <div class="form-group row align-items-center">
-        <label class="col-form-label col-md-3 skill-label">Dressing (Upper & Lower body):</label>
-        <div class="col-md-9">
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="dressing" id="dressing1" value="independent">
-                <label class="form-check-label" for="dressing1">Independent</label>
-            </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="dressing" id="dressing2" value="semi-dependent">
-                <label class="form-check-label" for="dressing2">Semi-dependent</label>
-            </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="dressing" id="dressing3" value="fully-dependent">
-                <label class="form-check-label" for="dressing3">Fully dependent</label>
+        <!-- Grooming -->
+        <div class="form-group row align-items-center">
+            <label class="col-form-label col-md-3 skill-label">Grooming:</label>
+            <div class="col-md-9">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="grooming" id="grooming1" value="independent">
+                    <label class="form-check-label" for="grooming1">Independent</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="grooming" id="grooming2" value="semi-dependent">
+                    <label class="form-check-label" for="grooming2">Semi-dependent</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="grooming" id="grooming3" value="fully-dependent">
+                    <label class="form-check-label" for="grooming3">Fully dependent</label>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Toileting -->
-    <div class="form-group row align-items-center">
-        <label class="col-form-label col-md-3 skill-label">Toileting:</label>
-        <div class="col-md-9">
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="toileting" id="toileting1" value="independent">
-                <label class="form-check-label" for="toileting1">Independent</label>
-            </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="toileting" id="toileting2" value="semi-dependent">
-                <label class="form-check-label" for="toileting2">Semi-dependent</label>
-            </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="toileting" id="toileting3" value="fully-dependent">
-                <label class="form-check-label" for="toileting3">Fully dependent</label>
+        <!-- Dressing -->
+        <div class="form-group row align-items-center">
+            <label class="col-form-label col-md-3 skill-label">Dressing (Upper & Lower body):</label>
+            <div class="col-md-9">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="dressing" id="dressing1" value="independent">
+                    <label class="form-check-label" for="dressing1">Independent</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="dressing" id="dressing2" value="semi-dependent">
+                    <label class="form-check-label" for="dressing2">Semi-dependent</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="dressing" id="dressing3" value="fully-dependent">
+                    <label class="form-check-label" for="dressing3">Fully dependent</label>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Navigation buttons -->
-    <div class="d-flex justify-content-between">
-        <a href="playhistory.html" class="btn btn-secondary">Previous</a>
-        <button type="submit" class="btn btn-primary">Next</button>
-    </div>
-</form>
+        <!-- Toileting -->
+        <div class="form-group row align-items-center">
+            <label class="col-form-label col-md-3 skill-label">Toileting:</label>
+            <div class="col-md-9">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="toileting" id="toileting1" value="independent">
+                    <label class="form-check-label" for="toileting1">Independent</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="toileting" id="toileting2" value="semi-dependent">
+                    <label class="form-check-label" for="toileting2">Semi-dependent</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="toileting" id="toileting3" value="fully-dependent">
+                    <label class="form-check-label" for="toileting3">Fully dependent</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation buttons -->
+        <div class="d-flex justify-content-between">
+            <a href="behavioralcognitive.htmls" class="btn btn-secondary">Previous</a>
+            <button type="submit" class="btn btn-primary">Next</button>
+        </div>
+    </form>
 </div>
 
-<!-- Bootstrap JS (Optional) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-   
-    <script>
-        document.getElementById('selfhelp').addEventListener('submit', function(event) {
-            event.preventDefault();  // Prevent the default form submission behavior
-            window.location.href = 'recommendations.html';  // Display an alert (or handle form submission)
-        });
-    </script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
