@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assessment Reports</title>
+    <!-- Include Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth-compat.js"></script>
+    <!-- Include jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Link to external CSS -->
+    <link rel="stylesheet" href="report.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1 class="title">Assessment Reports</h1>
+                <p class="subtitle">View and manage your assessment reports</p>
+            </div>
+            <button class="refresh-button" onclick="fetchReports()">Refresh Reports</button>
+        </div>
+
+        <div class="user-info">
+            <h2>User Information</h2>
+            <div id="user-details" class="user-details"></div>
+        </div>
+
+        <div class="user-info">
+            <h2>Child Information</h2>
+            <div id="child-details" class="user-details"></div> <!-- Changed class to user-details -->
+        </div>
+
+        <div id="error-message" class="error-message"></div>
+        <div id="loading" class="loading">Loading reports...</div>
+        <div id="reports-container" class="reports-grid"></div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+            authDomain: "autism-evaluation-platform.firebaseapp.com",
+            projectId: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform.appspot.com",
+            messagingSenderId: "748226978662",
+            appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+            measurementId: "G-1TGEHTTJF4"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        const domainNames = {
+            socialRelationship: "Social Relationship and Reciprocity",
+            emotionalResponsiveness: "Emotional Responsiveness",
+            speechLanguageCommunication: "Speech-Language and Communication",
+            behaviourPatterns: "Behavior Patterns",
+            sensoryAspects: "Sensory Aspects",
+            cognitiveComponent: "Cognitive Component"
+        };
+
+        function classifyAutism(totalScore) {
+            if (totalScore <= 70) {
+                return "No Autism";
+            } else if (totalScore <= 106) {
+                return "Mild Autism";
+            } else if (totalScore <= 153) {
+                return "Moderate Autism";
+            } else {
+                return "Severe Autism";
+            }
+        }
+
+        function displayUserInfo(user) {
+            const userDetailsDiv = document.getElementById('user-details');
+            
+            db.collection('users').doc(user.uid).get()
+                .then(doc => {
+                    const firestoreData = doc.exists ? doc.data() : {};
+                    const userData = {
+                        'Name': firestoreData.name || user.displayName || 'Not provided',
+                        'Email': user.email || 'Not provided',
+                        'Role': firestoreData.role || 'Not provided'
+                    };
+
+                    userDetailsDiv.innerHTML = Object.entries(userData)
+                        .map(([label, value]) => `
+                            <div class="info-item">
+                                <span class="info-label">${label}</span>
+                                <span class="info-value">${value}</span>
+                            </div>
+                        `).join('');
+                })
+                .catch(error => {
+                    console.error('Error fetching user data:', error);
+                    userDetailsDiv.innerHTML = `
+                        <div class="info-item">
+                            <span class="info-label">Email</span>
+                            <span class="info-value">${user.email || 'Not provided'}</span>
+                        </div>`;
+                });
+        }
+
+        function displayChildInfo(user) {
+            const childDetailsDiv = document.getElementById('child-details');
+            
+            db.collection('users').doc(user.uid).collection('Questionnaire').doc('details').get().then(doc => {
+                if (doc.exists) {
+                    const childData = doc.data();
+                    const info = {
+                        'Name': childData.name || 'Not provided',
+                        'Age': childData.age || 'Not provided',
+                        'Date of Birth': childData.dob ? formatDate(childData.dob) : 'Not provided'
+                    };
+
+                    childDetailsDiv.innerHTML = Object.entries(info)
+                        .map(([label, value]) => `
+                            <div class="info-item">
+                                <span class="info-label">${label}</span>
+                                <span class="info-value">${value}</span>
+                            </div>
+                        `).join('');
+                } else {
+                    childDetailsDiv.innerHTML = '<p>No child information available</p>';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching child data:', error);
+                childDetailsDiv.innerHTML = '<p>Error loading child information</p>';
+            });
+        }
+
+        async function fetchReports() {
+            const loading = document.getElementById('loading');
+            const errorMessage = document.getElementById('error-message');
+            const reportsContainer = document.getElementById('reports-container');
+
+            loading.style.display = 'block';
+            errorMessage.style.display = 'none';
+            reportsContainer.innerHTML = '';
+
+            try {
+                const user = auth.currentUser;
+                if (!user) {
+                    throw new Error('No user logged in');
+                }
+
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                const userData = userDoc.exists ? userDoc.data() : {};
+                const userName = userData.name || user.displayName || 'Not provided';
+
+                displayUserInfo(user);
+                displayChildInfo(user); // Load child information here
+
+                const domains = Object.keys(domainNames);
+                const scores = {};
+                let totalScore = 0;
+
+                for (const domain of domains) {
+                    const docRef = db.collection('users').doc(user.uid)
+                                   .collection('Questionnaire').doc(domain);
+                    const docSnap = await docRef.get();
+                    
+                    if (docSnap.exists) {
+                        const score = docSnap.data().score || 0;
+                        scores[domain] = score;
+                        totalScore += score;
+                    } else {
+                        scores[domain] = 'N/A';
+                    }
+                }
+
+                const reportData = {
+                    id: 'current_assessment',
+                    scores,
+                    totalScore,
+                    autismRange: classifyAutism(totalScore),
+                    timestamp: new Date(),
+                    userData: {
+                        name: userName,
+                        email: user.email || 'Not provided',
+                        uid: user.uid
+                    }
+                };
+
+                reportsContainer.appendChild(createReportCard(reportData));
+            } catch (error) {
+                console.error('Error:', error);
+                errorMessage.style.display = 'block';
+                errorMessage.textContent = 'Error loading reports. Please try again.';
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function createReportCard(report) {
+            const card = document.createElement('div');
+            card.className = 'report-card';
+
+            const header = document.createElement('div');
+            header.className = 'report-header';
+            header.innerHTML = `
+                <div class="report-title">Assessment Report</div>
+                <div class="report-date">${report.timestamp.toLocaleDateString()}</div>
+            `;
+
+            const scoresContainer = document.createElement('div');
+            Object.entries(report.scores).forEach(([domain, score]) => {
+                const scoreItem = document.createElement('div');
+                scoreItem.className = 'score-item';
+                scoreItem.innerHTML = `
+                    <span class="score-label">${domainNames[domain]}</span>
+                    <span class="score-value">${score}</span>
+                `;
+                scoresContainer.appendChild(scoreItem);
+            });
+
+            const totalScore = document.createElement('div');
+            totalScore.className = 'total-score';
+            totalScore.innerHTML = `
+                <span>Total Score</span>
+                <span>${report.totalScore}</span>
+            `;
+
+            const autismRange = document.createElement('div');
+            autismRange.className = 'autism-range';
+            autismRange.innerHTML = `Autism Range: ${report.autismRange}`;
+
+            const generateButton = document.createElement('button');
+            generateButton.className = 'generate-button';
+            generateButton.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <path d="M14 2v6h6"></path>
+                    <path d="M9 12h6"></path>
+                    <path d="M9 16h6"></path>
+                </svg>
+                Generate PDF
+            `;
+            generateButton.onclick = () => generatePDF(report);
+
+            card.appendChild(header);
+            card.appendChild(scoresContainer);
+            card.appendChild(totalScore);
+            card.appendChild(autismRange);
+            card.appendChild(generateButton);
+
+            return card;
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        function generatePDF(reportData) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Colors and Styling
+    const colors = {
+        primary: [51, 122, 183],
+        secondary: [70, 70, 70],
+        headerBg: [241, 241, 241]
+    };
+
+    // Header Section
+    doc.setFillColor(...colors.primary);
+    doc.rect(0, 0, 210, 40, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(24);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Autism Evaluation Report', 20, 25);
+
+    // Fetch current user data
+    const user = auth.currentUser;
+    let yPos = 50;
+
+    // User Information Section
+    doc.setTextColor(...colors.secondary);
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('User Information', 20, yPos);
+
+    // Get user data from Firestore
+    db.collection('users').doc(user.uid).get().then(userDoc => {
+        const userData = userDoc.exists ? userDoc.data() : {};
+        
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'normal');
+        yPos += 10;
+
+        const userInfo = {
+            'Name': userData.name || user.displayName || 'Not provided',
+            'Email': user.email || 'Not provided',
+            'Role': userData.role || 'Not provided',
+            'Assessment Date': reportData.timestamp.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            })
+        };
+
+        Object.entries(userInfo).forEach(([key, value]) => {
+            doc.text(`${key}: ${value}`, 20, yPos);
+            yPos += 8;
+        });
+
+        // Child Information Section
+        yPos += 10;
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Child Information', 20, yPos);
+
+        // Fetch child data
+        db.collection('users').doc(user.uid).collection('Questionnaire').doc('details').get().then(childDoc => {
+            const childData = childDoc.exists ? childDoc.data() : {};
+            
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'normal');
+            yPos += 10;
+
+            const childInfo = {
+                'Name': childData.name || 'Not provided',
+                'Age': childData.age ? `${childData.age} years` : 'Not provided',
+                'Date of Birth': childData.dob ? formatDate(childData.dob) : 'Not provided',
+                'Gender': childData.gender || 'Not provided'
+            };
+
+            Object.entries(childInfo).forEach(([key, value]) => {
+                doc.text(`${key}: ${value}`, 20, yPos);
+                yPos += 8;
+            });
+
+            // Domain Scores Table
+            yPos += 15;
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Assessment Results', 20, yPos);
+            yPos += 10;
+
+            // Table Header
+            const tableTop = yPos;
+            const tableLeft = 20;
+            const colWidth = [120, 50];
+            const rowHeight = 10;
+
+            // Draw table header
+            doc.setFillColor(...colors.headerBg);
+            doc.rect(tableLeft, tableTop, colWidth[0] + colWidth[1], rowHeight, 'F');
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(12);
+            doc.text('Domain', tableLeft + 5, tableTop + 7);
+            doc.text('Score', tableLeft + colWidth[0] + 5, tableTop + 7);
+
+            // Draw table rows
+            let currentY = tableTop + rowHeight;
+            doc.setFont('helvetica', 'normal');
+            
+            Object.entries(reportData.scores).forEach(([domain, score], index) => {
+                // Alternate row background
+                if (index % 2 === 0) {
+                    doc.setFillColor(250, 250, 250);
+                    doc.rect(tableLeft, currentY, colWidth[0] + colWidth[1], rowHeight, 'F');
+                }
+                
+                doc.text(domainNames[domain], tableLeft + 5, currentY + 7);
+                doc.text(score.toString(), tableLeft + colWidth[0] + 5, currentY + 7);
+                currentY += rowHeight;
+            });
+
+            // Draw table borders
+            doc.setLineWidth(0.1);
+            // Vertical lines
+            doc.line(tableLeft, tableTop, tableLeft, currentY);
+            doc.line(tableLeft + colWidth[0], tableTop, tableLeft + colWidth[0], currentY);
+            doc.line(tableLeft + colWidth[0] + colWidth[1], tableTop, tableLeft + colWidth[0] + colWidth[1], currentY);
+            // Horizontal lines
+            for (let y = tableTop; y <= currentY; y += rowHeight) {
+                doc.line(tableLeft, y, tableLeft + colWidth[0] + colWidth[1], y);
+            }
+
+            // Summary Section
+            currentY += 20;
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`Total Score: ${reportData.totalScore}`, 20, currentY);
+
+            currentY += 10;
+            const autismRange = classifyAutism(reportData.totalScore);
+            doc.text(`Assessment Result: ${autismRange}`, 20, currentY);
+
+            // Save PDF
+            const fileName = `autism-evaluation-${reportData.timestamp.toISOString().split('T')[0]}.pdf`;
+            doc.save(fileName);
+        });
+    });
+}
+
+        // Auth State Listener
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                fetchReports();
+            } else {
+                window.location.href = 'index.html'; // Redirect to login page
+            }
+        });
+    </script>
+</body>
+</html>

@@ -37,6 +37,9 @@
 
             // Calculate age when DOB changes
             document.getElementById('dob').addEventListener('change', calculateAge);
+
+            // Populate form data from sessionStorage if available
+            populateFormData();
         });
 
         function calculateAge() {
@@ -50,6 +53,18 @@
             }
 
             document.getElementById('age').value = age;
+        }
+
+        function populateFormData() {
+            const savedData = JSON.parse(sessionStorage.getItem('formData'));
+            if (savedData) {
+                document.getElementById('name').value = savedData.name || '';
+                document.getElementById('gender').value = savedData.gender || '';
+                document.getElementById('date').value = savedData.date || new Date().toISOString().split('T')[0];
+                document.getElementById('dob').value = savedData.dob || '';
+                document.getElementById('age').value = savedData.age || '';
+                document.getElementById('examiner').value = savedData.examiner || '';
+            }
         }
 
         async function handleFormSubmit(event) {
@@ -71,11 +86,8 @@
             };
 
             try {
-                // Create a unique collection name using the current timestamp
-                const uniqueCollectionName = `assessment_${Date.now()}`;
-
-                // Store the form data in Firestore
-                const docRef = doc(db, "users", user.uid, uniqueCollectionName, "details");
+                // Store the form data in Firestore under 'Questionnaire' subcollection
+                const docRef = doc(db, "users", user.uid, "Questionnaire", "details");
                 await setDoc(docRef, {
                     ...formData,
                     timestamp: new Date()
@@ -83,8 +95,11 @@
 
                 console.log("Form data successfully stored in Firebase");
 
-                // Navigate to the social.html page with the collection name as a parameter
-                window.location.href = `social.html?collectionName=${encodeURIComponent(uniqueCollectionName)}`;
+                // Save form data to sessionStorage for persistence
+                sessionStorage.setItem('formData', JSON.stringify(formData));
+
+                // Navigate to the next page
+                window.location.href = `social.html?collectionName=Questionnaire`;
             } catch (error) {
                 console.error("Error storing form data in Firebase: ", error);
             }
