@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="te">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ప్రొఫైల్ నిర్వహించండి</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="profile.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h3>ప్రొఫైల్ నిర్వహించండి</h3>
+
+        <div class="user-info">
+            <p><strong>పేరు:</strong> <span id="username"></span></p>
+            <p><strong>ఇమెయిల్:</strong> <span id="email"></span></p>
+        </div>
+
+        <button onclick="togglePasswordForm()">పాస్‌వర్డ్ మార్చండి</button>
+
+        <div id="password-form" class="hidden">
+            <label for="current-password">ప్రస్తుత పాస్‌వర్డ్:</label>
+            <input type="password" id="current-password" placeholder="ప్రస్తుత పాస్‌వర్డ్">
+
+            <label for="new-password">కొత్త పాస్‌వర్డ్:</label>
+            <input type="password" id="new-password" placeholder="కొత్త పాస్‌వర్డ్">
+
+            <label for="confirm-new-password">కొత్త పాస్‌వర్డ్ నిర్ధారించండి:</label>
+            <input type="password" id="confirm-new-password" placeholder="కొత్త పాస్‌వర్డ్ నిర్ధారించండి">
+
+            <div class="alert" id="password-alert"></div>
+            <div class="success" id="password-success"></div>
+
+            <button onclick="updatePassword()">పాస్‌వర్డ్ నవీకరించండి</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js";
+        import { getAuth, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+            authDomain: "autism-evaluation-platform.firebaseapp.com",
+            projectId: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform.appspot.com",
+            messagingSenderId: "748226978662",
+            appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+            measurementId: "G-1TGEHTTJF4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Telugu error messages
+        const errorMessages = {
+            fillFields: "దయచేసి అన్ని ఫీల్డ్‌లను పూరించండి.",
+            passwordFormat: "పాస్‌వర్డ్‌లో కనీసం 8 అక్షరాలు, ఒక అక్షరం, సంఖ్య మరియు చిహ్నం ఉండాలి",
+            passwordMismatch: "కొత్త పాస్‌వర్డ్‌లు సరిపోలలేదు",
+            updateSuccess: "పాస్‌వర్డ్ విజయవంతంగా నవీకరించబడింది!",
+            invalidCredentials: "ప్రస్తుత పాస్‌వర్డ్ తప్పు",
+            genericError: "పాస్‌వర్డ్ మార్చడంలో లోపం జరిగింది. దయచేసి మళ్ళీ ప్రయత్నించండి."
+        };
+
+        window.togglePasswordForm = () => {
+            const form = document.getElementById("password-form");
+            form.classList.toggle("hidden");
+        };
+
+        window.updatePassword = async () => {
+            const currentPassword = document.getElementById("current-password").value;
+            const newPassword = document.getElementById("new-password").value;
+            const confirmNewPassword = document.getElementById("confirm-new-password").value;
+            const passwordAlert = document.getElementById("password-alert");
+            const passwordSuccess = document.getElementById("password-success");
+            
+            passwordAlert.style.display = "none";
+            passwordSuccess.style.display = "none";
+
+            if (!currentPassword || !newPassword || !confirmNewPassword) {
+                passwordAlert.textContent = errorMessages.fillFields;
+                passwordAlert.style.display = "block";
+                return;
+            }
+
+            const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
+
+            if (!passwordRegex.test(newPassword)) {
+                passwordAlert.textContent = errorMessages.passwordFormat;
+                passwordAlert.style.display = "block";
+                return;
+            }
+
+            if (newPassword !== confirmNewPassword) {
+                passwordAlert.textContent = errorMessages.passwordMismatch;
+                passwordAlert.style.display = "block";
+                return;
+            }
+
+            try {
+                const user = auth.currentUser;
+                const credential = EmailAuthProvider.credential(user.email, currentPassword);
+                await reauthenticateWithCredential(user, credential);
+                await updatePassword(user, newPassword);
+                
+                passwordSuccess.textContent = errorMessages.updateSuccess;
+                passwordSuccess.style.display = "block";
+                
+                // Clear form fields after successful update
+                document.getElementById("current-password").value = "";
+                document.getElementById("new-password").value = "";
+                document.getElementById("confirm-new-password").value = "";
+                
+            } catch (error) {
+                if (error.code === 'auth/wrong-password') {
+                    passwordAlert.textContent = errorMessages.invalidCredentials;
+                } else {
+                    passwordAlert.textContent = errorMessages.genericError;
+                }
+                passwordAlert.style.display = "block";
+            }
+        };
+
+        async function getUserData(userId) {
+            try {
+                const userDoc = await getDoc(doc(db, 'users', userId));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    document.getElementById('username').textContent = userData.name || 'వినియోగదారు';
+                    document.getElementById('email').textContent = userData.email;
+                }
+            } catch (error) {
+                console.error("వినియోగదారు డేటాను పొందడంలో లోపం:", error);
+            }
+        }
+
+        // Load user info on page load
+        auth.onAuthStateChanged(async user => {
+            if (user) {
+                document.getElementById('email').textContent = user.email;
+                await getUserData(user.uid);
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
+</body>
+</html>

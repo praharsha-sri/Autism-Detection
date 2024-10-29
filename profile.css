@@ -123,3 +123,72 @@ button:hover {
     background-color: #f8f9fa;
     border-radius: 8px;
 }
+
+/* Added Responsive Design Rules */
+@media screen and (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    .container {
+        padding: 15px;
+        margin: 0 10px;
+    }
+
+    h3 {
+        font-size: 1.5rem;
+        margin: 15px 0 20px;
+    }
+
+    .user-info {
+        padding: 10px;
+    }
+
+    .user-info p {
+        font-size: 1rem;
+    }
+
+    input {
+        padding: 10px;
+        font-size: 0.9rem;
+    }
+
+    button {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+        width: 100%;
+    }
+
+    #password-form {
+        padding: 15px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    body {
+        padding: 5px;
+    }
+
+    .container {
+        padding: 12px;
+        margin: 0 5px;
+    }
+
+    h3 {
+        font-size: 1.2rem;
+    }
+
+    .back-button {
+        position: static;
+        width: 100%;
+        margin-bottom: 15px;
+    }
+
+    label {
+        font-size: 0.9rem;
+    }
+
+    .user-info p {
+        font-size: 0.9rem;
+    }
+}

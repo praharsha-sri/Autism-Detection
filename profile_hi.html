@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>प्रोफ़ाइल प्रबंधन</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="profile.css">
+</head>
+<body>
+    <div class="container">
+        <h3>प्रोफ़ाइल प्रबंधन</h3>
+
+        <div class="user-info">
+            <p><strong>नाम:</strong> <span id="username"></span></p>
+            <p><strong>ईमेल:</strong> <span id="email"></span></p>
+        </div>
+
+        <button onclick="togglePasswordForm()">पासवर्ड बदलें</button>
+
+        <div id="password-form" class="hidden">
+            <label for="current-password">वर्तमान पासवर्ड:</label>
+            <input type="password" id="current-password" placeholder="वर्तमान पासवर्ड">
+
+            <label for="new-password">नया पासवर्ड:</label>
+            <input type="password" id="new-password" placeholder="नया पासवर्ड">
+
+            <label for="confirm-new-password">नए पासवर्ड की पुष्टि करें:</label>
+            <input type="password" id="confirm-new-password" placeholder="नए पासवर्ड की पुष्टि करें">
+
+            <div class="alert" id="password-alert"></div>
+            <div class="success" id="password-success"></div>
+
+            <button onclick="updatePassword()">पासवर्ड अपडेट करें</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js";
+        import { getAuth, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+            authDomain: "autism-evaluation-platform.firebaseapp.com",
+            projectId: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform.appspot.com",
+            messagingSenderId: "748226978662",
+            appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+            measurementId: "G-1TGEHTTJF4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        window.togglePasswordForm = () => {
+            const form = document.getElementById("password-form");
+            form.classList.toggle("hidden");
+        };
+
+        window.updatePassword = async () => {
+            const currentPassword = document.getElementById("current-password").value;
+            const newPassword = document.getElementById("new-password").value;
+            const confirmNewPassword = document.getElementById("confirm-new-password").value;
+            const passwordAlert = document.getElementById("password-alert");
+            const passwordSuccess = document.getElementById("password-success");
+            
+            // Reset alert and success messages
+            passwordAlert.style.display = "none";
+            passwordSuccess.style.display = "none";
+
+            // Check if any of the password fields are empty
+            if (!currentPassword || !newPassword || !confirmNewPassword) {
+                passwordAlert.textContent = "कृपया सभी फ़ील्ड भरें।";
+                passwordAlert.style.display = "block";
+                return;
+            }
+
+            const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
+
+            // Validate new password format
+            if (!passwordRegex.test(newPassword)) {
+                passwordAlert.textContent = "पासवर्ड में कम से कम 8 अक्षर, एक अक्षर, एक संख्या और एक प्रतीक होना चाहिए";
+                passwordAlert.style.display = "block";
+                return;
+            }
+
+            // Check if new passwords match
+            if (newPassword !== confirmNewPassword) {
+                passwordAlert.textContent = "नए पासवर्ड मेल नहीं खाते";
+                passwordAlert.style.display = "block";
+                return;
+            }
+
+            try {
+                const user = auth.currentUser;
+                const credential = EmailAuthProvider.credential(user.email, currentPassword);
+                await reauthenticateWithCredential(user, credential);
+                await updatePassword(user, newPassword);
+                
+                passwordSuccess.textContent = "पासवर्ड सफलतापूर्वक अपडेट किया गया!";
+                passwordSuccess.style.display = "block";
+                
+                // Clear form fields after successful password update
+                document.getElementById("current-password").value = "";
+                document.getElementById("new-password").value = "";
+                document.getElementById("confirm-new-password").value = "";
+                
+            } catch (error) {
+                if (error.code === 'auth/wrong-password') {
+                    passwordAlert.textContent = "वर्तमान पासवर्ड गलत है";
+                } else {
+                    passwordAlert.textContent = "पासवर्ड अपडेट करते समय त्रुटि हुई";
+                }
+                passwordAlert.style.display = "block";
+            }
+        };
+
+        // Function to fetch user data from Firestore
+        async function getUserData(userId) {
+            try {
+                const userDoc = await getDoc(doc(db, 'users', userId));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    document.getElementById('username').textContent = userData.name || 'उपयोगकर्ता';
+                    document.getElementById('email').textContent = userData.email;
+                }
+            } catch (error) {
+                console.error("उपयोगकर्ता डेटा प्राप्त करने में त्रुटि:", error);
+            }
+        }
+
+        // Load user info on page load
+        auth.onAuthStateChanged(async user => {
+            if (user) {
+                document.getElementById('email').textContent = user.email;
+                // Fetch additional user data from Firestore
+                await getUserData(user.uid);
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
+</body>
+</html>
