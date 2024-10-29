@@ -1,69 +1,128 @@
-/* Custom Background */
-body.bg-light-blue {
-    background: linear-gradient(to right, #b99bd9, #2575fc52);
-    color: white;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-}
 
-/* Navbar Styling (Fixed at the top) */
-.navbar {
-    background-color: #ffffff; /* White navbar */
-    border-bottom: 2px solid #2575fc; /* Blue underline */
-    width: 100%;
-    position: fixed; /* Fixed at the top */
-    top: 0;
-    z-index: 1000;
-    padding: 10px 20px;
-}
+        /* Base styles */
+        body {
+            min-height: 100vh;
+            background: linear-gradient(to right, #b99bd9, #2575fc52);
+            margin: 0;
+            padding: 0;
+        }
 
-.navbar-brand {
-    font-weight: bold;
-    font-size: 1.5rem;
-    color: #2575fc; /* Blue navbar brand */
-}
+        .navbar {
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 0.5rem 1rem;
+        }
 
-.navbar .btn-danger {
-    background-color: #ff5a5a;
-    border-color: #ff5a5a;
-    color: white;
-}
+        /* Card styles */
+        .card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            height: 200px;
+            margin-bottom: 20px;
+            border: none;
+            border-radius: 10px;
+            background: #ffffff;
+        }
 
-.navbar .btn-danger:hover {
-    background-color: #e64a4a;
-    border-color: #e64a4a;
-}
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
 
-/* Card Styling */
-.card {
-    background-color: #fff; /* White background for contrast */
-    border: none;
-    border-radius: 55px; /* Softer rounded corners */
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-    padding: 20px;
-    text-align: center;
-}
+        .card-body {
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-.card:hover {
-    transform: translateY(-5px); /* Slight upward movement on hover */
-    box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.15); /* Stronger shadow on hover */
-}
+        .card a {
+            color: #333;
+            transition: color 0.2s;
+        }
 
-/* Card Text and Icons */
-.card h5 {
-    font-weight: bold;
-    color: #333; /* Darker text color */
-    margin-top: 15px;
-}
+        .card:hover a {
+            color: #007bff;
+        }
 
-.card-body span {
-    color: #2575fc; /* Bright blue icon */
-    font-size: 2.5rem;
-}
+        .card .fas {
+            transition: transform 0.2s;
+        }
 
-/* Centered Content */
-.container {
-    padding-top: 150px; /* Offset to make space for the navbar */
-}
+        .card:hover .fas {
+            transform: scale(1.1);
+        }
+
+        /* Loading overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .navbar-brand {
+                font-size: 1.2rem;
+            }
+
+            .card {
+                height: 150px;
+            }
+
+            .card h5 {
+                font-size: 1rem;
+            }
+
+            .container {
+                padding: 10px;
+            }
+
+            #language-switcher {
+                font-size: 0.9rem;
+                padding: 4px 8px;
+                max-width: 100px;
+            }
+
+            #logout-btn {
+                font-size: 0.9rem;
+                padding: 4px 8px;
+            }
+
+            .fas {
+                font-size: 1.5rem !important;
+            }
+        }
+
+        /* Offline indicator */
+        .offline-indicator {
+            display: none;
+            background-color: #ff4444;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            z-index: 1000;
+        }

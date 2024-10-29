@@ -2,18 +2,109 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>अभिभावक डैशबोर्ड</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link href="parent_dashboard.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Loading overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
 
+    <!-- Offline indicator -->
+    <div id="offline-indicator" class="offline-indicator">
+        You are currently offline. Some features may be limited.
+    </div>
+
+    <!-- Navigation bar -->
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#" id="user-name">डैशबोर्ड</a>
+            <div class="d-flex align-items-center">
+                <select id="language-switcher" class="form-select me-2">
+                    <option value="en">English</option>
+                    <option value="hi">हिन्दी</option>
+                    <option value="te">తెలుగు</option>
+                </select>
+                <button id="logout-btn" class="btn btn-danger">लॉगआउट</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main content -->
+    <div class="container mt-4">
+        <div class="row g-4">
+            <!-- Profile Card -->
+            <div class="col-lg-4 col-md-6">
+                <div class="card shadow-lg">
+                    <div class="card-body">
+                        <a href="profile.html" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-decoration-none">
+                            <span class="fas fa-user fa-2x mb-3"></span>
+                            <h5>प्रोफ़ाइल</h5>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Case History Form Card -->
+            <div class="col-lg-4 col-md-6">
+                <div class="card shadow-lg">
+                    <div class="card-body">
+                        <a href="home_page_parent.html" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-decoration-none">
+                            <span class="fas fa-file-alt fa-2x mb-3"></span>
+                            <h5>मामले का विवरण फॉर्म</h5>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Questionnaire Card -->
+            <div class="col-lg-4 col-md-6">
+                <div class="card shadow-lg">
+                    <div class="card-body">
+                        <a href="details_hindi.html" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-decoration-none">
+                            <span class="fas fa-list-alt fa-2x mb-3"></span>
+                            <h5>प्रश्नावली</h5>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Card -->
+            <div class="col-lg-4 col-md-6">
+                <div class="card shadow-lg">
+                    <div class="card-body">
+                        <a href="reports_page.html" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-decoration-none">
+                            <span class="fas fa-chart-bar fa-2x mb-3"></span>
+                            <h5>रिपोर्ट</h5>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Card -->
+            <div class="col-lg-4 col-md-6">
+                <div class="card shadow-lg">
+                    <div class="card-body">
+                        <a href="#" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-decoration-none">
+                            <span class="fas fa-history fa-2x mb-3"></span>
+                            <h5>इतिहास / पिछली जानकारी</h5>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
+        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
             authDomain: "autism-evaluation-platform.firebaseapp.com",
@@ -24,116 +115,101 @@
             measurementId: "G-1TGEHTTJF4"
         };
 
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        onAuthStateChanged(auth, async (user) => {
-            if (!user) {
-                window.location.href = 'login.html';
-            } else {
-                // Fetch user's name from Firestore
+        // Utility functions
+        const showLoading = () => document.getElementById('loading-overlay').style.display = 'flex';
+        const hideLoading = () => document.getElementById('loading-overlay').style.display = 'none';
+
+        // Check if user has selected a language
+        function checkLanguageSelection() {
+            const selectedLanguage = localStorage.getItem('selectedLanguage');
+            return selectedLanguage ? true : false;
+        }
+
+        // Initialize dashboard with language handling
+        async function initializeDashboard(user) {
+            showLoading();
+            try {
+                // Check language selection first
+                if (!checkLanguageSelection()) {
+                    window.location.href = 'select_language.html';
+                    return;
+                }
+
+                const selectedLanguage = localStorage.getItem('selectedLanguage');
+                
+                // Check if we're on the correct language page
+                const currentUrl = window.location.pathname;
+                const expectedUrl = `/parent_dashboard_${selectedLanguage}.html`;
+                
+                if (!currentUrl.includes(expectedUrl)) {
+                    window.location.href = `parent_dashboard_${selectedLanguage}.html`;
+                    return;
+                }
+
+                // Set language in selector
+                document.getElementById('language-switcher').value = selectedLanguage;
+
+                // Fetch user data
                 const userDoc = await getDoc(doc(db, "users", user.uid));
                 if (userDoc.exists()) {
                     const userName = userDoc.data().name || "User";
                     document.getElementById('user-name').textContent = `${userName}'s डैशबोर्ड`;
                 }
+            } catch (error) {
+                console.error('Error initializing dashboard:', error);
+            } finally {
+                hideLoading();
+            }
+        }
 
-                // Redirect to language-specific dashboard
-                const selectedLanguage = localStorage.getItem('selectedLanguage') || 'en';
-                if (window.location.pathname.indexOf(`parent_dashboard_${selectedLanguage}.html`) === -1) {
-                    window.location.href = `parent_dashboard_${selectedLanguage}.html`;
-                }
+        // Auth state observer
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                initializeDashboard(user);
+            } else {
+                window.location.href = 'login.html';
             }
         });
 
-        document.addEventListener('DOMContentLoaded', function () {
-            document.getElementById('logout-btn').addEventListener('click', function() {
-                signOut(auth).then(() => {
-                    localStorage.removeItem('selectedLanguage'); // Clear selected language
-                    window.location.href = 'login.html';
-                }).catch((error) => {
-                    console.error('Error signing out:', error);
-                });
-            });
-
-            // Add language switcher functionality
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Language switcher
             document.getElementById('language-switcher').addEventListener('change', function() {
                 const newLanguage = this.value;
                 localStorage.setItem('selectedLanguage', newLanguage);
                 window.location.href = `parent_dashboard_${newLanguage}.html`;
             });
+
+            // Logout button
+            document.getElementById('logout-btn').addEventListener('click', async () => {
+                try {
+                    await signOut(auth);
+                    localStorage.removeItem('selectedLanguage'); // Clear language preference on logout
+                    window.location.href = 'login.html';
+                } catch (error) {
+                    console.error('Error signing out:', error);
+                }
+            });
         });
+
+        // Handle offline/online status
+        function updateOnlineStatus() {
+            const offlineIndicator = document.getElementById('offline-indicator');
+            if (navigator.onLine) {
+                offlineIndicator.style.display = 'none';
+            } else {
+                offlineIndicator.style.display = 'block';
+            }
+        }
+
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
     </script>
-</head>
-<body class="d-flex flex-column bg-light-blue">
-    <nav class="navbar navbar-expand-lg navbar-light">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#" id="user-name">डैशबोर्ड</a>
-            <div>
-                <select id="language-switcher" class="form-select me-2">
-                    <option value="en">English</option>
-                    <option value="hi" selected>हिन्दी</option>
-                    <option value="te">తెలుగు</option>
-                </select>
-                <button id="logout-btn" class="btn btn-danger">लॉगआउट</button>
-            </div>
-        </div>
-    </nav>
-    <div class="container mt-4">
-        <div class="row g-4">
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 text-center shadow-lg">
-                    <div class="card-body d-flex align-items-center justify-content-center">
-                        <a href="profile.html" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-decoration-none text-dark">
-                            <span class="fas fa-user fa-2x mb-3"></span>
-                            <h5>प्रोफ़ाइल</h5>
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 text-center shadow-lg">
-                    <div class="card-body d-flex align-items-center justify-content-center">
-                        <a href="home_page_parent.html" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-decoration-none text-dark">
-                            <span class="fas fa-file-alt fa-2x mb-3"></span>
-                            <h5>मामले का विवरण फॉर्म</h5>
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 text-center shadow-lg">
-                    <div class="card-body d-flex align-items-center justify-content-center">
-                        <a href="details_hindi.html" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-decoration-none text-dark">
-                            <span class="fas fa-list-alt fa-2x mb-3"></span>
-                            <h5>प्रश्नावली</h5>
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 text-center shadow-lg">
-                    <div class="card-body d-flex align-items-center justify-content-center">
-                        <a href="#" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-decoration-none text-dark">
-                            <span class="fas fa-chart-bar fa-2x mb-3"></span>
-                            <h5>रिपोर्ट</h5>
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 text-center shadow-lg">
-                    <div class="card-body d-flex align-items-center justify-content-center">
-                        <a href="#" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-decoration-none text-dark">
-                            <span class="fas fa-history fa-2x mb-3"></span>
-                            <h5>इतिहास / पिछली जानकारी</h5>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
