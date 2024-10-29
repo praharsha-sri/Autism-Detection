@@ -87,7 +87,7 @@
 
             try {
                 // Store the form data in Firestore under 'Questionnaire' subcollection
-                const docRef = doc(db, "users", user.uid, "Questionnaire", "details");
+                const docRef = doc(db, "users", user.uid, "English Questionnaire", "details");
                 await setDoc(docRef, {
                     ...formData,
                     timestamp: new Date()
