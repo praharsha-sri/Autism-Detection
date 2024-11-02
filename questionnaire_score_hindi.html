@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>आईएसएए पर आधारित प्रश्नावली</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
+        margin-top: 0;
+        margin-bottom: .5rem;
+        font-weight: 500;
+        line-height: 1.2;
+        color: green;
+        }
+        body {
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        .header {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .card {
+            margin: 20px auto;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #bbb98d78;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        .highlight {
+            font-weight: bold;
+            color: #dc3545;
+        }
+        .score {
+            font-size: 1.2em;
+            color: #2a39b0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .note {
+            font-size: 1.1em;
+            color: #dc3545;
+        }
+        .proceed-button {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>आईएसएए पर आधारित प्रश्नावली</h1>
+            <p>ग्रेडिंग निर्देश</p>
+        </div>
+
+        <!-- Scale 1 - Rarely -->
+        <div class="card">
+            <h3 class="highlight">बिलकुल नहीं (20% तक)</h3>
+            <p>व्यवहार 20% तक होता है और उम्र व सामाजिक-शैक्षिक पृष्ठभूमि के लिए सामान्य माना जाता है।</p>
+            <p class="score">स्कोर: 1</p>
+        </div>
+
+        <!-- Scale 2 - Sometimes -->
+        <div class="card">
+            <h3 class="highlight">कभी-कभी (21-40%)</h3>
+            <p>व्यवहार 21-40% तक होता है। कुछ व्यवहार चिंता का कारण हो सकते हैं लेकिन आमतौर पर उम्र और सामाजिक-शैक्षिक पृष्ठभूमि के अनुसार सामान्य होते हैं।</p>
+            <p class="score">स्कोर: 2</p>
+        </div>
+
+        <!-- Scale 3 - Frequently -->
+        <div class="card">
+            <h3 class="highlight">बार-बार (41-60%)</h3>
+            <p>व्यवहार 41-60% तक होता है, जो दैनिक क्रियाकलापों में रुकावट डालता है और इसे निश्चित रूप से विकलांगता माना जाता है।</p>
+            <p class="score">स्कोर: 3</p>
+        </div>
+
+        <!-- Scale 4 - Mostly -->
+        <div class="card">
+            <h3 class="highlight">अधिकतर (61-80%)</h3>
+            <p>व्यवहार 61-80% तक होता है, अक्सर बिना स्पष्ट कारण के, जो दैनिक क्रियाओं में काफी बाधा डालता है। व्यक्ति को दैनिक कार्यों के लिए सहायता की आवश्यकता होती है।</p>
+            <p class="score">स्कोर: 4</p>
+        </div>
+
+        <!-- Scale 5 - Always -->
+        <div class="card">
+            <h3 class="highlight">हमेशा (81-100%)</h3>
+            <p>व्यवहार लगभग हमेशा होता है, शायद ही कभी उचित होता है, और इसे एक प्रमुख विकलांगता माना जाता है। व्यक्ति पूरी तरह से दैनिक क्रियाओं के लिए निर्भर होता है।</p>
+            <p class="score">स्कोर: 5</p>
+        </div>
+
+        <!-- Footer Section with Minimum and Maximum Scores -->
+        <div class="footer">
+            <p class="note">* न्यूनतम स्कोर जो प्राप्त किया जा सकता है वह 40 है।</p>
+            <p class="note">* अधिकतम स्कोर जो प्राप्त किया जा सकता है वह 200 है।</p>
+            <!-- Proceed Button -->
+            <button class="btn btn-primary proceed-button" onclick="validateNext()">आगे बढ़ने के लिए क्लिक करें</button>
+        </div>
+    </div>
+
+    <!-- JavaScript to handle navigation -->
+    <script>
+        function validateNext() {
+            // Navigate to the next page (replace 'nextPage.html' with your actual target page)
+            window.location.href = 'details_hindi.html';
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
