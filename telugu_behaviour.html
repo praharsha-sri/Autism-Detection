@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-< lang="en">
+<lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -96,11 +96,11 @@
 
             if (user) {
                 try {
-                    const docRef = doc(db, "users", user.uid, collectionName, " ప్రవర్తనా విధానాలు");
+                    const docRef = doc(db, "users", user.uid, collectionName, "ప్రవర్తనా విధానాలు");
                     await setDoc(docRef, {
                         టైమ్‌స్టాంప్: new Date(),
-                        డొమెయిన్: ' ప్రవర్తనా విధానాలు',
-                        ...data.responses
+                        డొమెయిన్: 'ప్రవర్తనా విధానాలు',
+                        ...data
                     });
                     console.log("Data stored successfully!");
                     window.location.href = 'telugu_sensory.html?collectionName=' + encodeURIComponent(collectionName);

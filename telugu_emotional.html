@@ -99,7 +99,7 @@
                     await setDoc(docRef, {
                         టైమ్‌స్టాంప్: new Date(),
                         డొమెయిన్: 'భావ ప్రక్రియలు',
-                        ...data.responses
+                        ...data
                     });
                     console.log("Data stored successfully!");
                     window.location.href = 'telugu_speech.html?collectionName=' + encodeURIComponent(collectionName);

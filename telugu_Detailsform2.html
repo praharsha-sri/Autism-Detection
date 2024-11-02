@@ -1,12 +1,11 @@
 <!DOCTYPE html>
-<html lang="te">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ఆటిజం మూల్యాంకన ఫారం</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="questionnaire_style.css">
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
         import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
@@ -34,9 +33,8 @@
             if (user) {
                 try {
                     const docRef = doc(db, "users", user.uid, "Telugu Questionnaire", "వివరాలు");
-                    await setDoc(docRef, data);
+                    await setDoc(docRef, data, { merge: true });  // Merges data instead of overwriting
                     console.log("Data stored successfully!");
-                    window.location.href = 'telugu_Social.html'; // Navigate to next page
                 } catch (error) {
                     console.error("Error storing data: ", error);
                 }
@@ -74,36 +72,63 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadFormDataFromLocalStorage(); // Load data on page load
 
-            document.getElementById('autismForm').onsubmit = (e) => {
-                e.preventDefault();
-                saveFormDataToLocalStorage(); // Save data to localStorage
+            const form = document.getElementById('autismForm');
+            form.onsubmit = async (e) => {
+                e.preventDefault(); // Prevent default form submission
+                
+                // Validate the form data
+                let allFilled = true;
+                let age = parseInt(document.getElementById('age').value);
+                const errorMessageElement = document.getElementById('error-message');
+                errorMessageElement.textContent = '';
 
-                const formData = {
-                    name: document.getElementById('name').value,
-                    gender: document.getElementById('gender').value,
-                    date: document.getElementById('date').value,
-                    dob: document.getElementById('dob').value,
-                    age: document.getElementById('age').value,
-                    examiner: document.getElementById('examiner').value,
-                    timestamp: new Date()
-                };
+                // Check if all required inputs are filled
+                form.querySelectorAll('input, select').forEach(function(input) {
+                    if (!input.value) {
+                        allFilled = false;
+                    }
+                });
 
-                storeFormDataInFirestore(formData); // Store in Firestore
+                // Check if age is in valid range
+                if (isNaN(age) || age < 3 || age > 9) {
+                    allFilled = false;
+                    errorMessageElement.textContent = 'వయస్సు 3 నుండి 9 సంవత్సరాల మధ్య ఉండాలి.';
+                }
+
+                if (allFilled) {
+                    saveFormDataToLocalStorage(); // Save data locally
+
+                    // Store in Firestore
+                    const formData = {
+                        name: document.getElementById('name').value,
+                        gender: document.getElementById('gender').value,
+                        date: document.getElementById('date').value,
+                        dob: document.getElementById('dob').value,
+                        age: document.getElementById('age').value,
+                        examiner: document.getElementById('examiner').value,
+                        timestamp: new Date()
+                    };
+                    await storeFormDataInFirestore(formData);
+
+                    // Navigate to the next page
+                    window.location.href = "telugu_social.html";
+                }
             };
 
+            // Firebase auth state listener
             onAuthStateChanged(auth, (user) => {
                 if (!user) {
                     console.error("User not signed in.");
                 }
             });
         });
-    </script>
+        </script>
 </head>
 <body>
 
     <h2>భారతీయ ఆటిజం మూల్యాంకన స్కేలు</h2>
 
-    <form id="autismForm" action="telugu_Social.html" method="POST">
+    <form id="autismForm" action="telugu_social.html" method="POST">
         <div class="question">
             <label for="name">విద్యార్థి పేరు <span class="required">*</span></label>
             <input type="text" id="name" name="name" class="form-control" required>
@@ -134,39 +159,94 @@
             <input type="text" id="age" name="age" class="form-control" readonly>
         </div>
 
+
+        <div id="error-message" style="color: red; margin-top: 5px;"></div>
+
         <div class="question">
             <label for="examiner">పరీక్షకుడు <span class="required">*</span></label>
             <input type="text" id="examiner" name="examiner" class="form-control" required>
         </div>
 
         <div class="button-container">
-            <a href="telugu_Questionnaire_form.html" class="btn prev-btn">మునుపటి (Previous)</a>
-            <button type="submit" class="btn btn-primary">తరువాత (Next)</button>
+            <a href="questionnaire_score_hindi.html" class="btn prev-btn">మునుపటి (Previous)</a>
+            <button type="submit">తరువాత (Next)</button>
         </div>
     </form>
 
     <script>
-        window.onload = function () {
-            const today = new Date().toISOString().split('T')[0];
+        window.onload = function() {
+
+            var today = new Date().toISOString().split('T')[0];
             document.getElementById('date').value = today;
+
+
             document.getElementById('dob').setAttribute('max', today);
         };
 
-        document.getElementById('dob').addEventListener('change', function () {
-            const dobValue = this.value;
-            if (dobValue) {
-                const dob = new Date(dobValue);
-                const today = new Date();
-                let age = today.getFullYear() - dob.getFullYear();
-                const monthDiff = today.getMonth() - dob.getMonth();
-                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+
+        document.getElementById('dob').addEventListener('change', function() {
+            var dobValue = this.value;
+
+
+            if (dobValue.length === 10) {
+                var dob = new Date(dobValue);
+                var today = new Date();
+                var age = today.getFullYear() - dob.getFullYear();
+                var monthDifference = today.getMonth() - dob.getMonth();
+                
+                if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < dob.getDate())) {
                     age--;
                 }
+
                 document.getElementById('age').value = age;
+                if (age < 3 || age > 9) {
+                    document.getElementById('error-message').textContent = 'వయస్సు 3 నుండి 9 సంవత్సరాల మధ్య ఉండాలి.';
+                } else {
+                    document.getElementById('error-message').textContent = '';
+                }
             }
         });
-    </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+        document.getElementById('autismForm').addEventListener('submit', function(event) {
+    let allFilled = true;
+    let age = parseInt(document.getElementById('age').value);
+
+    document.getElementById('error-message').textContent = '';
+
+    // Check if all required inputs are filled
+    this.querySelectorAll('input, select').forEach(function(input) {
+        if (!input.value) {
+            allFilled = false;
+        }
+    });
+
+    // Check if age is in valid range
+    if (isNaN(age) || age < 3 || age > 9) {
+        allFilled = false;
+        document.getElementById('error-message').textContent = 'వయస్సు 3 నుండి 9 సంవత్సరాల మధ్య ఉండాలి.';
+    }
+
+    if (allFilled) {
+        saveFormDataToLocalStorage(); // Save data locally
+        storeFormDataInFirestore({
+            name: document.getElementById('name').value,
+            gender: document.getElementById('gender').value,
+            date: document.getElementById('date').value,
+            dob: document.getElementById('dob').value,
+            age: document.getElementById('age').value,
+            examiner: document.getElementById('examiner').value,
+            timestamp: new Date()
+        });
+
+        // Navigate to the next page
+        window.location.href = "telugu_social.html";
+    } else {
+        // Prevent form submission if validation fails
+        event.preventDefault();
+    }
+});
+
+</script>
 </body>
 </html>

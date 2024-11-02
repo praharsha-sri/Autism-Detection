@@ -101,7 +101,7 @@
                     await setDoc(docRef, {
                         టైమ్‌స్టాంప్: new Date(),
                         డొమెయిన్: 'సామాజిక సంబంధాలు మరియు పరస్పర స్పందన',
-                        ...data.responses
+                        ...data
                     });
                     console.log("Data stored successfully!");
                     window.location.href = 'telugu_emotional.html?collectionName=' + encodeURIComponent(collectionName);
@@ -115,11 +115,11 @@
 
         function saveFormDataToLocalStorage() {
             const data = calculateScore();
-            localStorage.setItem('సామాజిక సంబంధాలు', JSON.stringify(data.responses));
+            localStorage.setItem('సామాజిక సంబంధాలు మరియు పరస్పర స్పందన', JSON.stringify(data.responses));
         }
 
         function loadFormDataFromLocalStorage() {
-            const savedData = JSON.parse(localStorage.getItem('సామాజిక సంబంధాలు'));
+            const savedData = JSON.parse(localStorage.getItem('సామాజిక సంబంధాలు మరియు పరస్పర స్పందన'));
             if (savedData) {
                 Object.entries(savedData).forEach(([name, value]) => {
                     const input = document.querySelector(`input[name="${name}"][value="${value}"]`);
@@ -130,9 +130,9 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             initializeRadioButtons([
-                'poorEyeContact', 'lackSocialSmile', 'remainAloof', 'doNotReachOut',
-                'inabilityToRelate', 'inabilityToRespond', 'engageInSolitary',
-                'inabilityToShare', 'doesNotMaintain'
+                'poorEyeContact', 'lackSocialSmile', 'remainAloof',
+                'doNotReachOut', 'inabilityToRelate', 'inabilityToRespond',
+                'engageInSolitary', 'inabilityToShare', 'doesNotMaintain'
             ]);
 
             loadFormDataFromLocalStorage();

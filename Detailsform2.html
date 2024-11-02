@@ -12,6 +12,7 @@
         import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 
+        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
             authDomain: "autism-evaluation-platform.firebaseapp.com",
@@ -22,94 +23,120 @@
             measurementId: "G-1TGEHTTJF4"
         };
 
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        document.addEventListener('DOMContentLoaded', function () {
-            const form = document.getElementById('autismForm');
-            form.addEventListener('submit', handleFormSubmit);
-
-            // Set today's date as the default value for the date input
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('date').value = today;
-            document.getElementById('dob').setAttribute('max', today);
-
-            // Calculate age when DOB changes
-            document.getElementById('dob').addEventListener('change', calculateAge);
-
-            // Populate form data from sessionStorage if available
-            populateFormData();
-        });
-
-        function calculateAge() {
-            const dob = new Date(document.getElementById('dob').value);
-            const today = new Date();
-            let age = today.getFullYear() - dob.getFullYear();
-            const monthDiff = today.getMonth() - dob.getMonth();
-            
-            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-                age--;
-            }
-
-            document.getElementById('age').value = age;
-        }
-
-        function populateFormData() {
-            const savedData = JSON.parse(sessionStorage.getItem('formData'));
-            if (savedData) {
-                document.getElementById('name').value = savedData.name || '';
-                document.getElementById('gender').value = savedData.gender || '';
-                document.getElementById('date').value = savedData.date || new Date().toISOString().split('T')[0];
-                document.getElementById('dob').value = savedData.dob || '';
-                document.getElementById('age').value = savedData.age || '';
-                document.getElementById('examiner').value = savedData.examiner || '';
-            }
-        }
-
-        async function handleFormSubmit(event) {
-            event.preventDefault();
-
+        // Save form data to Firestore
+        async function storeFormDataInFirestore(data) {
             const user = auth.currentUser;
-            if (!user) {
-                console.error("No user is signed in.");
-                return;
+            if (user) {
+                try {
+                    const docRef = doc(db, "users", user.uid, "English Questionnaire", "details");
+                    await setDoc(docRef, data, { merge: true });  // Merges data instead of overwriting
+                    console.log("Data stored successfully!");
+                } catch (error) {
+                    console.error("Error storing data: ", error);
+                }
+            } else {
+                console.error("User not signed in.");
             }
+        }
 
+        // Save form data to localStorage
+        function saveFormDataToLocalStorage() {
             const formData = {
                 name: document.getElementById('name').value,
                 gender: document.getElementById('gender').value,
                 date: document.getElementById('date').value,
                 dob: document.getElementById('dob').value,
                 age: document.getElementById('age').value,
-                examiner: document.getElementById('examiner').value,
+                examiner: document.getElementById('examiner').value
             };
+            localStorage.setItem('autismFormData', JSON.stringify(formData));
+        }
 
-            try {
-                // Store the form data in Firestore under 'Questionnaire' subcollection
-                const docRef = doc(db, "users", user.uid, "English Questionnaire", "details");
-                await setDoc(docRef, {
-                    ...formData,
-                    timestamp: new Date()
-                });
-
-                console.log("Form data successfully stored in Firebase");
-
-                // Save form data to sessionStorage for persistence
-                sessionStorage.setItem('formData', JSON.stringify(formData));
-
-                // Navigate to the next page
-                window.location.href = `social.html?collectionName=Questionnaire`;
-            } catch (error) {
-                console.error("Error storing form data in Firebase: ", error);
+        // Load form data from localStorage
+        function loadFormDataFromLocalStorage() {
+            const savedData = JSON.parse(localStorage.getItem('autismFormData'));
+            if (savedData) {
+                document.getElementById('name').value = savedData.name;
+                document.getElementById('gender').value = savedData.gender;
+                document.getElementById('date').value = savedData.date;
+                document.getElementById('dob').value = savedData.dob;
+                document.getElementById('age').value = savedData.age;
+                document.getElementById('examiner').value = savedData.examiner;
             }
         }
-    </script>
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFormDataFromLocalStorage(); // Load data on page load
+
+            const form = document.getElementById('autismForm');
+            form.onsubmit = async (e) => {
+                e.preventDefault(); // Prevent default form submission
+                
+                // Validate the form data
+                let allFilled = true;
+                let age = parseInt(document.getElementById('age').value);
+                const errorMessageElement = document.getElementById('error-message');
+                errorMessageElement.textContent = '';
+
+                // Check if all required inputs are filled
+                form.querySelectorAll('input, select').forEach(function(input) {
+                    if (!input.value) {
+                        allFilled = false;
+                    }
+                });
+
+            // Check if all required inputs are filled
+            form.querySelectorAll('input, select').forEach(function(input) {
+                if (!input.value) {
+                    allFilled = false;
+                }
+            });
+
+            // Check if age is in valid range
+            if (isNaN(age) || age < 3 || age > 9) {
+                allFilled = false;
+                errorMessageElement.textContent = 'Age must be between 3 and 9 years.';
+            }
+
+            if (allFilled) {
+                    saveFormDataToLocalStorage(); // Save data locally
+
+                    // Store in Firestore
+                    const formData = {
+                        name: document.getElementById('name').value,
+                        gender: document.getElementById('gender').value,
+                        date: document.getElementById('date').value,
+                        dob: document.getElementById('dob').value,
+                        age: document.getElementById('age').value,
+                        examiner: document.getElementById('examiner').value,
+                        timestamp: new Date()
+                    };
+                    await storeFormDataInFirestore(formData);
+
+                    // Navigate to the next page
+                    window.location.href = "social.html";
+                }
+            };
+
+            // Firebase auth state listener
+            onAuthStateChanged(auth, (user) => {
+                if (!user) {
+                    console.error("User not signed in.");
+                }
+            });
+        });
+ </script>
+
 </head>
 <body>
     <h2>Indian Scale for Assessment of Autism</h2>
 
-    <form id="autismForm">
+    <form id="autismForm" action="social.html" method="POST">
         <div class="question">
             <label for="name">Name of the child <span class="required">*</span></label>
             <input type="text" id="name" name="name" class="form-control" required>
@@ -140,6 +167,8 @@
             <input type="text" id="age" name="age" class="form-control" readonly>
         </div>
 
+        <div id="error-message" style="color: red; margin-top: 5px;"></div>
+
         <div class="question">
             <label for="examiner">Examiner <span class="required">*</span></label>
             <input type="text" id="examiner" name="examiner" class="form-control" required>
@@ -150,6 +179,82 @@
             <button type="submit">Next</button>
         </div>
     </form>
+    <script>
+        window.onload = function() {
+
+            var today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').value = today;
+
+
+            document.getElementById('dob').setAttribute('max', today);
+        };
+
+
+        document.getElementById('dob').addEventListener('change', function() {
+            var dobValue = this.value;
+
+
+            if (dobValue.length === 10) {
+                var dob = new Date(dobValue);
+                var today = new Date();
+                var age = today.getFullYear() - dob.getFullYear();
+                var monthDifference = today.getMonth() - dob.getMonth();
+                
+                if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < dob.getDate())) {
+                    age--;
+                }
+
+                document.getElementById('age').value = age;
+                if (age < 3 || age > 9) {
+                    document.getElementById('error-message').textContent = 'Age must be between 3 and 9 years';
+                } else {
+                    document.getElementById('error-message').textContent = '';
+                }
+            }
+        });
+
+
+        document.getElementById('autismForm').addEventListener('submit', function(event) {
+    let allFilled = true;
+    let age = parseInt(document.getElementById('age').value);
+
+    document.getElementById('error-message').textContent = '';
+
+    // Check if all required inputs are filled
+    this.querySelectorAll('input, select').forEach(function(input) {
+        if (!input.value) {
+            allFilled = false;
+        }
+    });
+
+    // Check if age is in valid range
+    if (isNaN(age) || age < 3 || age > 9) {
+        allFilled = false;
+        document.getElementById('error-message').textContent = 'Age must be between 3 and 9 years';
+    }
+
+    if (allFilled) {
+        saveFormDataToLocalStorage(); // Save data locally
+        storeFormDataInFirestore({
+            name: document.getElementById('name').value,
+            gender: document.getElementById('gender').value,
+            date: document.getElementById('date').value,
+            dob: document.getElementById('dob').value,
+            age: document.getElementById('age').value,
+            examiner: document.getElementById('examiner').value,
+            timestamp: new Date()
+        });
+
+        // Navigate to the next page
+        window.location.href = "social.html";
+    } else {
+        // Prevent form submission if validation fails
+        event.preventDefault();
+    }
+});
+
+</script>
+
 
 </body>
 </html>

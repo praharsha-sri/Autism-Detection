@@ -100,7 +100,7 @@
                     await setDoc(docRef, {
                         టైమ్‌స్టాంప్: new Date(),
                         డొమెయిన్: 'జ్ఞాన భాగం',
-                        ...data.responses
+                        ...data
                     });
                     console.log("Data stored successfully!");
                     window.location.href = 'parent_dashboard_te.html?collectionName=' + encodeURIComponent(collectionName);
