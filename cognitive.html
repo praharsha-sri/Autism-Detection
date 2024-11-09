@@ -3,13 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cognitive Component Form</title>
+    <title>Social Relationship and Reciprocity Form</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="questionnaire_style.css">
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
         import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
-        import { getAuth } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
             authDomain: "autism-evaluation-platform.firebaseapp.com",
@@ -20,26 +23,13 @@
             measurementId: "G-1TGEHTTJF4"
         };
 
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
 
         const radioOptions = ["Rarely", "Sometimes", "Frequently", "Mostly", "Always"];
-
-        const scoreValues = {
-            Rarely: 1,
-            Sometimes: 2,
-            Frequently: 3,
-            Mostly: 4,
-            Always: 5,
-        };
-
-        function getUrlParameter(name) {
-            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
-            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
-            var results = regex.exec(location.search);
-            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
-        }
+        const scoreValues = { Rarely: 1, Sometimes: 2, Frequently: 3, Mostly: 4, Always: 5 };
 
         function generateRadioButtons(questionId) {
             const radioGroup = document.getElementById(questionId);
@@ -53,7 +43,6 @@
         function initializeRadioButtons(questionIds) {
             questionIds.forEach(generateRadioButtons);
         }
-        
 
         function showAlert() {
             document.getElementById("customAlert").style.display = "flex";
@@ -65,16 +54,9 @@
 
         function validateForm() {
             const questions = document.querySelectorAll(".radio-group");
-            for (let i = 0; i < questions.length; i++) {
-                const radioButtons = questions[i].querySelectorAll('input[type="radio"]');
-                let isChecked = false;
-                for (let j = 0; j < radioButtons.length; j++) {
-                    if (radioButtons[j].checked) {
-                        isChecked = true;
-                        break;
-                    }
-                }
-                if (!isChecked) {
+            for (let question of questions) {
+                const radioButtons = question.querySelectorAll('input[type="radio"]');
+                if (![...radioButtons].some(rb => rb.checked)) {
                     showAlert();
                     return false;
                 }
@@ -85,7 +67,6 @@
         function calculateScore() {
             const questions = document.querySelectorAll(".radio-group");
             let totalScore = 0;
-            const maxPossibleScore = questions.length * 5;
             const responses = {};
 
             questions.forEach((question) => {
@@ -96,19 +77,15 @@
                 }
             });
 
-            const scorePercentage = (totalScore / maxPossibleScore) * 100;
+            const maxScore = questions.length * 5;
+            const percentage = ((totalScore / maxScore) * 100).toFixed(2);
 
-            return {
-                score: totalScore,
-                maxScore: maxPossibleScore,
-                percentage: scorePercentage.toFixed(2),
-                responses: responses
-            };
+            return { score: totalScore, maxScore, percentage, responses };
         }
 
         async function storeQuestionnaireDataInFirebase(data) {
             const user = auth.currentUser;
-            const collectionName = getUrlParameter('collectionName');
+            const collectionName = new URLSearchParams(window.location.search).get('collectionName') || 'English Questionnaire';
 
             if (user) {
                 try {
@@ -116,34 +93,56 @@
                     await setDoc(docRef, {
                         timestamp: new Date(),
                         domain: 'cognitiveComponent',
-                        score: data.score,
-                        maxScore: data.maxScore,
-                        percentage: data.percentage,
-                        responses: data.responses
+                        ...data
                     });
-                    console.log("Questionnaire data successfully stored in Firebase");
+                    console.log("Data stored successfully!");
                     window.location.href = 'final_page.html?collectionName=' + encodeURIComponent(collectionName);
                 } catch (error) {
-                    console.error("Error storing questionnaire data in Firebase: ", error);
+                    console.error("Error storing data: ", error);
                 }
             } else {
-                console.error("No user is signed in");
+                console.error("User not signed in.");
             }
         }
+
+        function saveFormDataToLocalStorage() {
+            const data = calculateScore();
+            localStorage.setItem('cognitiveComponentData', JSON.stringify(data.responses));
+        }
+
+        function loadFormDataFromLocalStorage() {
+            const savedData = JSON.parse(localStorage.getItem('cognitiveComponentData'));
+            if (savedData) {
+                Object.entries(savedData).forEach(([name, value]) => {
+                    const input = document.querySelector(`input[name="${name}"][value="${value}"]`);
+                    if (input) input.checked = true;
+                });
+            }
+        }
+
+        
         document.addEventListener('DOMContentLoaded', function () {
     // Initialize the radio buttons.
     initializeRadioButtons(['inconsistent', 'showsDelay', 'hasUnusualMemory', 'hasSavantAbility']);
     
-    // Form submission logic.
-    document.querySelector('form').onsubmit = function (e) {
-        e.preventDefault();
-        if (validateForm()) {
-            const data = calculateScore();
-            storeQuestionnaireDataInFirebase(data);
-        } else {
-            showAlert();
-        }
-    };
+    loadFormDataFromLocalStorage();
+
+onAuthStateChanged(auth, (user) => {
+    if (!user) {
+        console.error("User not signed in.");
+    }
+});
+
+document.querySelector('form').onsubmit = (e) => {
+    e.preventDefault();
+    if (validateForm()) {
+        const data = calculateScore();
+        saveFormDataToLocalStorage();
+        storeQuestionnaireDataInFirebase(data);
+    } else {
+        showAlert();
+    }
+};
 
     // Ensure the close button works after DOM is loaded.
     document.querySelector('.custom-alert-btn').addEventListener('click', closeAlert);

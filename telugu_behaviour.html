@@ -1,10 +1,157 @@
 <!DOCTYPE html>
-<html lang="en">
+<lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ప్రవర్తనా విధానాలు ఫారం</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="questionnaire_style.css">
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+            authDomain: "autism-evaluation-platform.firebaseapp.com",
+            projectId: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform.appspot.com",
+            messagingSenderId: "748226978662",
+            appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+            measurementId: "G-1TGEHTTJF4"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const radioOptions = ['అరుదుగా', 'కొన్నిసార్లు', 'తరచుగా', 'ఎక్కువగా', 'ఎల్లప్పుడూ'];
+
+        // Scoring system in Telugu
+        const scoreValues = {
+            'అరుదుగా': 1,
+            'కొన్నిసార్లు': 2,
+            'తరచుగా': 3,
+            'ఎక్కువగా': 4,
+            'ఎల్లప్పుడూ': 5,
+        };
+
+        function generateRadioButtons(questionId) {
+            const radioGroup = document.getElementById(questionId);
+            radioOptions.forEach((option) => {
+                const label = document.createElement("label");
+                label.innerHTML = `<input type="radio" name="${questionId}" value="${option}"> ${option}`;
+                radioGroup.appendChild(label);
+            });
+        }
+
+        function initializeRadioButtons(questionIds) {
+            questionIds.forEach(generateRadioButtons);
+        }
+
+        function showAlert() {
+            document.getElementById("customAlert").style.display = "flex";
+        }
+
+        function closeAlert() {
+            document.getElementById("customAlert").style.display = "none";
+        }
+
+        function validateForm() {
+            const questions = document.querySelectorAll(".radio-group");
+            for (let question of questions) {
+                const radioButtons = question.querySelectorAll('input[type="radio"]');
+                if (![...radioButtons].some(rb => rb.checked)) {
+                    showAlert();
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function calculateScore() {
+            const questions = document.querySelectorAll(".radio-group");
+            let totalScore = 0;
+            const responses = {};
+
+            questions.forEach((question) => {
+                const selectedOption = question.querySelector('input[type="radio"]:checked');
+                if (selectedOption) {
+                    totalScore += scoreValues[selectedOption.value];
+                    responses[selectedOption.name] = selectedOption.value;
+                }
+            });
+
+            const maxScore = questions.length * 5;
+            const percentage = ((totalScore / maxScore) * 100).toFixed(2);
+
+            return { score: totalScore, maxScore, percentage, responses };
+        }
+
+        async function storeQuestionnaireDataInFirebase(data) {
+            const user = auth.currentUser;
+            const collectionName = 'Telugu Questionnaire';
+
+            if (user) {
+                try {
+                    const docRef = doc(db, "users", user.uid, collectionName, "ప్రవర్తనా విధానాలు");
+                    await setDoc(docRef, {
+                        టైమ్‌స్టాంప్: new Date(),
+                        డొమెయిన్: 'ప్రవర్తనా విధానాలు',
+                        ...data
+                    });
+                    console.log("Data stored successfully!");
+                    window.location.href = 'telugu_sensory.html?collectionName=' + encodeURIComponent(collectionName);
+                } catch (error) {
+                    console.error("Error storing data: ", error);
+                }
+            } else {
+                console.error("User not signed in.");
+            }
+        }
+
+        function saveFormDataToLocalStorage() {
+            const data = calculateScore();
+            localStorage.setItem('ప్రవర్తనా విధానాలు', JSON.stringify(data.responses));
+        }
+
+        function loadFormDataFromLocalStorage() {
+            const savedData = JSON.parse(localStorage.getItem('ప్రవర్తనా విధానాలు'));
+            if (savedData) {
+                Object.entries(savedData).forEach(([name, value]) => {
+                    const input = document.querySelector(`input[name="${name}"][value="${value}"]`);
+                    if (input) input.checked = true;
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeRadioButtons(['engagesInStereotyped','showsAttachment','showsHyperactivity','exhibitsAggressive','throwsTemper','engagesInSelf-injuries','insistsOnsameness']);
+
+            loadFormDataFromLocalStorage();
+
+            onAuthStateChanged(auth, (user) => {
+                if (!user) {
+                    console.error("User not signed in.");
+                }
+            });
+
+            document.querySelector('form').onsubmit = (e) => {
+                e.preventDefault();
+                if (validateForm()) {
+                    const data = calculateScore();
+                    saveFormDataToLocalStorage();
+                    storeQuestionnaireDataInFirebase(data);
+                } else {
+                    showAlert();
+                }
+            };
+
+            document.querySelector('.custom-alert-btn').addEventListener('click', closeAlert);
+        });
+    </script>
 </head>
 <body>
 
@@ -55,14 +202,16 @@
             <div id="insistsOnsameness" class="radio-group"></div> <!-- Placeholder for radio buttons -->
         </div>
 
-        <br>
-         <br>
+        <!-- Add more questions here if needed -->
+       <br>
+       <br>
         <div class="button-container">
-            <button type="button" class="prev-btn" onclick="window.location.href='telugu_speech.html'">మునుపటి (Previous)</button>
-            <button type="button" class="next-btn" onclick="validateNext()">తరువాత (Next)</button>
+            <button class="prev-btn" type="button" onclick="window.location.href='telugu_speech.html'">మునుపటి (Previous)</button>
+            <button type="submit">తరువాత (Next)</button>
         </div>
     </form>
- 
+
+     
     <!-- Custom Modal for Validation Message -->
     <div id="customAlert" class="custom-alert">
         <div class="custom-alert-content">
@@ -70,23 +219,6 @@
             <button class="custom-alert-btn" onclick="closeAlert()">సరే (OK)</button>
         </div>
     </div>
-
-    <script src="telugu_Questionnaire_form.js"></script>
-<script>
-// Initialize radio buttons for questions on this page
-window.onload = function() {
-            initializeRadioButtons(['engagesInStereotyped','showsAttachment','showsHyperactivity','exhibitsAggressive','throwsTemper','engagesInSelf-injuries','insistsOnsameness']);
-        };    
-
-        function validateNext() {
-            if (validateForm()) {
-                window.location.href = 'telugu_sensory.html'; // Navigate to the next page
-            } else {
-                showAlert(); // Show the custom alert if form is not valid
-            }
-        }
-    </script>
-
 </body>
 </html>
 
