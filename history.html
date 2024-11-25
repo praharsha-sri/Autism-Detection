@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+                background-color: #b200ff29;
+        }
+
+        h1 {
+            color: black;
+            text-align: center;
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            margin: 1rem 0;
+        }
+
+        .score-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .score-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .score-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .score-title {
+            font-size: clamp(0.875rem, 2vw, 1rem);
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .score-value {
+            font-size: clamp(1.25rem, 3vw, 1.5rem);
+            font-weight: bold;
+            color: #333;
+        }
+
+        .score-max {
+            font-size: clamp(0.875rem, 2vw, 1rem);
+            color: #666;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 1.5rem 0;
+            position: relative;
+            width: 100%;
+            min-height: 300px;
+            height: auto;
+        }
+
+        #severity-indicator {
+            text-align: center;
+            padding: 0.75rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: clamp(1rem, 2.5vw, 1.25rem);
+        }
+
+        #loading {
+            text-align: center;
+            padding: 1rem;
+            font-style: italic;
+            color: #666;
+        }
+
+        .error {
+            color: #ef4444;
+            text-align: center;
+            padding: 0.75rem;
+            margin: 0.75rem 0;
+            background: #fecaca;
+            border-radius: 8px;
+            font-size: clamp(0.875rem, 2vw, 1rem);
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                width: 100%;
+                padding: 0.5rem;
+            }
+
+            .score-grid {
+                gap: 0.75rem;
+            }
+
+            .chart-container {
+                padding: 0.5rem;
+                min-height: 250px;
+            }
+
+            .score-card {
+                padding: 0.75rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .chart-container {
+                min-height: 200px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .score-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Visualization of Reports</h1>
+        <div id="loading">Loading scores...</div>
+        <div id="error" style="display: none;" class="error"></div>
+        
+        <div class="score-grid">
+            <div class="score-card">
+                <div class="score-title">Social Relationship</div>
+                <div class="score-value">-<span class="score-max"></span></div>
+            </div>
+            <div class="score-card">
+                <div class="score-title">Emotional Responsiveness</div>
+                <div class="score-value">-<span class="score-max"></span></div>
+            </div>
+            <div class="score-card">
+                <div class="score-title">Speech & Communication</div>
+                <div class="score-value">-<span class="score-max"></span></div>
+            </div>
+            <div class="score-card">
+                <div class="score-title">Behavior Patterns</div>
+                <div class="score-value">-<span class="score-max"></span></div>
+            </div>
+            <div class="score-card">
+                <div class="score-title">Sensory Aspects</div>
+                <div class="score-value">-<span class="score-max"></span></div>
+            </div>
+            <div class="score-card">
+                <div class="score-title">Cognitive Component</div>
+                <div class="score-value">-<span class="score-max"></span></div>
+            </div>
+        </div>
+
+        <div id="severity-indicator"></div>
+
+        <div class="chart-container">
+            <canvas id="scoreChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+            authDomain: "autism-evaluation-platform.firebaseapp.com",
+            projectId: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform.appspot.com",
+            messagingSenderId: "748226978662",
+            appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+            measurementId: "G-1TGEHTTJF4"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // Domain definitions
+        const domains = [
+            { id: 'socialRelationship', name: 'Social Relationship', max: 45},
+            { id: 'emotionalResponsiveness', name: 'Emotional Responsiveness', max: 25 },
+            { id: 'speechLanguageCommunication', name: 'Speech & Communication', max: 45 },
+            { id: 'behaviourPatterns', name: 'Behavior Patterns', max: 35 },
+            { id: 'sensoryAspects', name: 'Sensory Aspects', max: 30 },
+            { id: 'cognitiveComponent', name: 'Cognitive Component', max: 20 }
+        ];
+
+        let chart = null;
+
+        // Function to update scores display
+        function updateScores(scores) {
+            // Update score cards
+            const scoreCards = document.querySelectorAll('.score-card');
+            scoreCards.forEach((card, index) => {
+                const scoreValue = card.querySelector('.score-value');
+                scoreValue.innerHTML = `${scores[index]}<span class="score-max">/${domains[index].max}</span>`;
+            });
+
+            // Calculate total score and update severity indicator
+            const totalScore = scores.reduce((a, b) => a + b, 0);
+            const severityIndicator = document.getElementById('severity-indicator');
+            let severity, color;
+
+            if (totalScore <= 70) {
+                severity = 'No Autism';
+                color = '#4ade80';
+            } else if (totalScore <= 106) {
+                severity = 'Mild Autism';
+                color = '#fbbf24';
+            } else if (totalScore <= 153) {
+                severity = 'Moderate Autism';
+                color = '#fb923c';
+            } else {
+                severity = 'Severe Autism';
+                color = '#ef4444';
+            }
+
+            severityIndicator.textContent = `${severity} (Total Score: ${totalScore})`;
+            severityIndicator.style.backgroundColor = color + '20';
+            severityIndicator.style.color = color;
+
+            // Destroy existing chart if it exists
+            if (chart) {
+                chart.destroy();
+            }
+
+            // Create new chart with responsive options
+            const ctx = document.getElementById('scoreChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: domains.map(d => d.name),
+                    datasets: [{
+                        label: 'Score',
+                        data: scores,
+                        backgroundColor: color,
+                        borderColor: color,
+                        borderWidth: 1,
+                        borderRadius: 5,
+                    }, {
+                        label: 'Maximum Score',
+                        data: domains.map(d => d.max),
+                        backgroundColor: '#e5e7eb',
+                        borderColor: '#d1d5db',
+                        borderWidth: 1,
+                        borderRadius: 5,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: Math.max(...domains.map(d => d.max)) + 10
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Function to fetch scores from Firebase
+        async function fetchScores() {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            
+            try {
+                const user = auth.currentUser;
+                if (!user) {
+                    throw new Error('No user logged in');
+                }
+
+                const scores = [];
+                
+                // Fetch scores for each domain
+                for (const domain of domains) {
+                    const docRef = db.collection('users').doc(user.uid)
+                                   .collection('Questionnaire').doc(domain.id);
+                    const docSnap = await docRef.get();
+                    
+                    if (docSnap.exists) {
+                        scores.push(docSnap.data().score || 0);
+                    } else {
+                        scores.push(0);
+                    }
+                }
+
+                loading.style.display = 'none';
+                error.style.display = 'none';
+                updateScores(scores);
+
+            } catch (err) {
+                console.error('Error fetching scores:', err);
+                loading.style.display = 'none';
+                error.style.display = 'block';
+                error.textContent = 'Error loading scores. Please refresh the page.';
+            }
+        }
+
+        // Auth state listener
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                fetchScores();
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+
+        // Handle window resize for chart responsiveness
+        window.addEventListener('resize', () => {
+            if (chart) {
+                chart.resize();
+            }
+        });
+    </script>
+</body>
+</html>
