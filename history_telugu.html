@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html lang="te">
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore-compat.js"></script>
@@ -24,7 +25,7 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 1rem;
-                background-color: #b200ff29;
+            background-color: #b200ff29;
         }
 
         h1 {
@@ -108,69 +109,38 @@
             border-radius: 8px;
             font-size: clamp(0.875rem, 2vw, 1rem);
         }
-
-        @media (max-width: 640px) {
-            .container {
-                width: 100%;
-                padding: 0.5rem;
-            }
-
-            .score-grid {
-                gap: 0.75rem;
-            }
-
-            .chart-container {
-                padding: 0.5rem;
-                min-height: 250px;
-            }
-
-            .score-card {
-                padding: 0.75rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .chart-container {
-                min-height: 200px;
-            }
-        }
-
-        @media (min-width: 1024px) {
-            .score-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
     </style>
+    <title>ప్రదర్శన ఫలితాలు</title>
 </head>
 <body>
     <div class="container">
-        <h1>Visualization of Reports</h1>
-        <div id="loading">Loading scores...</div>
+        <h1>ప్రదర్శన ఫలితాలు</h1>
+        <div id="loading">స్కోర్లు లోడ్ అవుతున్నాయి...</div>
         <div id="error" style="display: none;" class="error"></div>
         
         <div class="score-grid">
             <div class="score-card">
-                <div class="score-title">Social Relationship</div>
+                <div class="score-title">సామాజిక సంబంధాలు</div>
                 <div class="score-value">-<span class="score-max"></span></div>
             </div>
             <div class="score-card">
-                <div class="score-title">Emotional Responsiveness</div>
+                <div class="score-title">భావోద్వేగ స్పందన</div>
                 <div class="score-value">-<span class="score-max"></span></div>
             </div>
             <div class="score-card">
-                <div class="score-title">Speech & Communication</div>
+                <div class="score-title">మాట్లాడటం & సంభాషణ</div>
                 <div class="score-value">-<span class="score-max"></span></div>
             </div>
             <div class="score-card">
-                <div class="score-title">Behavior Patterns</div>
+                <div class="score-title">ప్రవర్తన విధానాలు</div>
                 <div class="score-value">-<span class="score-max"></span></div>
             </div>
             <div class="score-card">
-                <div class="score-title">Sensory Aspects</div>
+                <div class="score-title">భావన అంశాలు</div>
                 <div class="score-value">-<span class="score-max"></span></div>
             </div>
             <div class="score-card">
-                <div class="score-title">Cognitive Component</div>
+                <div class="score-title">జ్ఞాన భాగం</div>
                 <div class="score-value">-<span class="score-max"></span></div>
             </div>
         </div>
@@ -199,76 +169,75 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        // Domain definitions
+        // Domain definitions in Telugu
         const domains = [
-            { id: 'socialRelationship', name: 'Social Relationship', max: 45},
-            { id: 'emotionalResponsiveness', name: 'Emotional Responsiveness', max: 25 },
-            { id: 'speechLanguageCommunication', name: 'Speech & Communication', max: 45 },
-            { id: 'behaviourPatterns', name: 'Behavior Patterns', max: 35 },
-            { id: 'sensoryAspects', name: 'Sensory Aspects', max: 30 },
-            { id: 'cognitiveComponent', name: 'Cognitive Component', max: 20 }
+            { id: 'సామాజిక సంబంధాలు', name: 'సామాజిక సంబంధాలు', max: 45 },
+            { id: 'భావ_ప్రక్రియలు', name: 'భావోద్వేగ స్పందన', max: 25 },
+            { id: 'భాష-మాటలు', name: 'మాట్లాడటం & సంభాషణ', max: 45 },
+            { id: 'ప్రవర్తనా విధానాలు', name: 'ప్రవర్తన విధానాలు', max: 35 },
+            { id: 'సంవేదన సంబంధిత అంశాలు', name: 'భావన అంశాలు', max: 30 },
+            { id: 'జ్ఞాన భాగం', name: 'జ్ఞాన భాగం', max: 20 }
         ];
 
         let chart = null;
 
         // Function to update scores display
         function updateScores(scores) {
-            // Update score cards
             const scoreCards = document.querySelectorAll('.score-card');
             scoreCards.forEach((card, index) => {
                 const scoreValue = card.querySelector('.score-value');
                 scoreValue.innerHTML = `${scores[index]}<span class="score-max">/${domains[index].max}</span>`;
             });
 
-            // Calculate total score and update severity indicator
             const totalScore = scores.reduce((a, b) => a + b, 0);
             const severityIndicator = document.getElementById('severity-indicator');
             let severity, color;
 
             if (totalScore <= 70) {
-                severity = 'No Autism';
+                severity = 'ఆటిజం లేదు';
                 color = '#4ade80';
             } else if (totalScore <= 106) {
-                severity = 'Mild Autism';
+                severity = 'స్వల్ప ఆటిజం';
                 color = '#fbbf24';
             } else if (totalScore <= 153) {
-                severity = 'Moderate Autism';
+                severity = 'మధ్యస్థ ఆటిజం';
                 color = '#fb923c';
             } else {
-                severity = 'Severe Autism';
+                severity = 'తీవ్ర ఆటిజం';
                 color = '#ef4444';
             }
 
-            severityIndicator.textContent = `${severity} (Total Score: ${totalScore})`;
+            severityIndicator.textContent = `${severity} (మొత్తం స్కోరు: ${totalScore})`;
             severityIndicator.style.backgroundColor = color + '20';
             severityIndicator.style.color = color;
 
-            // Destroy existing chart if it exists
             if (chart) {
                 chart.destroy();
             }
 
-            // Create new chart with responsive options
             const ctx = document.getElementById('scoreChart').getContext('2d');
             chart = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: domains.map(d => d.name),
-                    datasets: [{
-                        label: 'Score',
-                        data: scores,
-                        backgroundColor: color,
-                        borderColor: color,
-                        borderWidth: 1,
-                        borderRadius: 5,
-                    }, {
-                        label: 'Maximum Score',
-                        data: domains.map(d => d.max),
-                        backgroundColor: '#e5e7eb',
-                        borderColor: '#d1d5db',
-                        borderWidth: 1,
-                        borderRadius: 5,
-                    }]
+                    datasets: [
+                        {
+                            label: 'స్కోరు',
+                            data: scores,
+                            backgroundColor: color,
+                            borderColor: color,
+                            borderWidth: 1,
+                            borderRadius: 5,
+                        },
+                        {
+                            label: 'గరిష్ఠ స్కోరు',
+                            data: domains.map(d => d.max),
+                            backgroundColor: '#e5e7eb',
+                            borderColor: '#d1d5db',
+                            borderWidth: 1,
+                            borderRadius: 5,
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
@@ -277,75 +246,54 @@
                         y: {
                             beginAtZero: true,
                             max: Math.max(...domains.map(d => d.max)) + 10
-                        },
-                        x: {
-                            ticks: {
-                                maxRotation: 45,
-                                minRotation: 45
-                            }
                         }
                     },
                     plugins: {
                         legend: {
                             display: true,
-                            position: 'bottom'
+                            position: 'bottom',
+                            labels: {
+                                color: '#000'
+                            }
                         }
                     }
                 }
             });
         }
 
-        // Function to fetch scores from Firebase
+        // Fetch scores from Firebase
         async function fetchScores() {
             const loading = document.getElementById('loading');
             const error = document.getElementById('error');
             
             try {
                 const user = auth.currentUser;
-                if (!user) {
-                    throw new Error('No user logged in');
-                }
+                if (!user) throw new Error('ఏ వినియోగదారుడు లాగిన్ కాలేదు');
 
                 const scores = [];
-                
-                // Fetch scores for each domain
                 for (const domain of domains) {
                     const docRef = db.collection('users').doc(user.uid)
-                                   .collection('English Questionnaire').doc(domain.id);
+                                   .collection('Telugu Questionnaire').doc(domain.id);
                     const docSnap = await docRef.get();
-                    
-                    if (docSnap.exists) {
-                        scores.push(docSnap.data().score || 0);
-                    } else {
-                        scores.push(0);
-                    }
+                    scores.push(docSnap.exists ? docSnap.data().score || 0 : 0);
                 }
 
                 loading.style.display = 'none';
                 error.style.display = 'none';
                 updateScores(scores);
-
             } catch (err) {
-                console.error('Error fetching scores:', err);
+                console.error('లోపం:', err);
                 loading.style.display = 'none';
                 error.style.display = 'block';
-                error.textContent = 'Error loading scores. Please refresh the page.';
+                error.textContent = 'లోడింగ్ లో లోపం, పేజీని రీఫ్రెష్ చేయండి.';
             }
         }
 
-        // Auth state listener
         auth.onAuthStateChanged(user => {
             if (user) {
                 fetchScores();
             } else {
                 window.location.href = 'index.html';
-            }
-        });
-
-        // Handle window resize for chart responsiveness
-        window.addEventListener('resize', () => {
-            if (chart) {
-                chart.resize();
             }
         });
     </script>
