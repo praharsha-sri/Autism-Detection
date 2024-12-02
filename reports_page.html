@@ -153,7 +153,7 @@
                 const userName = userData.name || user.displayName || 'Not provided';
 
                 displayUserInfo(user);
-                displayChildInfo(user); // Load child information here
+                displayChildInfo(user);
 
                 const domains = Object.keys(domainNames);
                 const scores = {};
@@ -256,148 +256,346 @@
             return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
         }
 
-        function generatePDF(reportData) {
+        
+        function generatePDFEnglish(reportData) {
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
     
-    // Colors and Styling
+    // Create PDF with Unicode support
+    const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+    });
+
+    // Define color palette
     const colors = {
-        primary: [51, 122, 183],
-        secondary: [70, 70, 70],
-        headerBg: [241, 241, 241]
+        primary: [41, 128, 185],   // Soft Blue
+        secondary: [50, 50, 50],   // Dark Gray
+        background: [245, 245, 245], // Light Gray
+        text: [0, 0, 0]            // Black
     };
 
-    // Header Section
-    doc.setFillColor(...colors.primary);
-    doc.rect(0, 0, 210, 40, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(24);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Autism Evaluation Report', 20, 25);
+    // Page dimensions
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 15;
 
-    // Fetch current user data
-    const user = auth.currentUser;
-    let yPos = 50;
+    // Header
+    doc.setFillColor(...colors.primary);
+    doc.rect(0, 0, pageWidth, 25, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text('Autism Evaluation Report', pageWidth / 2, 17, { align: 'center' });
 
     // User Information Section
+    let yPos = 40;
     doc.setTextColor(...colors.secondary);
-    doc.setFontSize(16);
-    doc.setFont('helvetica', 'bold');
-    doc.text('User Information', 20, yPos);
+    doc.setFontSize(14);
+    doc.text('User Information', margin, yPos);
+    doc.setDrawColor(200, 200, 200);
+    doc.line(margin, yPos + 2, pageWidth - margin, yPos + 2);
 
-    // Get user data from Firestore
-    db.collection('users').doc(user.uid).get().then(userDoc => {
-        const userData = userDoc.exists ? userDoc.data() : {};
-        
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'normal');
-        yPos += 10;
+    yPos += 10;
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
 
-        const userInfo = {
-            'Name': userData.name || user.displayName || 'Not provided',
-            'Email': user.email || 'Not provided',
-            'Role': userData.role || 'Not provided',
-            'Assessment Date': reportData.timestamp.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            })
-        };
+    // User details table
+    const userDetails = [
+        { label: 'Name', value: reportData.userData.name || 'Not Provided' },
+        { label: 'Email', value: reportData.userData.email || 'Not Provided' }
+    ];
 
-        Object.entries(userInfo).forEach(([key, value]) => {
-            doc.text(`${key}: ${value}`, 20, yPos);
-            yPos += 8;
-        });
-
-        // Child Information Section
-        yPos += 10;
-        doc.setFontSize(16);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Child Information', 20, yPos);
-
-        // Fetch child data
-        db.collection('users').doc(user.uid).collection('Questionnaire').doc('details').get().then(childDoc => {
-            const childData = childDoc.exists ? childDoc.data() : {};
-            
-            doc.setFontSize(12);
-            doc.setFont('helvetica', 'normal');
-            yPos += 10;
-
-            const childInfo = {
-                'Name': childData.name || 'Not provided',
-                'Age': childData.age ? `${childData.age} years` : 'Not provided',
-                'Date of Birth': childData.dob ? formatDate(childData.dob) : 'Not provided',
-                'Gender': childData.gender || 'Not provided'
-            };
-
-            Object.entries(childInfo).forEach(([key, value]) => {
-                doc.text(`${key}: ${value}`, 20, yPos);
-                yPos += 8;
-            });
-
-            // Domain Scores Table
-            yPos += 15;
-            doc.setFontSize(16);
-            doc.setFont('helvetica', 'bold');
-            doc.text('Assessment Results', 20, yPos);
-            yPos += 10;
-
-            // Table Header
-            const tableTop = yPos;
-            const tableLeft = 20;
-            const colWidth = [120, 50];
-            const rowHeight = 10;
-
-            // Draw table header
-            doc.setFillColor(...colors.headerBg);
-            doc.rect(tableLeft, tableTop, colWidth[0] + colWidth[1], rowHeight, 'F');
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(12);
-            doc.text('Domain', tableLeft + 5, tableTop + 7);
-            doc.text('Score', tableLeft + colWidth[0] + 5, tableTop + 7);
-
-            // Draw table rows
-            let currentY = tableTop + rowHeight;
-            doc.setFont('helvetica', 'normal');
-            
-            Object.entries(reportData.scores).forEach(([domain, score], index) => {
-                // Alternate row background
-                if (index % 2 === 0) {
-                    doc.setFillColor(250, 250, 250);
-                    doc.rect(tableLeft, currentY, colWidth[0] + colWidth[1], rowHeight, 'F');
-                }
-                
-                doc.text(domainNames[domain], tableLeft + 5, currentY + 7);
-                doc.text(score.toString(), tableLeft + colWidth[0] + 5, currentY + 7);
-                currentY += rowHeight;
-            });
-
-            // Draw table borders
-            doc.setLineWidth(0.1);
-            // Vertical lines
-            doc.line(tableLeft, tableTop, tableLeft, currentY);
-            doc.line(tableLeft + colWidth[0], tableTop, tableLeft + colWidth[0], currentY);
-            doc.line(tableLeft + colWidth[0] + colWidth[1], tableTop, tableLeft + colWidth[0] + colWidth[1], currentY);
-            // Horizontal lines
-            for (let y = tableTop; y <= currentY; y += rowHeight) {
-                doc.line(tableLeft, y, tableLeft + colWidth[0] + colWidth[1], y);
-            }
-
-            // Summary Section
-            currentY += 20;
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            doc.text(`Total Score: ${reportData.totalScore}`, 20, currentY);
-
-            currentY += 10;
-            const autismRange = classifyAutism(reportData.totalScore);
-            doc.text(`Assessment Result: ${autismRange}`, 20, currentY);
-
-            // Save PDF
-            const fileName = `autism-evaluation-${reportData.timestamp.toISOString().split('T')[0]}.pdf`;
-            doc.save(fileName);
-        });
+    userDetails.forEach((detail, index) => {
+        doc.setFillColor(250, 250, 250);
+        doc.rect(margin, yPos + (index * 10), pageWidth - (2 * margin), 8, 'F');
+        doc.text(`${detail.label}: ${detail.value}`, margin + 5, yPos + 6 + (index * 10));
     });
+
+    // Domain Scores Section
+    yPos += 40;
+    doc.setTextColor(...colors.secondary);
+    doc.setFontSize(14);
+    doc.text('Assessment Scores', margin, yPos);
+    doc.line(margin, yPos + 2, pageWidth - margin, yPos + 2);
+
+    yPos += 10;
+    doc.setFontSize(12);
+
+    const domainLabels = {
+        socialRelationship: 'Social Relationship and Reciprocity',
+        emotionalResponsiveness: 'Emotional Responsiveness',
+        speechLanguageCommunication: 'Speech-Language and Communication',
+        behaviourPatterns: 'Behavior Patterns',
+        sensoryAspects: 'Sensory Aspects',
+        cognitiveComponent: 'Cognitive Component'
+    };
+
+    Object.entries(reportData.scores).forEach((entry, index) => {
+        const [domain, score] = entry;
+        doc.setFillColor(index % 2 === 0 ? 245 : 255, 245, 245);
+        doc.rect(margin, yPos + (index * 10), pageWidth - (2 * margin), 8, 'F');
+        doc.text(domainLabels[domain], margin + 5, yPos + 6 + (index * 10));
+        doc.text(score.toString(), pageWidth - margin - 20, yPos + 6 + (index * 10), { align: 'right' });
+    });
+
+    // Total Score and Classification
+    yPos += (Object.keys(reportData.scores).length * 10) + 20;
+    doc.setFontSize(14);
+    doc.text(`Total Score: ${reportData.totalScore}`, margin, yPos);
+    doc.text(`Autism Classification: ${reportData.autismRange}`, margin, yPos + 10);
+
+    // Footer
+    doc.setTextColor(150, 150, 150);
+    doc.setFontSize(10);
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 
+        pageWidth / 2, pageHeight - 10, { align: 'center' });
+
+    doc.save('Autism_Evaluation_Report_English.pdf');
+}
+
+function generatePDFHindi(reportData) {
+    const { jsPDF } = window.jspdf;
+    
+    // Create PDF with Unicode support
+    const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+        fontName: 'NotoSansDevanagari'
+    });
+
+    // Define color palette
+    const colors = {
+        primary: [41, 128, 185],   // Soft Blue
+        secondary: [50, 50, 50],   // Dark Gray
+        background: [245, 245, 245], // Light Gray
+        text: [0, 0, 0]            // Black
+    };
+
+    // Page dimensions
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 15;
+
+    // Header
+    doc.setFillColor(...colors.primary);
+    doc.rect(0, 0, pageWidth, 25, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('NotoSansDevanagari', 'bold');
+    doc.setFontSize(16);
+    doc.text('ऑटिज़्म मूल्यांकन रिपोर्ट', pageWidth / 2, 17, { align: 'center' });
+
+    // User Information Section
+    let yPos = 40;
+    doc.setTextColor(...colors.secondary);
+    doc.setFontSize(14);
+    doc.text('उपयोगकर्ता जानकारी', margin, yPos);
+    doc.setDrawColor(200, 200, 200);
+    doc.line(margin, yPos + 2, pageWidth - margin, yPos + 2);
+
+    yPos += 10;
+    doc.setFontSize(12);
+    doc.setFont('NotoSansDevanagari', 'normal');
+
+    // User details table
+    const userDetails = [
+        { label: 'नाम', value: reportData.userData.name || 'प्रदान नहीं किया गया' },
+        { label: 'ईमेल', value: reportData.userData.email || 'प्रदान नहीं किया गया' }
+    ];
+
+    userDetails.forEach((detail, index) => {
+        doc.setFillColor(250, 250, 250);
+        doc.rect(margin, yPos + (index * 10), pageWidth - (2 * margin), 8, 'F');
+        doc.text(`${detail.label}: ${detail.value}`, margin + 5, yPos + 6 + (index * 10));
+    });
+
+    // Domain Scores Section
+    yPos += 40;
+    doc.setTextColor(...colors.secondary);
+    doc.setFontSize(14);
+    doc.text('मूल्यांकन स्कोर', margin, yPos);
+    doc.line(margin, yPos + 2, pageWidth - margin, yPos + 2);
+
+    yPos += 10;
+    doc.setFontSize(12);
+
+    const domainLabels = {
+        socialRelationship: 'सामाजिक संबंध और पारस्परिकता',
+        emotionalResponsiveness: 'भावनात्मक प्रतिक्रियाशीलता',
+        speechLanguageCommunication: 'भाषण-भाषा और संचार',
+        behaviourPatterns: 'व्यवहार पैटर्न',
+        sensoryAspects: 'संवेदी पहलू',
+        cognitiveComponent: 'संज्ञानात्मक घटक'
+    };
+
+    Object.entries(reportData.scores).forEach((entry, index) => {
+        const [domain, score] = entry;
+        doc.setFillColor(index % 2 === 0 ? 245 : 255, 245, 245);
+        doc.rect(margin, yPos + (index * 10), pageWidth - (2 * margin), 8, 'F');
+        doc.text(domainLabels[domain], margin + 5, yPos + 6 + (index * 10));
+        doc.text(score.toString(), pageWidth - margin - 20, yPos + 6 + (index * 10), { align: 'right' });
+    });
+
+    // Total Score and Classification
+    yPos += (Object.keys(reportData.scores).length * 10) + 20;
+    doc.setFontSize(14);
+    doc.text(`कुल स्कोर: ${reportData.totalScore}`, margin, yPos);
+    doc.text(`ऑटिज़्म वर्गीकरण: ${reportData.autismRange}`, margin, yPos + 10);
+
+    // Footer
+    doc.setTextColor(150, 150, 150);
+    doc.setFontSize(10);
+    doc.text(`जेनरेट किया गया: ${new Date().toLocaleDateString()}`, 
+        pageWidth / 2, pageHeight - 10, { align: 'center' });
+
+    doc.save('Autism_Evaluation_Report_Hindi.pdf');
+}
+
+function generatePDFTelugu(reportData) {
+    const { jsPDF } = window.jspdf;
+    
+    // Create PDF with Unicode support
+    const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+        fontName: 'NotoSansTelugu'
+    });
+
+    // Define color palette
+    const colors = {
+        primary: [41, 128, 185],   // Soft Blue
+        secondary: [50, 50, 50],   // Dark Gray
+        background: [245, 245, 245], // Light Gray
+        text: [0, 0, 0]            // Black
+    };
+
+    // Page dimensions
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 15;
+
+    // Header
+    doc.setFillColor(...colors.primary);
+    doc.rect(0, 0, pageWidth, 25, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('NotoSansTelugu', 'bold');
+    doc.setFontSize(16);
+    doc.text('ఆటిజం మదింపు నివేదిక', pageWidth / 2, 17, { align: 'center' });
+
+    // User Information Section
+    let yPos = 40;
+    doc.setTextColor(...colors.secondary);
+    doc.setFontSize(14);
+    doc.text('వినియోగదారు సమాచారం', margin, yPos);
+    doc.setDrawColor(200, 200, 200);
+    doc.line(margin, yPos + 2, pageWidth - margin, yPos + 2);
+
+    yPos += 10;
+    doc.setFontSize(12);
+    doc.setFont('NotoSansTelugu', 'normal');
+
+    // User details table
+    const userDetails = [
+        { label: 'పేరు', value: reportData.userData.name || 'అందించలేదు' },
+        { label: 'ఈమెయిల్', value: reportData.userData.email || 'అందించలేదు' }
+    ];
+
+    userDetails.forEach((detail, index) => {
+        doc.setFillColor(250, 250, 250);
+        doc.rect(margin, yPos + (index * 10), pageWidth - (2 * margin), 8, 'F');
+        doc.text(`${detail.label}: ${detail.value}`, margin + 5, yPos + 6 + (index * 10));
+    });
+
+    // Domain Scores Section
+    yPos += 40;
+    doc.setTextColor(...colors.secondary);
+    doc.setFontSize(14);
+    doc.text('మదింపు స్కోర్లు', margin, yPos);
+    doc.line(margin, yPos + 2, pageWidth - margin, yPos + 2);
+
+    yPos += 10;
+    doc.setFontSize(12);
+
+    const domainLabels = {
+        socialRelationship: 'సాంఘిక సంబంధాలు మరియు పరస్పర చర్యలు',
+        emotionalResponsiveness: 'భావోద్వేగ ప్రతిస్పందనలు',
+        speechLanguageCommunication: 'స్పీచ్ - భాష మరియు కమ్యూనికేషన్',
+        behaviourPatterns: 'వ్యవహారపు నమూనాలు',
+        sensoryAspects: 'సంవేదనాత్మక అంశాలు',
+        cognitiveComponent: 'జ్ఞాపక శక్తి సంబంధిత అంశం'
+    };
+
+    Object.entries(reportData.scores).forEach((entry, index) => {
+        const [domain, score] = entry;
+        doc.setFillColor(index % 2 === 0 ? 245 : 255, 245, 245);
+        doc.rect(margin, yPos + (index * 10), pageWidth - (2 * margin), 8, 'F');
+        doc.text(domainLabels[domain], margin + 5, yPos + 6 + (index * 10));
+        doc.text(score.toString(), pageWidth - margin - 20, yPos + 6 + (index * 10), { align: 'right' });
+    });
+
+    // Total Score and Classification
+    yPos += (Object.keys(reportData.scores).length * 10) + 20;
+    doc.setFontSize(14);
+    doc.text(`మొత్తం స్కోర్: ${reportData.totalScore}`, margin, yPos);
+    doc.text(`ఆటిజం వర్గీకరణ: ${reportData.autismRange}`, margin, yPos + 10);
+
+    // Footer
+    doc.setTextColor(150, 150, 150);
+    doc.setFontSize(10);
+    doc.text(`తయారు చేసిన తేదీ: ${new Date().toLocaleDateString()}`, 
+        pageWidth / 2, pageHeight - 10, { align: 'center' });
+
+    doc.save('Autism_Evaluation_Report_Telugu.pdf');
+}
+
+// Modify the existing generatePDF function to use these language-specific functions
+function generatePDF(reportData) {
+    // Language Selection Modal
+    const languageModal = document.createElement('div');
+    languageModal.innerHTML = `
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000;">
+            <div style="background: white; padding: 20px; border-radius: 10px; text-align: center;">
+                <h2>Select Language for Report</h2>
+                <div style="display: flex; justify-content: space-around; margin-top: 20px;">
+                    <button id="lang-english" style="padding: 10px 20px; margin: 0 10px;">English</button>
+                    <button id="lang-hindi" style="padding: 10px 20px; margin: 0 10px;">Hindi</button>
+                    <button id="lang-telugu" style="padding: 10px 20px; margin: 0 10px;">Telugu</button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(languageModal);
+
+    function removeModal() {
+        document.body.removeChild(languageModal);
+    }
+
+    // Language Selection Event Listeners
+    const englishBtn = languageModal.querySelector('#lang-english');
+    const hindiBtn = languageModal.querySelector('#lang-hindi');
+    const teluguBtn = languageModal.querySelector('#lang-telugu');
+
+    englishBtn.addEventListener('click', () => {
+        removeModal();
+        generatePDFEnglish(reportData);
+    });
+
+    hindiBtn.addEventListener('click', () => {
+        removeModal();
+        generatePDFHindi(reportData);
+    });
+
+    teluguBtn.addEventListener('click', () => {
+        removeModal();
+        generatePDFTelugu(reportData);
+    });
+
+    
 }
 
         // Auth State Listener

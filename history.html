@@ -311,7 +311,7 @@
                 // Fetch scores for each domain
                 for (const domain of domains) {
                     const docRef = db.collection('users').doc(user.uid)
-                                   .collection('English Questionnaire').doc(domain.id);
+                                   .collection('Questionnaire').doc(domain.id);
                     const docSnap = await docRef.get();
                     
                     if (docSnap.exists) {

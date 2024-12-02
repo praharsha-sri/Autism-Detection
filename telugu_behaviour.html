@@ -92,14 +92,14 @@
 
         async function storeQuestionnaireDataInFirebase(data) {
             const user = auth.currentUser;
-            const collectionName = 'Telugu Questionnaire';
+            const collectionName = 'Questionnaire';
 
             if (user) {
                 try {
-                    const docRef = doc(db, "users", user.uid, collectionName, "ప్రవర్తనా విధానాలు");
+                    const docRef = doc(db, "users", user.uid, collectionName, "behaviourPatterns");
                     await setDoc(docRef, {
-                        టైమ్‌స్టాంప్: new Date(),
-                        డొమెయిన్: 'ప్రవర్తనా విధానాలు',
+                        timestamp: new Date(),
+                        domain: 'behaviourPatterns',
                         ...data
                     });
                     console.log("Data stored successfully!");

@@ -32,7 +32,7 @@
             const user = auth.currentUser;
             if (user) {
                 try {
-                    const docRef = doc(db, "users", user.uid, "Telugu Questionnaire", "వివరాలు");
+                    const docRef = doc(db, "users", user.uid, "Questionnaire", "details");
                     await setDoc(docRef, data, { merge: true });  // Merges data instead of overwriting
                     console.log("Data stored successfully!");
                 } catch (error) {
