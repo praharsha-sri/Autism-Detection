@@ -2,153 +2,100 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Add your styling here */
-        .submission-card {
-            background-color: #f9f9f9;
-            border: 1px solid #ddd;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 5px;
-        }
-        .submission-card h3 {
-            font-size: 1.2rem;
-            margin-bottom: 10px;
-        }
-        .submission-card p {
-            font-size: 1rem;
-            color: #555;
-        }
-        canvas {
-            max-width: 100%;
-            height: 250px;
-        }
-
-        /* Custom Styling for Bar Chart */
-        .container {
-            width: 95%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 1rem;
-            background-color: #b200ff29;
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #c58acd99;
+            color: #333;
+            padding-top: 20px;
         }
 
         h1 {
-            color: black;
+            font-size: 2rem;
             text-align: center;
-            font-size: clamp(1.5rem, 4vw, 2rem);
-            margin: 1rem 0;
-        }
-
-        .score-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
-            gap: 1rem;
-            margin: 1.5rem 0;
-        }
-
-        .score-card {
-            background: white;
-            padding: 1rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            text-align: center;
-            transition: transform 0.2s;
-        }
-
-        .score-card:hover {
-            transform: translateY(-2px);
-        }
-
-        .score-title {
-            font-size: clamp(0.875rem, 2vw, 1rem);
-            color: #666;
-            margin-bottom: 0.5rem;
-        }
-
-        .score-value {
-            font-size: clamp(1.25rem, 3vw, 1.5rem);
+            margin-bottom: 1.5rem;
+            color: #000000;
             font-weight: bold;
-            color: #333;
         }
 
-        .score-max {
-            font-size: clamp(0.875rem, 2vw, 1rem);
-            color: #666;
+        .submission-card {
+            background-color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .submission-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .submission-card h3 {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #fd0000;
+        }
+
+        .submission-card p {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #000000;
         }
 
         .chart-container {
-            background: white;
             padding: 1rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin: 1.5rem 0;
-            position: relative;
-            width: 100%;
-            min-height: 300px;
-            height: auto;
+            border-radius: 10px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
         }
 
         #severity-indicator {
-            text-align: center;
-            padding: 0.75rem;
-            margin: 1rem 0;
-            border-radius: 8px;
+            margin-top: 1rem;
+            padding: 10px;
             font-weight: bold;
-            font-size: clamp(1rem, 2.5vw, 1.25rem);
+            border-radius: 5px;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+
+        #severity-indicator.low {
+            background-color: #198754;
+            color: white;
+        }
+
+        #severity-indicator.medium {
+            background-color: #ffc107;
+            color: black;
+        }
+
+        #severity-indicator.high {
+            background-color: #dc3545;
+            color: white;
         }
 
         #loading {
             text-align: center;
-            padding: 1rem;
+            color: #0d6efd;
             font-style: italic;
-            color: #666;
+            font-size: 1.2rem;
+            margin-top: 20px;
         }
 
         .error {
-            color: #ef4444;
+            color: #dc3545;
             text-align: center;
-            padding: 0.75rem;
-            margin: 0.75rem 0;
-            background: #fecaca;
-            border-radius: 8px;
-            font-size: clamp(0.875rem, 2vw, 1rem);
-        }
-
-        @media (max-width: 640px) {
-            .container {
-                width: 100%;
-                padding: 0.5rem;
-            }
-
-            .score-grid {
-                gap: 0.75rem;
-            }
-
-            .chart-container {
-                padding: 0.5rem;
-                min-height: 250px;
-            }
-
-            .score-card {
-                padding: 0.75rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .chart-container {
-                min-height: 200px;
-            }
-        }
-
-        @media (min-width: 1024px) {
-            .score-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
+            margin: 20px 0;
+            font-size: 1.2rem;
         }
     </style>
 </head>
@@ -157,10 +104,8 @@
         <h1>Visualization Reports</h1>
         <div id="submissionsContainer"></div>
         <div id="loading">Loading submissions...</div>
-        <div id="error" style="display: none;" class="error"></div>
-
-        <!-- Custom Bar Graph Section -->
-        <div id="severity-indicator"></div>
+        <div id="error" class="error" style="display: none;">Error loading submissions. Please refresh the page.</div>
+        <div id="severity-indicator" style="display: none;"></div>
         <div class="chart-container">
             <canvas id="scoreChart"></canvas>
         </div>
@@ -183,102 +128,96 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        // Function to display submission details and generate a report with a bar graph
-        async function displaySubmissionsWithReport(userId) {
-            const submissionsContainer = document.getElementById('submissionsContainer');
-            const loading = document.getElementById('loading');
-            const error = document.getElementById('error');
+        // Function to display submissions and generate reports
+       // Function to display submissions and generate reports
+async function displaySubmissionsWithReport(userId) {
+    const submissionsContainer = document.getElementById('submissionsContainer');
+    const loading = document.getElementById('loading');
+    const error = document.getElementById('error');
 
-            try {
-                loading.style.display = 'block';
-                error.style.display = 'none';
+    try {
+        loading.style.display = 'block';
+        error.style.display = 'none';
+        submissionsContainer.innerHTML = '';
 
-                // Fetch submissions from Firestore
-                const submissionsRef = db.collection('users').doc(userId).collection('submissions');
-                const submissionsSnap = await submissionsRef.get();
+        // Fetch submissions
+        const submissionsRef = db.collection('users').doc(userId).collection('submissions');
+        const submissionsSnap = await submissionsRef.orderBy('submittedAt', 'desc').get();
 
-                if (submissionsSnap.empty) {
-                    loading.style.display = 'none';
-                    error.style.display = 'block';
-                    error.textContent = 'No submissions found.';
-                    return;
+        if (submissionsSnap.empty) {
+            loading.style.display = 'none';
+            error.style.display = 'block';
+            error.textContent = 'No submissions found.';
+            return;
+        }
+
+        submissionsSnap.forEach(doc => {
+            const data = doc.data();
+
+            // Skip if scores are empty
+            if (!data.scores || Object.keys(data.scores).length === 0) return;
+
+            const submissionCard = document.createElement('div');
+            submissionCard.classList.add('submission-card');
+
+            const scores = data.scores;
+            const chartLabels = Object.keys(scores).sort(); // Sort the labels (scores keys)
+            const chartData = chartLabels.map(label => scores[label]); // Match the sorted labels with the data
+
+            const reportHTML = `
+                <h3>Submission Date: ${data.submittedAt.toDate().toLocaleString()}</h3>
+                <p><strong>Total Score:</strong> ${data.totalScore}</p>
+                <p><strong>Autism Range:</strong> ${data.autismRange}</p>
+            `;
+
+            const canvas = document.createElement('canvas');
+            canvas.id = 'chart-' + doc.id;
+
+            submissionCard.innerHTML = reportHTML;
+            submissionCard.appendChild(canvas);
+            submissionsContainer.appendChild(submissionCard);
+
+            new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        label: 'Scores',
+                        data: chartData,
+                        backgroundColor: '#58151c',
+                        borderColor: '#f8f9fa',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 40
+                        }
+                    }
                 }
+            });
+        });
 
-                // Loop through submissions and display them
-                submissionsContainer.innerHTML = ''; // Clear previous results
-                submissionsSnap.forEach(doc => {
-                    const data = doc.data();
-                    const submissionCard = document.createElement('div');
-                    submissionCard.classList.add('submission-card');
-
-                    // Extract the scores from the map
-                    const scores = data.scores || {}; // Default to empty object if no scores are found
-
-                    // Prepare the data for the bar chart
-                    const chartLabels = Object.keys(scores); // Get the keys as chart labels
-                    const chartData = Object.values(scores); // Get the values as chart data
-
-                    // Generate the report HTML
-                    const report = `
-                        <h3>Report for Submission on ${data.submittedAt.toDate().toLocaleString()}</h3>
-                        <p><strong>Total Score:</strong> ${data.totalScore}</p>
-                        <p><strong>Autism Range:</strong> ${data.autismRange}</p>
-                    `;
-
-                    // Create a canvas for the bar chart
-                    const canvas = document.createElement('canvas');
-                    canvas.id = 'submissionChart' + doc.id; // Give each canvas a unique ID
-
-                    // Add the report and the chart canvas to the submission card
-                    submissionCard.innerHTML = report;
-                    submissionCard.appendChild(canvas);
-                    submissionsContainer.appendChild(submissionCard);
-
-                    // Render the bar chart after adding the canvas to the DOM
-new Chart(canvas, {
-    type: 'bar',
-    data: {
-        labels: chartLabels,
-        datasets: [{
-            label: 'Score Breakdown',
-            data: chartData,
-            backgroundColor: 'rgba(54, 162, 235, 0.2)',
-            borderColor: 'rgba(54, 162, 235, 1)',
-            borderWidth: 1
-        }]
-    },
-    options: {
-        responsive: true,
-        scales: {
-            y: {
-                beginAtZero: true,
-                max: 40 // Fixed maximum range for the Y-axis
-            }
-        }
+        loading.style.display = 'none';
+    } catch (err) {
+        console.error('Error fetching submissions:', err);
+        loading.style.display = 'none';
+        error.style.display = 'block';
     }
-});
+}
 
-                        
-                });
-
-                loading.style.display = 'none';
-            } catch (err) {
-                console.error('Error fetching submissions:', err);
-                loading.style.display = 'none';
-                error.style.display = 'block';
-                error.textContent = 'Error loading submissions. Please refresh the page.';
-            }
-        }
 
         // Auth state listener
         auth.onAuthStateChanged(user => {
             if (user) {
                 displaySubmissionsWithReport(user.uid);
             } else {
-                window.location.href = '/login'; // Redirect to login if not authenticated
+                window.location.href = 'login.html';
             }
         });
-
     </script>
 </body>
 </html>
