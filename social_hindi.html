@@ -92,14 +92,14 @@ const scoreValues = {
 
         async function storeQuestionnaireDataInFirebase(data) {
             const user = auth.currentUser;
-            const collectionName = 'Hindi Questionnaire';
+            const collectionName = 'Questionnaire';
 
             if (user) {
                 try {
-                    const docRef = doc(db, "users", user.uid, collectionName, "समाजिक संबंध");
+                    const docRef = doc(db, "users", user.uid, collectionName, "socialRelationship");
                     await setDoc(docRef, {
-                        టైమ్‌స్టాంప్: new Date(),
-                        డొమెయిన్: 'समाजिक संबंध और आदान-प्रदान',
+                        timestamp: new Date(),
+                        domain: 'socialRelationship',
                         ...data
                     });
                     console.log("Data stored successfully!");

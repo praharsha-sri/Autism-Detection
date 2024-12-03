@@ -86,7 +86,7 @@
 
         async function storeQuestionnaireDataInFirebase(data) {
             const user = auth.currentUser;
-            const collectionName = new URLSearchParams(window.location.search).get('collectionName') || 'Telugu Questionnaire';
+            const collectionName = new URLSearchParams(window.location.search).get('collectionName') || 'Questionnaire';
 
             if (user) {
                 try {

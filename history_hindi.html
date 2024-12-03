@@ -171,13 +171,14 @@
 
         // Domain definitions in Hindi
         const domains = [
-            { id: 'समाजिक संबंध', name: 'सामाजिक संबंध', max: 45 },
-            { id: 'भावात्मक अनुक्रियाशीलता', name: 'भावनात्मक प्रतिक्रिया', max: 25 },
-            { id: 'वाणी-भाषा', name: 'भाषण और संचार', max: 45 },
-            { id: 'व्यवहारगत पैटर्न', name: 'व्यवहार पैटर्न', max: 35 },
-            { id: 'संवेदी पहलू', name: 'संवेदी पहलू', max: 30 },
-            { id: 'संज्ञानात्मक अवयव', name: 'संज्ञानात्मक घटक', max: 20 }
+    { id: 'socialRelationship', name: 'सामाजिक संबंध', max: 45 },
+    { id: 'emotionalResponsiveness', name: 'भावनात्मक प्रतिक्रिया', max: 25 },
+    { id: 'speechLanguageCommunication', name: 'भाषण और संचार', max: 45 },
+    { id: 'behaviourPatterns', name: 'व्यवहार पैटर्न', max: 35 },
+    { id: 'sensoryAspects', name: 'संवेदी पहलू', max: 30 },
+    { id: 'cognitiveComponent', name: 'संज्ञानात्मक घटक', max: 20 }
         ];
+        
 
         let chart = null;
 
@@ -273,7 +274,7 @@
                 const scores = [];
                 for (const domain of domains) {
                     const docRef = db.collection('users').doc(user.uid)
-                                   .collection('Hindi Questionnaire').doc(domain.id);
+                                   .collection('Questionnaire').doc(domain.id);
                     const docSnap = await docRef.get();
                     scores.push(docSnap.exists ? docSnap.data().score || 0 : 0);
                 }
