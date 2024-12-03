@@ -107,7 +107,7 @@
         function displayChildInfo(user) {
             const childDetailsDiv = document.getElementById('child-details');
             
-            db.collection('users').doc(user.uid).collection('English Questionnaire').doc('details').get().then(doc => {
+            db.collection('users').doc(user.uid).collection('Questionnaire').doc('details').get().then(doc => {
                 if (doc.exists) {
                     const childData = doc.data();
                     const info = {
@@ -161,7 +161,7 @@
 
                 for (const domain of domains) {
                     const docRef = db.collection('users').doc(user.uid)
-                                   .collection('English Questionnaire').doc(domain);
+                                   .collection('Questionnaire').doc(domain);
                     const docSnap = await docRef.get();
                     
                     if (docSnap.exists) {
