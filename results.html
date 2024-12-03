@@ -72,12 +72,10 @@
 
     <!-- Firebase Scripts -->
     <script type="module">
-        // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-        // Your web app's Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
             authDomain: "autism-evaluation-platform.firebaseapp.com",
@@ -88,12 +86,10 @@
             measurementId: "G-1TGEHTTJF4"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Document IDs to fetch
         const documentIds = [
             'behaviourPatterns',
             'cognitiveComponent',
@@ -103,7 +99,6 @@
             'speechLanguageCommunication'
         ];
 
-        // Function to classify autism based on total score
         function classifyAutism(totalScore) {
             if (totalScore <= 70) {
                 return "No Autism";
@@ -116,12 +111,11 @@
             }
         }
 
-        // Fetch scores and update table
-        async function fetchScores(userId) {
+        async function fetchScoresAndStore(userId) {
             try {
                 let totalScore = 0;
+                const scores = {};
 
-                // Fetch scores for each document
                 for (const docId of documentIds) {
                     const docRef = doc(db, 'users', userId, 'Questionnaire', docId);
                     const docSnap = await getDoc(docRef);
@@ -129,6 +123,7 @@
                     if (docSnap.exists()) {
                         const score = docSnap.data().score || 0;
                         totalScore += score;
+                        scores[docId] = score;
                         document.getElementById(docId).textContent = score;
                     } else {
                         console.log(`No data found for ${docId}`);
@@ -136,24 +131,32 @@
                     }
                 }
 
-                // Update total score
                 document.getElementById('totalScore').textContent = totalScore;
 
-                // Update autism range
                 const autismRange = classifyAutism(totalScore);
                 document.getElementById('autismRangeResult').textContent = autismRange;
+
+                // Store results in Firestore
+                const submissionsRef = collection(db,'users', userId, 'submissions');
+                await addDoc(submissionsRef, {
+                    userId: userId,
+                    scores: scores,
+                    totalScore: totalScore,
+                    autismRange: autismRange,
+                    submittedAt: new Date()
+                });
+
+                console.log("Submission stored successfully.");
             } catch (error) {
-                console.error("Error fetching scores:", error);
+                console.error("Error fetching or storing scores:", error);
             }
         }
 
-        // Listen for auth state changes
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                fetchScores(user.uid);
+                fetchScoresAndStore(user.uid);
             } else {
                 console.log("No user logged in");
-                // Reset all scores to 0
                 documentIds.forEach(id => {
                     document.getElementById(id).textContent = '0';
                 });
