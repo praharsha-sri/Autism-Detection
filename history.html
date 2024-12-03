@@ -5,26 +5,36 @@
     <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth-compat.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* Add your styling here */
+        .submission-card {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .submission-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+        .submission-card p {
+            font-size: 1rem;
+            color: #555;
+        }
+        canvas {
+            max-width: 100%;
+            height: 250px;
         }
 
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            background-color: #f5f5f5;
-        }
-
+        /* Custom Styling for Bar Chart */
         .container {
             width: 95%;
             max-width: 1200px;
             margin: 0 auto;
             padding: 1rem;
-                background-color: #b200ff29;
+            background-color: #b200ff29;
         }
 
         h1 {
@@ -144,39 +154,13 @@
 </head>
 <body>
     <div class="container">
-        <h1>Visualization of Reports</h1>
-        <div id="loading">Loading scores...</div>
+        <h1>Visualization Reports</h1>
+        <div id="submissionsContainer"></div>
+        <div id="loading">Loading submissions...</div>
         <div id="error" style="display: none;" class="error"></div>
-        
-        <div class="score-grid">
-            <div class="score-card">
-                <div class="score-title">Social Relationship</div>
-                <div class="score-value">-<span class="score-max"></span></div>
-            </div>
-            <div class="score-card">
-                <div class="score-title">Emotional Responsiveness</div>
-                <div class="score-value">-<span class="score-max"></span></div>
-            </div>
-            <div class="score-card">
-                <div class="score-title">Speech & Communication</div>
-                <div class="score-value">-<span class="score-max"></span></div>
-            </div>
-            <div class="score-card">
-                <div class="score-title">Behavior Patterns</div>
-                <div class="score-value">-<span class="score-max"></span></div>
-            </div>
-            <div class="score-card">
-                <div class="score-title">Sensory Aspects</div>
-                <div class="score-value">-<span class="score-max"></span></div>
-            </div>
-            <div class="score-card">
-                <div class="score-title">Cognitive Component</div>
-                <div class="score-value">-<span class="score-max"></span></div>
-            </div>
-        </div>
 
+        <!-- Custom Bar Graph Section -->
         <div id="severity-indicator"></div>
-
         <div class="chart-container">
             <canvas id="scoreChart"></canvas>
         </div>
@@ -199,155 +183,102 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        // Domain definitions
-        const domains = [
-            { id: 'socialRelationship', name: 'Social Relationship', max: 45},
-            { id: 'emotionalResponsiveness', name: 'Emotional Responsiveness', max: 25 },
-            { id: 'speechLanguageCommunication', name: 'Speech & Communication', max: 45 },
-            { id: 'behaviourPatterns', name: 'Behavior Patterns', max: 35 },
-            { id: 'sensoryAspects', name: 'Sensory Aspects', max: 30 },
-            { id: 'cognitiveComponent', name: 'Cognitive Component', max: 20 }
-        ];
-
-        let chart = null;
-
-        // Function to update scores display
-        function updateScores(scores) {
-            // Update score cards
-            const scoreCards = document.querySelectorAll('.score-card');
-            scoreCards.forEach((card, index) => {
-                const scoreValue = card.querySelector('.score-value');
-                scoreValue.innerHTML = `${scores[index]}<span class="score-max">/${domains[index].max}</span>`;
-            });
-
-            // Calculate total score and update severity indicator
-            const totalScore = scores.reduce((a, b) => a + b, 0);
-            const severityIndicator = document.getElementById('severity-indicator');
-            let severity, color;
-
-            if (totalScore <= 70) {
-                severity = 'No Autism';
-                color = '#4ade80';
-            } else if (totalScore <= 106) {
-                severity = 'Mild Autism';
-                color = '#fbbf24';
-            } else if (totalScore <= 153) {
-                severity = 'Moderate Autism';
-                color = '#fb923c';
-            } else {
-                severity = 'Severe Autism';
-                color = '#ef4444';
-            }
-
-            severityIndicator.textContent = `${severity} (Total Score: ${totalScore})`;
-            severityIndicator.style.backgroundColor = color + '20';
-            severityIndicator.style.color = color;
-
-            // Destroy existing chart if it exists
-            if (chart) {
-                chart.destroy();
-            }
-
-            // Create new chart with responsive options
-            const ctx = document.getElementById('scoreChart').getContext('2d');
-            chart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: domains.map(d => d.name),
-                    datasets: [{
-                        label: 'Score',
-                        data: scores,
-                        backgroundColor: color,
-                        borderColor: color,
-                        borderWidth: 1,
-                        borderRadius: 5,
-                    }, {
-                        label: 'Maximum Score',
-                        data: domains.map(d => d.max),
-                        backgroundColor: '#e5e7eb',
-                        borderColor: '#d1d5db',
-                        borderWidth: 1,
-                        borderRadius: 5,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: Math.max(...domains.map(d => d.max)) + 10
-                        },
-                        x: {
-                            ticks: {
-                                maxRotation: 45,
-                                minRotation: 45
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'bottom'
-                        }
-                    }
-                }
-            });
-        }
-
-        // Function to fetch scores from Firebase
-        async function fetchScores() {
+        // Function to display submission details and generate a report with a bar graph
+        async function displaySubmissionsWithReport(userId) {
+            const submissionsContainer = document.getElementById('submissionsContainer');
             const loading = document.getElementById('loading');
             const error = document.getElementById('error');
-            
+
             try {
-                const user = auth.currentUser;
-                if (!user) {
-                    throw new Error('No user logged in');
+                loading.style.display = 'block';
+                error.style.display = 'none';
+
+                // Fetch submissions from Firestore
+                const submissionsRef = db.collection('users').doc(userId).collection('submissions');
+                const submissionsSnap = await submissionsRef.get();
+
+                if (submissionsSnap.empty) {
+                    loading.style.display = 'none';
+                    error.style.display = 'block';
+                    error.textContent = 'No submissions found.';
+                    return;
                 }
 
-                const scores = [];
-                
-                // Fetch scores for each domain
-                for (const domain of domains) {
-                    const docRef = db.collection('users').doc(user.uid)
-                                   .collection('Questionnaire').doc(domain.id);
-                    const docSnap = await docRef.get();
-                    
-                    if (docSnap.exists) {
-                        scores.push(docSnap.data().score || 0);
-                    } else {
-                        scores.push(0);
-                    }
-                }
+                // Loop through submissions and display them
+                submissionsContainer.innerHTML = ''; // Clear previous results
+                submissionsSnap.forEach(doc => {
+                    const data = doc.data();
+                    const submissionCard = document.createElement('div');
+                    submissionCard.classList.add('submission-card');
+
+                    // Extract the scores from the map
+                    const scores = data.scores || {}; // Default to empty object if no scores are found
+
+                    // Prepare the data for the bar chart
+                    const chartLabels = Object.keys(scores); // Get the keys as chart labels
+                    const chartData = Object.values(scores); // Get the values as chart data
+
+                    // Generate the report HTML
+                    const report = `
+                        <h3>Report for Submission on ${data.submittedAt.toDate().toLocaleString()}</h3>
+                        <p><strong>Total Score:</strong> ${data.totalScore}</p>
+                        <p><strong>Autism Range:</strong> ${data.autismRange}</p>
+                    `;
+
+                    // Create a canvas for the bar chart
+                    const canvas = document.createElement('canvas');
+                    canvas.id = 'submissionChart' + doc.id; // Give each canvas a unique ID
+
+                    // Add the report and the chart canvas to the submission card
+                    submissionCard.innerHTML = report;
+                    submissionCard.appendChild(canvas);
+                    submissionsContainer.appendChild(submissionCard);
+
+                    // Render the bar chart after adding the canvas to the DOM
+new Chart(canvas, {
+    type: 'bar',
+    data: {
+        labels: chartLabels,
+        datasets: [{
+            label: 'Score Breakdown',
+            data: chartData,
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 40 // Fixed maximum range for the Y-axis
+            }
+        }
+    }
+});
+
+                        
+                });
 
                 loading.style.display = 'none';
-                error.style.display = 'none';
-                updateScores(scores);
-
             } catch (err) {
-                console.error('Error fetching scores:', err);
+                console.error('Error fetching submissions:', err);
                 loading.style.display = 'none';
                 error.style.display = 'block';
-                error.textContent = 'Error loading scores. Please refresh the page.';
+                error.textContent = 'Error loading submissions. Please refresh the page.';
             }
         }
 
         // Auth state listener
         auth.onAuthStateChanged(user => {
             if (user) {
-                fetchScores();
+                displaySubmissionsWithReport(user.uid);
             } else {
-                window.location.href = 'index.html';
+                window.location.href = '/login'; // Redirect to login if not authenticated
             }
         });
 
-        // Handle window resize for chart responsiveness
-        window.addEventListener('resize', () => {
-            if (chart) {
-                chart.resize();
-            }
-        });
     </script>
 </body>
 </html>
