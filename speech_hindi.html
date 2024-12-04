@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>वाणी-भाषा और सम्प्रेषण</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="questionnaire_style.css">
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+            authDomain: "autism-evaluation-platform.firebaseapp.com",
+            projectId: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform.appspot.com",
+            messagingSenderId: "748226978662",
+            appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+            measurementId: "G-1TGEHTTJF4"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const radioOptions = ["बिलकुल नहीं", "कभी-कभी", "बार-बार", "अधिकतर", "हमेशा"];
+
+// Scoring system
+const scoreValues = {
+    "बिलकुल नहीं": 1,
+    "कभी-कभी": 2,
+    "बार-बार": 3,
+    "अधिकतर": 4,
+    "हमेशा": 5,
+  };
+
+        function generateRadioButtons(questionId) {
+            const radioGroup = document.getElementById(questionId);
+            radioOptions.forEach((option) => {
+                const label = document.createElement("label");
+                label.innerHTML = `<input type="radio" name="${questionId}" value="${option}"> ${option}`;
+                radioGroup.appendChild(label);
+            });
+        }
+
+        function initializeRadioButtons(questionIds) {
+            questionIds.forEach(generateRadioButtons);
+        }
+
+        function showAlert() {
+            document.getElementById("customAlert").style.display = "flex";
+        }
+
+        function closeAlert() {
+            document.getElementById("customAlert").style.display = "none";
+        }
+
+        function validateForm() {
+            const questions = document.querySelectorAll(".radio-group");
+            for (let question of questions) {
+                const radioButtons = question.querySelectorAll('input[type="radio"]');
+                if (![...radioButtons].some(rb => rb.checked)) {
+                    showAlert();
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function calculateScore() {
+            const questions = document.querySelectorAll(".radio-group");
+            let totalScore = 0;
+            const responses = {};
+
+            questions.forEach((question) => {
+                const selectedOption = question.querySelector('input[type="radio"]:checked');
+                if (selectedOption) {
+                    totalScore += scoreValues[selectedOption.value];
+                    responses[selectedOption.name] = selectedOption.value;
+                }
+            });
+
+            const maxScore = questions.length * 5;
+            const percentage = ((totalScore / maxScore) * 100).toFixed(2);
+
+            return { score: totalScore, maxScore, percentage, responses };
+        }
+
+        async function storeQuestionnaireDataInFirebase(data) {
+            const user = auth.currentUser;
+            const collectionName = 'Questionnaire';
+
+            if (user) {
+                try {
+                    const docRef = doc(db, "users", user.uid, collectionName, "speechLanguageCommunication");
+                    await setDoc(docRef, {
+                        timestamp: new Date(),
+                        domain: 'speechLanguageCommunication',
+                        ...data
+                    });
+                    console.log("Data stored successfully!");
+                    window.location.href = 'behaviour_hindi.html?collectionName=' + encodeURIComponent(collectionName);
+                } catch (error) {
+                    console.error("Error storing data: ", error);
+                }
+            } else {
+                console.error("User not signed in.");
+            }
+        }
+
+        function saveFormDataToLocalStorage() {
+            const data = calculateScore();
+            localStorage.setItem('वाणी-भाषा और सम्प्रेषण', JSON.stringify(data.responses));
+        }
+
+        function loadFormDataFromLocalStorage() {
+            const savedData = JSON.parse(localStorage.getItem('वाणी-भाषा और सम्प्रेषण'));
+            if (savedData) {
+                Object.entries(savedData).forEach(([name, value]) => {
+                    const input = document.querySelector(`input[name="${name}"][value="${value}"]`);
+                    if (input) input.checked = true;
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeRadioButtons([
+'acquired', 'hasDifficulty', 'engagesInStereotyped',
+'engagesInEcholalic', 'producesInfantile', 'unableToInitiate',
+'usesJargon', 'usesPronounReversals', 'unableToGrasp'
+]);
+
+            loadFormDataFromLocalStorage();
+
+            onAuthStateChanged(auth, (user) => {
+                if (!user) {
+                    console.error("User not signed in.");
+                }
+            });
+
+            document.querySelector('form').onsubmit = (e) => {
+                e.preventDefault();
+                if (validateForm()) {
+                    const data = calculateScore();
+                    saveFormDataToLocalStorage();
+                    storeQuestionnaireDataInFirebase(data);
+                } else {
+                    showAlert();
+                }
+            };
+
+            document.querySelector('.custom-alert-btn').addEventListener('click', closeAlert);
+        });
+    </script>
+</head>
+<body>
+
+    <h2>III. वाणी-भाषा और सम्प्रेषण</h2>
+
+    <form id="form" action="behaviour_hindi.html" method="post">
+        <!-- Section 1 -->
+        <div class="question">
+            <label>15. बोली सीख जाने के बाद बोलने की क्षमता खो देना <span class="required">*</span></label>
+            <div id="acquired" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>16. संवाद करने के लिये संकेतक भाषा या संकेतों का प्रयोग करने में कठिनाई महसूस करना <span class="required">*</span></label>
+            <div id="hasDifficulty" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>17.  भाषा का एक ही सांचे में या बार-बार दोहराकर प्रयोग करना <span class="required">*</span></label>
+            <div id="engagesInStereotyped" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>18. सुने हुए शब्दों को बार-बार दोहराना <span class="required">*</span></label>
+            <div id="engagesInEcholalic" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>19. छोटे बच्चे जैसी किलकारियां या असामान्य आवाजें पैदा करना <span class="required">*</span></label>
+            <div id="producesInfantile" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <!-- Section 2 -->
+        <div class="question">
+            <label>20. लोगों के साथ न बातचीत की शुरुआत न उसे बनाए रख पाना <span class="required">*</span></label>
+            <div id="unableToInitiate" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>21. अपनी खास बोली या निरर्थक शब्दों का उपयोग करना <span class="required">*</span></label>
+            <div id="usesJargon" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>22. सर्वनामों का उल्टा प्रयोग करना (मैं के लिये तू कह देना <span class="required">*</span></label>
+            <div id="usesPronounReversals" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>23. संवाद के तथ्यों को न समझ पाना<span class="required">*</span></label>
+            <div id="unableToGrasp" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <br>
+        <div class="button-container">
+            <button type="button" class="prev-btn" onclick="window.location.href='emotional_hindi.html'">पिछला(Previous)</button>
+            <button type="submit">अगला(Next)</button>
+        </div>
+    </form>
+
+    <!-- Custom Modal for Validation Message -->
+    <div id="customAlert" class="custom-alert">
+        <div class="custom-alert-content">
+            <p>कृपया अगले पृष्ठ पर जाने से पहले सभी प्रश्नों का उत्तर दें।</p>
+            <button class="custom-alert-btn" onclick="closeAlert()">ठीक है(OK)</button>
+        </div>
+    </div>
+</body>
+</html>

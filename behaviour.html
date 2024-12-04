@@ -3,61 +3,201 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Behaviour Patterns Form</title>
+    <title>Social Relationship and Reciprocity Form</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="questionnaire_style.css">
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+            authDomain: "autism-evaluation-platform.firebaseapp.com",
+            projectId: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform.appspot.com",
+            messagingSenderId: "748226978662",
+            appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+            measurementId: "G-1TGEHTTJF4"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        const radioOptions = ["Rarely", "Sometimes", "Frequently", "Mostly", "Always"];
+        const scoreValues = { Rarely: 1, Sometimes: 2, Frequently: 3, Mostly: 4, Always: 5 };
+
+        function generateRadioButtons(questionId) {
+            const radioGroup = document.getElementById(questionId);
+            radioOptions.forEach((option) => {
+                const label = document.createElement("label");
+                label.innerHTML = `<input type="radio" name="${questionId}" value="${option}"> ${option}`;
+                radioGroup.appendChild(label);
+            });
+        }
+
+        function initializeRadioButtons(questionIds) {
+            questionIds.forEach(generateRadioButtons);
+        }
+
+        function showAlert() {
+            document.getElementById("customAlert").style.display = "flex";
+        }
+
+        function closeAlert() {
+            document.getElementById("customAlert").style.display = "none";
+        }
+
+        function validateForm() {
+            const questions = document.querySelectorAll(".radio-group");
+            for (let question of questions) {
+                const radioButtons = question.querySelectorAll('input[type="radio"]');
+                if (![...radioButtons].some(rb => rb.checked)) {
+                    showAlert();
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function calculateScore() {
+            const questions = document.querySelectorAll(".radio-group");
+            let totalScore = 0;
+
+            const responses = {};
+
+            questions.forEach((question) => {
+                const selectedOption = question.querySelector('input[type="radio"]:checked');
+                if (selectedOption) {
+                    totalScore += scoreValues[selectedOption.value];
+                    responses[selectedOption.name] = selectedOption.value;
+                }
+            });
+
+            const maxScore = questions.length * 5;
+            const percentage = ((totalScore / maxScore) * 100).toFixed(2);
+
+            return { score: totalScore, maxScore, percentage, responses };
+        }
+
+        async function storeQuestionnaireDataInFirebase(data) {
+            const user = auth.currentUser;
+            const collectionName = new URLSearchParams(window.location.search).get('collectionName') || 'Questionnaire';
+
+            if (user) {
+                try {
+                    const docRef = doc(db, "users", user.uid, collectionName, "behaviourPatterns");
+                    await setDoc(docRef, {
+                        timestamp: new Date(),
+                        domain: 'behaviourPatterns',
+                        ...data
+                    });
+                    console.log("Data stored successfully!");
+                    window.location.href = 'sensory.html?collectionName=' + encodeURIComponent(collectionName);
+                } catch (error) {
+                    console.error("Error storing data: ", error);
+                }
+            } else {
+                console.error("User not signed in.");
+            }
+        }
+        function saveFormDataToLocalStorage() {
+            const data = calculateScore();
+            localStorage.setItem('behaviourPatternsData', JSON.stringify(data.responses));
+        }
+
+        function loadFormDataFromLocalStorage() {
+            const savedData = JSON.parse(localStorage.getItem('behaviourPatternsData'));
+            if (savedData) {
+                Object.entries(savedData).forEach(([name, value]) => {
+                    const input = document.querySelector(`input[name="${name}"][value="${value}"]`);
+                    if (input) input.checked = true;
+                });
+            }
+        }
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeRadioButtons(['engagesInStereotyped', 'showsAttachment', 'showsHyperactivity','exhibitsAggressive', 'throwsTemper', 'engagesInSelfinjuries', 'insistsOnsameness']);
+            loadFormDataFromLocalStorage();
+            onAuthStateChanged(auth, (user) => {
+                if (!user) {
+                    console.error("User not signed in.");
+                }
+            });
+
+            document.querySelector('form').onsubmit = (e) => {
+                e.preventDefault();
+                if (validateForm()) {
+                    const data = calculateScore();
+                    saveFormDataToLocalStorage();
+                    storeQuestionnaireDataInFirebase(data);
+                } else {
+                    showAlert();
+                }
+            };
+            // Ensure the close button works after DOM is loaded.
+    document.querySelector('.custom-alert-btn').addEventListener('click', closeAlert);
+        });
+    </script>
+    
 </head>
 <body>
 
     <h2>IV. BEHAVIOUR PATTERNS</h2>
 
-    <form id= "form" action="sensory.html" method="post">  
+    <form id="form" method="post">  
         <div class="question">
             <label>24. Engages in stereotyped and repetitive motor mannerisms <span class="required">*</span></label>
             <p class="question-description"> Repeated behaviors like hand flapping, body rocking, or using objects to self-stimulate.</p>
-            <div id="engagesInStereotyped" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+            <div id="engagesInStereotyped" class="radio-group"></div>
         </div>
 
         <div class="question">
             <label>25. Shows attachment to inanimate objects <span class="required">*</span></label>
             <p class="question-description"> Strong attachment to items like toys, pens, or sticks, showing resistance or tantrums when separated from them.</p>
-            <div id="showsAttachment" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+            <div id="showsAttachment" class="radio-group"></div>
         </div>
 
         <div class="question">
             <label>26. Shows hyperactivity/ restlessness <span class="required">*</span></label>
             <p class="question-description"> Excessive energy, making it hard to control and affecting learning.</p>
-            <div id="showsHyperactivity" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+            <div id="showsHyperactivity" class="radio-group"></div>
         </div>
 
         <div class="question">
             <label>27. Exhibits aggressive behavior <span class="required">*</span></label>
             <p class="question-description"> Unprovoked aggression, such as hitting, kicking, or pinching.</p>
-            <div id="exhibitsAggressive" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+            <div id="exhibitsAggressive" class="radio-group"></div>
         </div>
 
         <div class="question">
             <label>28. Throws temper tantrums <span class="required">*</span></label>
             <p class="question-description"> Outbursts like head banging, screaming, or yelling when frustrated.</p>
-            <div id="throwsTemper" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+            <div id="throwsTemper" class="radio-group"></div>
         </div>
 
         <div class="question">
             <label>29. Engages in self-injurious behavior <span class="required">*</span></label>
             <p class="question-description"> Actions like biting or hitting oneself, needing constant supervision.</p>
-            <div id="engagesInSelf-injuries" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+            <div id="engagesInSelfinjuries" class="radio-group"></div>
         </div>
 
         <div class="question">
             <label>30. Insists on sameness <span class="required">*</span></label>
             <p class="question-description"> Resists changes to routine, showing distress when things are not done a certain way.</p>
-            <div id="insistsOnsameness" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+            <div id="insistsOnsameness" class="radio-group"></div>
         </div>
 
         <br>
-         <br>
+        <br>
         <div class="button-container">
-            <button type="button" class="prev-btn" onclick="window.location.href='communication.html'">Previous</button>
-            <button type="button" class="next-btn" onclick="validateNext()">Next</button>
+            <button type="button" class="prev-btn" onclick="window.location.href='speech.html'">Previous</button>
+            <button type="submit" class="next-btn">Next</button>
         </div>
     </form>
  
@@ -65,26 +205,9 @@
     <div id="customAlert" class="custom-alert">
         <div class="custom-alert-content">
             <p>Please answer all the questions before proceeding to the next page.</p>
-            <button class="custom-alert-btn" onclick="closeAlert()">OK</button>
+            <button class="custom-alert-btn">OK</button>
         </div>
     </div>
 
-    <script src="questionnaire_form.js"></script>
-<script>
-// Initialize radio buttons for questions on this page
-window.onload = function() {
-            initializeRadioButtons(['engagesInStereotyped','showsAttachment','showsHyperactivity','exhibitsAggressive','throwsTemper','engagesInSelf-injuries','insistsOnsameness']);
-        };    
-
-        function validateNext() {
-            if (validateForm()) {
-                window.location.href = 'sensory.html'; // Navigate to the next page
-            } else {
-                showAlert(); // Show the custom alert if form is not valid
-            }
-        }
-    </script>
-
 </body>
 </html>
-

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>సంవేదన సంబంధిత అంశాలు ఫారం</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="questionnaire_style.css">
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+            authDomain: "autism-evaluation-platform.firebaseapp.com",
+            projectId: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform.appspot.com",
+            messagingSenderId: "748226978662",
+            appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+            measurementId: "G-1TGEHTTJF4"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const radioOptions = ['అరుదుగా', 'కొన్నిసార్లు', 'తరచుగా', 'ఎక్కువగా', 'ఎల్లప్పుడూ'];
+
+        // Scoring system in Telugu
+        const scoreValues = {
+            'అరుదుగా': 1,
+            'కొన్నిసార్లు': 2,
+            'తరచుగా': 3,
+            'ఎక్కువగా': 4,
+            'ఎల్లప్పుడూ': 5,
+        };
+
+        function generateRadioButtons(questionId) {
+            const radioGroup = document.getElementById(questionId);
+            radioOptions.forEach((option) => {
+                const label = document.createElement("label");
+                label.innerHTML = `<input type="radio" name="${questionId}" value="${option}"> ${option}`;
+                radioGroup.appendChild(label);
+            });
+        }
+
+        function initializeRadioButtons(questionIds) {
+            questionIds.forEach(generateRadioButtons);
+        }
+
+        function showAlert() {
+            document.getElementById("customAlert").style.display = "flex";
+        }
+
+        function closeAlert() {
+            document.getElementById("customAlert").style.display = "none";
+        }
+
+        function validateForm() {
+            const questions = document.querySelectorAll(".radio-group");
+            for (let question of questions) {
+                const radioButtons = question.querySelectorAll('input[type="radio"]');
+                if (![...radioButtons].some(rb => rb.checked)) {
+                    showAlert();
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function calculateScore() {
+            const questions = document.querySelectorAll(".radio-group");
+            let totalScore = 0;
+            const responses = {};
+
+            questions.forEach((question) => {
+                const selectedOption = question.querySelector('input[type="radio"]:checked');
+                if (selectedOption) {
+                    totalScore += scoreValues[selectedOption.value];
+                    responses[selectedOption.name] = selectedOption.value;
+                }
+            });
+
+            const maxScore = questions.length * 5;
+            const percentage = ((totalScore / maxScore) * 100).toFixed(2);
+
+            return { score: totalScore, maxScore, percentage, responses };
+        }
+
+        async function storeQuestionnaireDataInFirebase(data) {
+            const user = auth.currentUser;
+            const collectionName = 'Questionnaire';
+
+            if (user) {
+                try {
+                    const docRef = doc(db, "users", user.uid, collectionName, "sensoryAspects");
+                    await setDoc(docRef, {
+                        timestamp: new Date(),
+                        domain: 'sensoryAspects',
+                        ...data
+                    });
+                    console.log("Data stored successfully!");
+                    window.location.href = 'telugu_cognitive.html?collectionName=' + encodeURIComponent(collectionName);
+                } catch (error) {
+                    console.error("Error storing data: ", error);
+                }
+            } else {
+                console.error("User not signed in.");
+            }
+        }
+
+        function saveFormDataToLocalStorage() {
+            const data = calculateScore();
+            localStorage.setItem('సంవేదన సంబంధిత అంశాలు', JSON.stringify(data.responses));
+        }
+
+        function loadFormDataFromLocalStorage() {
+            const savedData = JSON.parse(localStorage.getItem('సంవేదన సంబంధిత అంశాలు'));
+            if (savedData) {
+                Object.entries(savedData).forEach(([name, value]) => {
+                    const input = document.querySelector(`input[name="${name}"][value="${value}"]`);
+                    if (input) input.checked = true;
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeRadioButtons(['unusuallySensitive','staresIntoSpace','hasDifficulty','hasUnusualVision','insensitive','responds']);
+
+            loadFormDataFromLocalStorage();
+
+            onAuthStateChanged(auth, (user) => {
+                if (!user) {
+                    console.error("User not signed in.");
+                }
+            });
+
+            document.querySelector('form').onsubmit = (e) => {
+                e.preventDefault();
+                if (validateForm()) {
+                    const data = calculateScore();
+                    saveFormDataToLocalStorage();
+                    storeQuestionnaireDataInFirebase(data);
+                } else {
+                    showAlert();
+                }
+            };
+
+            document.querySelector('.custom-alert-btn').addEventListener('click', closeAlert);
+        });
+    </script>
+</head>
+<body>
+
+    <h2>V. సంవేదన సంబంధిత అంశాలు</h2>
+
+    <form id="form" action="telugu_cognitive.html" method="post">  
+        <div class="question">
+            <label>31. సంవేదనలపై అసాధారణంగా సున్నితంగా ఉండటం <span class="required">*</span></label>
+            <p class="question-description"> శబ్దాలు, వెలుగులు, స్పర్శ లేదా రుచి గురించి బలంగా ప్రతిస్పందిస్తూ చెవులను, కళ్లను మూయడం లేదా కొన్ని ఆహారాలను వద్దనించడం.</p>
+            <div id="unusuallySensitive" class ="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>32. ఎక్కువ సమయం ఖాళీగా చూస్తూ ఉండడం <span class="required">*</span></label>
+            <p class="question-description"> దూరపు ప్రదేశాలను ఎక్కువ సమయం చుడటం, చుట్టు పరిసరాలపై తెలియనట్టుగా కనిపించడం.</p>
+            <div id="staresIntoSpace" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>33. వస్తువులను అనుసరించడంలో కష్టం ఉంటుంది <span class="required">*</span></label>
+            <p class="question-description"> కదులుతున్న వస్తువులు లేదా వ్యక్తులను అనుసరించడంలో కష్టపడుతాడు, వాటిని ఎక్కువ సమయం చూడడం సాధ్యం కాదు.</p>
+            <div id="hasDifficulty" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>34. అసాధారణ దృష్టి <span class="required">*</span></label>
+            <p class="question-description"> వస్తువుల చిన్న, అసంతృప్తి భాగాలను పరిశీలించడం లేదా వాటిని కళ్లకు దగ్గరగా చూడడం.
+            </p>
+            <div id="hasUnusualVision" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>35. నొప్పికి తక్కువ స్పందన  <span class="required">*</span></label>
+            <p class="question-description"> నొప్పికి స్పందించని, అధిక నొప్పి సహనాన్ని చూపడం.
+            </p>
+            <div id="insensitive" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>36. వస్తువులు/వ్యక్తులకు అసాధారణంగా స్పందించడం: వాసన, స్పర్శ లేదా రుచి ద్వారా  <span class="required">*</span></label>
+            <p class="question-description"> వస్తువులను వాసన, స్పర్శ లేదా రుచి ద్వారా అన్వేషించడం, మరియు వాటిని సరైన రీతిలో ఉపయోగించకపోవడం.
+            </p>
+            <div id="responds" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+         <!-- Add more questions here if needed -->
+       <br>
+       <br>
+        <div class="button-container">
+            <button class="prev-btn" type="button" onclick="window.location.href='telugu_behaviour.html'">మునుపటి (Previous)</button>
+            <button type="submit">తరువాత (Next)</button>
+        </div>
+    </form>
+
+     
+    <!-- Custom Modal for Validation Message -->
+    <div id="customAlert" class="custom-alert">
+        <div class="custom-alert-content">
+            <p>తరువాత పేజీలోకి వెళ్లడానికి ముందు అన్ని ప్రశ్నలకు సమాధానం ఇవ్వండి.</p>
+            <button class="custom-alert-btn" onclick="closeAlert()">సరే (OK)</button>
+        </div>
+    </div>
+</body>
+</html>
+

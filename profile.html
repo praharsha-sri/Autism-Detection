@@ -1,175 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manage Profile</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      color: #333;
-      margin: 0;
-      padding: 20px;
-      box-sizing: border-box;  /*body*/
-    }
-
-    h3 {
-      text-align: center;
-      color: #3498db;
-      margin-bottom: 20px;
-    }
-
-    .user-info p {
-      font-size: 16px;
-      margin-bottom: 10px;
-    }
-
-    button {
-  padding: 5px 10px; /* Reducing padding */
-  background-color: #3498db;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-bottom: 15px;
-  width: auto; /* Change width to auto for better flexibility */
-  font-size: 14px; /* Optional: reduce the font size */
-}
-
-button:hover {
-  background-color: #2980b9;
-}
-
-    .hidden {
-      display: none;
-    }
-
-    label {
-      display: block;
-      margin: 10px 0 5px;
-      font-size: 14px;
-    }
-
-    input {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-
-    .alert {
-      color: red;
-      font-size: 12px;
-      display: none;
-    }
-
-    .success {
-      color: green;
-      font-size: 12px;
-      display: none;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Profile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="profile.css">
 </head>
 <body>
+    <div class="container">
+        <h3>Manage Profile</h3>
 
-    <h3>Manage Profile (Parent)</h3>
+        <div class="user-info">
+            <p><strong>Name:</strong> <span id="username"></span></p>
+            <p><strong>Email:</strong> <span id="email"></span></p>
+        </div>
 
-    <!-- User Information -->
-    <div class="user-info">
-      <p><strong>Username:</strong> Jane Doe</p>
-      <p><strong>Date of Birth:</strong> 03-05-2004</p>
+        <button onclick="togglePasswordForm()">Change Password</button>
 
-      <!-- Hidden Email and Password Info -->
-      <p><strong>Password:</strong> ********</p>
-      <p><strong>Email:</strong> ********@gmail.com</p>
+        <div id="password-form" class="hidden">
+            <label for="current-password">Current Password:</label>
+            <input type="password" id="current-password" placeholder="Current Password">
+
+            <label for="new-password">New Password:</label>
+            <input type="password" id="new-password" placeholder="New Password">
+
+            <label for="confirm-new-password">Confirm New Password:</label>
+            <input type="password" id="confirm-new-password" placeholder="Confirm New Password">
+
+            <div class="alert" id="password-alert"></div>
+            <div class="success" id="password-success"></div>
+
+            <button onclick="updatePassword()">Update Password</button>
+        </div>
     </div>
 
-    <!-- Buttons to Toggle Forms -->
-    <button onclick="togglePasswordForm()">Change Password</button>
-    <button onclick="toggleEmailForm()">Change Email</button>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js";
+        import { getAuth, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-firestore.js";
 
-    <!-- Password Change Form (Initially Hidden) -->
-    <div id="password-form" class="hidden">
-      <label for="current-password">Current Password:</label>
-      <input type="password" id="current-password" placeholder="Current Password">
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+            authDomain: "autism-evaluation-platform.firebaseapp.com",
+            projectId: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform.appspot.com",
+            messagingSenderId: "748226978662",
+            appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+            measurementId: "G-1TGEHTTJF4"
+        };
 
-      <label for="new-password">New Password:</label>
-      <input type="password" id="new-password" placeholder="New Password">
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-      <label for="confirm-new-password">Confirm New Password:</label>
-      <input type="password" id="confirm-new-password" placeholder="Confirm New Password">
+        window.togglePasswordForm = () => {
+            const form = document.getElementById("password-form");
+            form.classList.toggle("hidden");
+        };
 
-      <div class="alert" id="password-alert">Passwords do not match!</div>
-      <div class="success" id="password-success">Password updated successfully!</div>
+        window.updatePassword = async () => {
+    const currentPassword = document.getElementById("current-password").value;
+    const newPassword = document.getElementById("new-password").value;
+    const confirmNewPassword = document.getElementById("confirm-new-password").value;
+    const passwordAlert = document.getElementById("password-alert");
+    const passwordSuccess = document.getElementById("password-success");
+    
+    // Reset alert and success messages
+    passwordAlert.style.display = "none";
+    passwordSuccess.style.display = "none";
 
-      <button onclick="updatePassword()">Submit</button>
-    </div>
-
-    <!-- Email Change Form (Initially Hidden) -->
-    <div id="email-form" class="hidden">
-      <label for="current-email">Current Email:</label>
-      <input type="email" id="current-email" value="********@example.com" disabled>
-
-      <label for="new-email">New Email:</label>
-      <input type="email" id="new-email" placeholder="New Email">
-
-      <label for="confirm-new-email">Confirm New Email:</label>
-      <input type="email" id="confirm-new-email" placeholder="Confirm New Email">
-
-      <div class="alert" id="email-alert">Emails do not match!</div>
-      <div class="success" id="email-success">Email updated successfully!</div>
-
-      <button onclick="updateEmail()">Submit</button>
-    </div>
-
-  <script>
-    // Toggle Password Form visibility
-    function togglePasswordForm() {
-      const passwordForm = document.getElementById('password-form');
-      passwordForm.classList.toggle('hidden');
+    // Check if any of the password fields are empty
+    if (!currentPassword || !newPassword || !confirmNewPassword) {
+        passwordAlert.textContent = "Please fill in all fields.";
+        passwordAlert.style.display = "block";
+        return; // Exit the function if fields are empty
     }
 
-    // Toggle Email Form visibility
-    function toggleEmailForm() {
-      const emailForm = document.getElementById('email-form');
-      emailForm.classList.toggle('hidden');
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
+
+    // Validate new password format
+    if (!passwordRegex.test(newPassword)) {
+        passwordAlert.textContent = "Password must have 8+ characters, including a letter, number, and symbol";
+        passwordAlert.style.display = "block";
+        return;
     }
 
-    // Password Update Logic
-    function updatePassword() {
-      const newPassword = document.getElementById('new-password').value;
-      const confirmPassword = document.getElementById('confirm-new-password').value;
-      const passwordAlert = document.getElementById('password-alert');
-      const passwordSuccess = document.getElementById('password-success');
-
-      if (newPassword !== confirmPassword) {
-        passwordAlert.style.display = 'block';
-        passwordSuccess.style.display = 'none';
-      } else {
-        passwordAlert.style.display = 'none';
-        passwordSuccess.style.display = 'block';
-        // Add logic here to update the password on the backend
-      }
+    // Check if new passwords match
+    if (newPassword !== confirmNewPassword) {
+        passwordAlert.textContent = "New passwords do not match";
+        passwordAlert.style.display = "block";
+        return;
     }
 
-    // Email Update Logic
-    function updateEmail() {
-      const newEmail = document.getElementById('new-email').value;
-      const confirmEmail = document.getElementById('confirm-new-email').value;
-      const emailAlert = document.getElementById('email-alert');
-      const emailSuccess = document.getElementById('email-success');
-
-      if (newEmail !== confirmEmail) {
-        emailAlert.style.display = 'block';
-        emailSuccess.style.display = 'none';
-      } else {
-        emailAlert.style.display = 'none';
-        emailSuccess.style.display = 'block';
-        // Add logic here to update the email on the backend
-      }
+    try {
+        const user = auth.currentUser;
+        const credential = EmailAuthProvider.credential(user.email, currentPassword);
+        await reauthenticateWithCredential(user, credential);
+        await updatePassword(user, newPassword);
+        
+        passwordSuccess.textContent = "Password updated successfully!";
+        passwordSuccess.style.display = "block";
+        
+        // Clear form fields only after successful password update
+        document.getElementById("current-password").value = "";
+        document.getElementById("new-password").value = "";
+        document.getElementById("confirm-new-password").value = "";
+        
+    } catch (error) {
+        passwordAlert.textContent = error.message;
+        passwordAlert.style.display = "block";
     }
-  </script>
+};
 
+
+        // Function to fetch user data from Firestore
+        async function getUserData(userId) {
+            try {
+                const userDoc = await getDoc(doc(db, 'users', userId));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    document.getElementById('username').textContent = userData.name || 'User';
+                    document.getElementById('email').textContent = userData.email;
+                }
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+            }
+        }
+
+        // Load user info on page load
+        auth.onAuthStateChanged(async user => {
+            if (user) {
+                document.getElementById('email').textContent = user.email;
+                // Fetch additional user data from Firestore
+                await getUserData(user.uid);
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
 </body>
 </html>

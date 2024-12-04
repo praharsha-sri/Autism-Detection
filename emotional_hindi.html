@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>भावात्मक अनुक्रियाशीलता</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="questionnaire_style.css">
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+            authDomain: "autism-evaluation-platform.firebaseapp.com",
+            projectId: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform.appspot.com",
+            messagingSenderId: "748226978662",
+            appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+            measurementId: "G-1TGEHTTJF4"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        const radioOptions = ["बिलकुल नहीं", "कभी-कभी", "बार-बार", "अधिकतर", "हमेशा"];
+
+// Scoring system
+const scoreValues = {
+    "बिलकुल नहीं": 1,
+    "कभी-कभी": 2,
+    "बार-बार": 3,
+    "अधिकतर": 4,
+    "हमेशा": 5,
+  };
+
+
+        function generateRadioButtons(questionId) {
+            const radioGroup = document.getElementById(questionId);
+            radioOptions.forEach(option => {
+                const label = document.createElement("label");
+                label.innerHTML = `<input type="radio" name="${questionId}" value="${option}"> ${option}`;
+                radioGroup.appendChild(label);
+            });
+        }
+
+        function initializeRadioButtons(questionIds) {
+            questionIds.forEach(generateRadioButtons);
+        }
+
+        function showAlert() {
+            document.getElementById("customAlert").style.display = "flex";
+        }
+
+        function closeAlert() {
+            document.getElementById("customAlert").style.display = "none";
+        }
+
+        function validateForm() {
+            const questions = document.querySelectorAll(".radio-group");
+            for (let question of questions) {
+                const radioButtons = question.querySelectorAll('input[type="radio"]');
+                if (![...radioButtons].some(rb => rb.checked)) {
+                    showAlert();
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function calculateScore() {
+            const questions = document.querySelectorAll(".radio-group");
+            let totalScore = 0;
+            const responses = {};
+
+            questions.forEach(question => {
+                const selectedOption = question.querySelector('input[type="radio"]:checked');
+                if (selectedOption) {
+                    totalScore += scoreValues[selectedOption.value];
+                    responses[selectedOption.name] = selectedOption.value;
+                }
+            });
+
+            const maxScore = questions.length * 5;
+            const percentage = ((totalScore / maxScore) * 100).toFixed(2);
+
+            return { score: totalScore, maxScore, percentage, responses };
+        }
+
+        async function storeQuestionnaireDataInFirebase(data) {
+            const user = auth.currentUser;
+            const collectionName = 'Questionnaire';
+
+            if (user) {
+                try {
+                    const docRef = doc(db, "users", user.uid, collectionName, "emotionalResponsiveness");
+                    await setDoc(docRef, {
+                        timestamp: new Date(),
+                        domain: 'emotionalResponsiveness',
+                        ...data
+                    });
+                    console.log("Data stored successfully!");
+                    window.location.href = 'speech_hindi.html?collectionName=' + encodeURIComponent(collectionName);
+                } catch (error) {
+                    console.error("Error storing data: ", error);
+                }
+            } else {
+                console.error("User not signed in.");
+            }
+        }
+
+        function saveFormDataToLocalStorage() {
+            const data = calculateScore();
+            localStorage.setItem('भावात्मक अनुक्रियाशीलता', JSON.stringify(data.responses));
+        }
+
+        function loadFormDataFromLocalStorage() {
+            const savedData = JSON.parse(localStorage.getItem('भावात्मक अनुक्रियाशीलता'));
+            if (savedData) {
+                Object.entries(savedData).forEach(([name, value]) => {
+                    const input = document.querySelector(`input[name="${name}"][value="${value}"]`);
+                    if (input) input.checked = true;
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeRadioButtons([
+                'inappropriate', 'exaggerated', 'self-stimulating', 'lackOfFear', 'excited'
+            ]);
+
+            loadFormDataFromLocalStorage();
+
+            onAuthStateChanged(auth, (user) => {
+                if (!user) console.error("User not signed in.");
+            });
+
+            document.querySelector('form').onsubmit = (e) => {
+                e.preventDefault();
+                if (validateForm()) {
+                    const data = calculateScore();
+                    saveFormDataToLocalStorage();
+                    storeQuestionnaireDataInFirebase(data);
+                } else {
+                    showAlert();
+                }
+            };
+
+            document.querySelector('.custom-alert-btn').addEventListener('click', closeAlert);
+        });
+    </script>
+</head>
+<body>
+
+    <h2>II. भावात्मक अनुक्रियाशीलता</h2>
+
+    <form id ="form" action="speech_hindi.html" method="post">
+        <div class="question">
+            <label>10. भावात्मक प्रतिक्रिया असंगत दिखलाना<span class="required">*</span></label>
+
+            <div id="inappropriate" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>11. अत्याधिक भावनाएं दर्शाना <span class="required">*</span></label>
+            <div id="exaggerated" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>12. अपने आपको उत्तेजित करने वाली भावनाओं में उलझना <span class="required">*</span></label>
+            <div id="self-stimulating" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>13. खतरे से भय का अभाव <span class="required">*</span></label>
+            <div id="lackOfFear" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>14. बिना किसी स्पष्ट कारण के उत्तेजित या अशांत होना <span class="required">*</span></label>
+            <div id="excited" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <br>
+         <br>
+        <div class="button-container">
+            <button type="button" class="prev-btn" onclick="window.location.href='social_hindi.html'">पिछला(Previous)</button>
+            <button type="submit">अगला(Next)</button>
+        </div> 
+    </form>
+ 
+    <!-- Custom Modal for Validation Message -->
+    <div id="customAlert" class="custom-alert">
+        <div class="custom-alert-content">
+            <p>कृपया अगले पृष्ठ पर जाने से पहले सभी प्रश्नों का उत्तर दें।</p>
+            <button class="custom-alert-btn" onclick="closeAlert()">ठीक है(OK)</button>
+        </div>
+    </div>
+
+
+
+</html>

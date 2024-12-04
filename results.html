@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISAA Assessment Results</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .classification {
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-top: 20px;
+        }
+        .range {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #e9f5ff;
+            border: 1px solid #cce4ff;
+            border-radius: 5px;
+        }
+        .home-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .home-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ISAA Assessment Results</h1>
+        <table id="resultsTable">
+            <tr><th>Domain</th><th>Score</th></tr>
+            <tr><td>Behavior Patterns</td><td id="behaviourPatterns">0</td></tr>
+            <tr><td>Cognitive Component</td><td id="cognitiveComponent">0</td></tr>
+            <tr><td>Emotional Responsiveness</td><td id="emotionalResponsiveness">0</td></tr>
+            <tr><td>Sensory Aspects</td><td id="sensoryAspects">0</td></tr>
+            <tr><td>Social Relationship</td><td id="socialRelationship">0</td></tr>
+            <tr><td>Speech Language Communication</td><td id="speechLanguageCommunication">0</td></tr>
+            <tr><th>Total Score</th><td id="totalScore">0</td></tr>
+        </table>
+        <div class="classification" id="classification"></div>
+        <div class="range">
+            <strong>Autism Range:</strong>
+            <div id="autismRangeResult"></div>
+        </div>
+        <!-- Home Page Button -->
+        <a href="parent_dashboard_en.html" class="home-btn">Home</a>
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+            authDomain: "autism-evaluation-platform.firebaseapp.com",
+            projectId: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform.appspot.com",
+            messagingSenderId: "748226978662",
+            appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+            measurementId: "G-1TGEHTTJF4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const documentIds = [
+            'behaviourPatterns',
+            'cognitiveComponent',
+            'emotionalResponsiveness',
+            'sensoryAspects',
+            'socialRelationship',
+            'speechLanguageCommunication'
+        ];
+
+        function classifyAutism(totalScore) {
+            if (totalScore <= 70) {
+                return "No Autism";
+            } else if (totalScore <= 106) {
+                return "Mild Autism";
+            } else if (totalScore <= 153) {
+                return "Moderate Autism";
+            } else {
+                return "Severe Autism";
+            }
+        }
+
+        async function fetchScoresAndStore(userId) {
+            try {
+                let totalScore = 0;
+                const scores = {};
+
+                for (const docId of documentIds) {
+                    const docRef = doc(db, 'users', userId, 'Questionnaire', docId);
+                    const docSnap = await getDoc(docRef);
+                    
+                    if (docSnap.exists()) {
+                        const score = docSnap.data().score || 0;
+                        totalScore += score;
+                        scores[docId] = score;
+                        document.getElementById(docId).textContent = score;
+                    } else {
+                        console.log(`No data found for ${docId}`);
+                        document.getElementById(docId).textContent = '0';
+                    }
+                }
+
+                document.getElementById('totalScore').textContent = totalScore;
+
+                const autismRange = classifyAutism(totalScore);
+                document.getElementById('autismRangeResult').textContent = autismRange;
+
+                // Store results in Firestore
+                const submissionsRef = collection(db,'users', userId, 'submissions');
+                await addDoc(submissionsRef, {
+                    userId: userId,
+                    scores: scores,
+                    totalScore: totalScore,
+                    autismRange: autismRange,
+                    submittedAt: new Date()
+                });
+
+                console.log("Submission stored successfully.");
+            } catch (error) {
+                console.error("Error fetching or storing scores:", error);
+            }
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                fetchScoresAndStore(user.uid);
+            } else {
+                console.log("No user logged in");
+                documentIds.forEach(id => {
+                    document.getElementById(id).textContent = '0';
+                });
+                document.getElementById('totalScore').textContent = '0';
+                document.getElementById('autismRangeResult').textContent = 'Not Available';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -3,82 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sensory Aspects Form</title>
+    <title>Social Relationship and Reciprocity Form</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="questionnaire_style.css">
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+            authDomain: "autism-evaluation-platform.firebaseapp.com",
+            projectId: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform.appspot.com",
+            messagingSenderId: "748226978662",
+            appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+            measurementId: "G-1TGEHTTJF4"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        const radioOptions = ["Rarely", "Sometimes", "Frequently", "Mostly", "Always"];
+        const scoreValues = { Rarely: 1, Sometimes: 2, Frequently: 3, Mostly: 4, Always: 5 };
+
+        function generateRadioButtons(questionId) {
+            const radioGroup = document.getElementById(questionId);
+            radioOptions.forEach((option) => {
+                const label = document.createElement("label");
+                label.innerHTML = `<input type="radio" name="${questionId}" value="${option}"> ${option}`;
+                radioGroup.appendChild(label);
+            });
+        }
+
+        function initializeRadioButtons(questionIds) {
+            questionIds.forEach(generateRadioButtons);
+        }
+
+        function showAlert() {
+            document.getElementById("customAlert").style.display = "flex";
+        }
+
+        function closeAlert() {
+            document.getElementById("customAlert").style.display = "none";
+        }
+
+        function validateForm() {
+            const questions = document.querySelectorAll(".radio-group");
+            for (let question of questions) {
+                const radioButtons = question.querySelectorAll('input[type="radio"]');
+                if (![...radioButtons].some(rb => rb.checked)) {
+                    showAlert();
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function calculateScore() {
+            const questions = document.querySelectorAll(".radio-group");
+            let totalScore = 0;
+
+            const responses = {};
+
+            questions.forEach((question) => {
+                const selectedOption = question.querySelector('input[type="radio"]:checked');
+                if (selectedOption) {
+                    totalScore += scoreValues[selectedOption.value];
+                    responses[selectedOption.name] = selectedOption.value;
+                }
+            });
+
+            const maxScore = questions.length * 5;
+            const percentage = ((totalScore / maxScore) * 100).toFixed(2);
+
+            return { score: totalScore, maxScore, percentage, responses };
+        }
+
+        async function storeQuestionnaireDataInFirebase(data) {
+            const user = auth.currentUser;
+            const collectionName = new URLSearchParams(window.location.search).get('collectionName') || 'Questionnaire';
+
+            if (user) {
+                try {
+                    const docRef = doc(db, "users", user.uid, collectionName, "sensoryAspects");
+                    await setDoc(docRef, {
+                        timestamp: new Date(),
+                        domain: 'sensoryAspects',
+                        ...data
+                    });
+                    console.log("Data stored successfully!");
+                    window.location.href = 'cognitive.html?collectionName=' + encodeURIComponent(collectionName);
+                } catch (error) {
+                    console.error("Error storing data: ", error);
+                }
+            } else {
+                console.error("User not signed in.");
+            }
+        }
+
+        function saveFormDataToLocalStorage() {
+            const data = calculateScore();
+            localStorage.setItem('sensoryAspectsData', JSON.stringify(data.responses));
+        }
+
+        function loadFormDataFromLocalStorage() {
+            const savedData = JSON.parse(localStorage.getItem('sensoryAspectsData'));
+            if (savedData) {
+                Object.entries(savedData).forEach(([name, value]) => {
+                    const input = document.querySelector(`input[name="${name}"][value="${value}"]`);
+                    if (input) input.checked = true;
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded',  () => {
+    // Initialize the radio buttons.
+    initializeRadioButtons(['unusuallySensitive', 'staresIntoSpace', 'hasDifficulty', 'hasUnusualVision', 'insensitive', 'responds']);
+    loadFormDataFromLocalStorage();
+
+            onAuthStateChanged(auth, (user) => {
+                if (!user) {
+                    console.error("User not signed in.");
+                }
+            });
+
+            document.querySelector('form').onsubmit = (e) => {
+                e.preventDefault();
+                if (validateForm()) {
+                    const data = calculateScore();
+                    saveFormDataToLocalStorage();
+                    storeQuestionnaireDataInFirebase(data);
+                } else {
+                    showAlert();
+                }
+            };
+
+    // Ensure the close button works after DOM is loaded.
+    document.querySelector('.custom-alert-btn').addEventListener('click', closeAlert);
+});
+
+
+        
+    </script>
 </head>
 <body>
 
     <h2>V. SENSORY ASPECTS</h2>
 
-    <form id="form" action="cognitive.html" method="post">  
+    <form id="form" action="cognitive.html" method="post" onsubmit="return validateForm()">  
         <div class="question">
             <label>31. Unusually sensitive to sensory stimuli <span class="required">*</span></label>
-            <p class="question-description"> Reacts strongly to sounds, light, touch, or tastes by closing ears, eyes, or refusing certain foods. May avoid certain sensory experiences.</p>
-            <div id="unusuallySensitive" class ="radio-group"></div> <!-- Placeholder for radio buttons -->
+            <p class="question-description">Reacts strongly to sounds, light, touch, or tastes by closing ears, eyes, or refusing certain foods. May avoid certain sensory experiences.</p>
+            <div id="unusuallySensitive" class="radio-group"></div>
         </div>
 
         <div class="question">
             <label>32. Stares into space for long periods of time <span class="required">*</span></label>
-            <p class="question-description"> Stares at distant spots for long periods, appearing unaware of surroundings.</p>
-            <div id="staresIntoSpace" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+            <p class="question-description">Stares at distant spots for long periods, appearing unaware of surroundings.</p>
+            <div id="staresIntoSpace" class="radio-group"></div>
         </div>
 
         <div class="question">
             <label>33. Has difficulty in tracking objects <span class="required">*</span></label>
-            <p class="question-description"> Has trouble following moving objects or people, unable to keep gaze on them for long.</p>
-            <div id="hasDifficulty" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+            <p class="question-description">Has trouble following moving objects or people, unable to keep gaze on them for long.</p>
+            <div id="hasDifficulty" class="radio-group"></div>
         </div>
 
         <div class="question">
             <label>34. Has unusual vision <span class="required">*</span></label>
-            <p class="question-description"> Focuses on tiny, insignificant parts of objects or brings objects very close to their eyes to stare.</p>
-            <div id="hasUnusualVision" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+            <p class="question-description">Focuses on tiny, insignificant parts of objects or brings objects very close to their eyes to stare.</p>
+            <div id="hasUnusualVision" class="radio-group"></div>
         </div>
 
         <div class="question">
             <label>35. Insensitive to pain <span class="required">*</span></label>
-            <p class="question-description"> Does not react to pain, showing high pain tolerance.</p>
-            <div id="insensitive" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+            <p class="question-description">Does not react to pain, showing high pain tolerance.</p>
+            <div id="insensitive" class="radio-group"></div>
         </div>
 
         <div class="question">
             <label>36. Responds to objects/people unusually by smelling, touching or tasting <span class="required">*</span></label>
-            <p class="question-description"> Explores objects by smelling, touching, or tasting them, and may not use them appropriately.</p>
-            <div id="responds" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+            <p class="question-description">Explores objects by smelling, touching, or tasting them, and may not use them appropriately.</p>
+            <div id="responds" class="radio-group"></div>
         </div>
 
-         <br>
-         <br>
+        <br>
         <div class="button-container">
             <button type="button" class="prev-btn" onclick="window.location.href='behaviour.html'">Previous</button>
-            <button type="button"  class="next-btn" onclick="validateNext()">Next</button>
+            <button type="submit">Next</button>
         </div>
     </form>
- 
+
     <!-- Custom Modal for Validation Message -->
     <div id="customAlert" class="custom-alert">
         <div class="custom-alert-content">
             <p>Please answer all the questions before proceeding to the next page.</p>
-            <button class="custom-alert-btn" onclick="closeAlert()">OK</button>
+            <button class="custom-alert-btn">OK</button>
         </div>
     </div>
-
-    <script src="questionnaire_form.js"></script>
-<script>
-// Initialize radio buttons for questions on this page
-window.onload = function() {
-            initializeRadioButtons(['unusuallySensitive','staresIntoSpace','hasDifficulty','hasUnusualVision','insensitive','responds']);
-        };    
-
-        function validateNext() {
-            if (validateForm()) {
-                window.location.href = 'cognitive.html'; // Navigate to the next page
-            } else {
-                showAlert(); // Show the custom alert if form is not valid
-            }
-        }
-    </script>
-
 
 </body>
 </html>

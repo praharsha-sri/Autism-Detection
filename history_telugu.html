@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #c58acd99;
+            color: #333;
+            padding-top: 20px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: #000000;
+            font-weight: bold;
+        }
+
+        .home-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .submission-card {
+            background-color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .submission-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .submission-card h3 {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #fd0000;
+        }
+
+        .submission-card p {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #000000;
+        }
+
+        .chart-container {
+            padding: 1rem;
+            border-radius: 10px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        #loading {
+            text-align: center;
+            color: #0d6efd;
+            font-style: italic;
+            font-size: 1.2rem;
+            margin-top: 20px;
+        }
+
+        .error {
+            color: #dc3545;
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Home Button -->
+        <a href="parent_dashboard_te.html" class="btn btn-primary home-button">హోమ్</a>
+
+        <h1>ప్రదర్శన ఫలితాలు</h1>
+        <div id="submissionsContainer"></div>
+        <div id="loading">సబ్మిషన్లు లోడ్ అవుతున్నాయి...</div>
+        <div id="error" class="error" style="display: none;">సబ్మిషన్లను లోడ్ చేయడంలో లోపం. దయచేసి పేజీని రీఫ్రెష్ చేయండి.</div>
+        <div class="chart-container">
+            <canvas id="scoreChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+            authDomain: "autism-evaluation-platform.firebaseapp.com",
+            projectId: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform.appspot.com",
+            messagingSenderId: "748226978662",
+            appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+            measurementId: "G-1TGEHTTJF4"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // Translate X-axis labels to Telugu
+        const translations = {
+            socialRelationship: "సామాజిక సంబంధాలు",
+            emotionalResponsiveness: "భావ_ప్రక్రియలు",
+            cognitiveComponent: "జ్ఞాన భాగం",
+            behaviourPatterns: "ప్రవర్తనా విధానాలు",
+            speechLanguageCommunication: "భాష-మాటలు",
+            sensoryAspects: "సంవేదన సంబంధిత అంశాలు"
+        };
+
+        function translateToTelugu(label) {
+            return translations[label] || label;
+        }
+
+        async function displaySubmissionsWithReport(userId) {
+            const submissionsContainer = document.getElementById('submissionsContainer');
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+
+            try {
+                loading.style.display = 'block';
+                error.style.display = 'none';
+                submissionsContainer.innerHTML = '';
+
+                const submissionsRef = db.collection('users').doc(userId).collection('submissions');
+                const submissionsSnap = await submissionsRef.orderBy('submittedAt', 'desc').get();
+
+                if (submissionsSnap.empty) {
+                    loading.style.display = 'none';
+                    error.style.display = 'block';
+                    error.textContent = 'సబ్మిషన్లు కనుగొనబడలేదు.';
+                    return;
+                }
+
+                submissionsSnap.forEach(doc => {
+                    const data = doc.data();
+
+                    if (!data.scores || Object.keys(data.scores).length === 0) return;
+
+                    const submissionCard = document.createElement('div');
+                    submissionCard.classList.add('submission-card');
+
+                    const scores = data.scores;
+                    const chartLabels = Object.keys(scores).sort().map(translateToTelugu); // Translate labels
+                    const chartData = Object.keys(scores).sort().map(key => scores[key]); // Match data
+
+                    const reportHTML = `
+                        <h3>సబ్మిషన్ తేదీ: ${data.submittedAt.toDate().toLocaleString()}</h3>
+                        <p><strong>మొత్తం స్కోర్:</strong> ${data.totalScore}</p>
+                        <p><strong>ఆటిజం రేంజ్:</strong> ${data.autismRange}</p>
+                    `;
+
+                    const canvas = document.createElement('canvas');
+                    canvas.id = 'chart-' + doc.id;
+
+                    submissionCard.innerHTML = reportHTML;
+                    submissionCard.appendChild(canvas);
+                    submissionsContainer.appendChild(submissionCard);
+
+                    new Chart(canvas, {
+                        type: 'bar',
+                        data: {
+                            labels: chartLabels, // Use translated labels
+                            datasets: [{
+                                label: 'స్కోర్లు',
+                                data: chartData,
+                                backgroundColor: '#58151c',
+                                borderColor: '#f8f9fa',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 40
+                                }
+                            }
+                        }
+                    });
+                });
+
+                loading.style.display = 'none';
+            } catch (err) {
+                console.error('సబ్మిషన్లను పొందడంలో లోపం:', err);
+                loading.style.display = 'none';
+                error.style.display = 'block';
+            }
+        }
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                displaySubmissionsWithReport(user.uid);
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
+</body>
+</html>

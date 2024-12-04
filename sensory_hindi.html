@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>संवेदी पहलू</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="questionnaire_style.css">
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+            authDomain: "autism-evaluation-platform.firebaseapp.com",
+            projectId: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform.appspot.com",
+            messagingSenderId: "748226978662",
+            appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+            measurementId: "G-1TGEHTTJF4"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const radioOptions = ["बिलकुल नहीं", "कभी-कभी", "बार-बार", "अधिकतर", "हमेशा"];
+
+// Scoring system
+const scoreValues = {
+    "बिलकुल नहीं": 1,
+    "कभी-कभी": 2,
+    "बार-बार": 3,
+    "अधिकतर": 4,
+    "हमेशा": 5,
+  };
+
+        function generateRadioButtons(questionId) {
+            const radioGroup = document.getElementById(questionId);
+            radioOptions.forEach((option) => {
+                const label = document.createElement("label");
+                label.innerHTML = `<input type="radio" name="${questionId}" value="${option}"> ${option}`;
+                radioGroup.appendChild(label);
+            });
+        }
+
+        function initializeRadioButtons(questionIds) {
+            questionIds.forEach(generateRadioButtons);
+        }
+
+        function showAlert() {
+            document.getElementById("customAlert").style.display = "flex";
+        }
+
+        function closeAlert() {
+            document.getElementById("customAlert").style.display = "none";
+        }
+
+        function validateForm() {
+            const questions = document.querySelectorAll(".radio-group");
+            for (let question of questions) {
+                const radioButtons = question.querySelectorAll('input[type="radio"]');
+                if (![...radioButtons].some(rb => rb.checked)) {
+                    showAlert();
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function calculateScore() {
+            const questions = document.querySelectorAll(".radio-group");
+            let totalScore = 0;
+            const responses = {};
+
+            questions.forEach((question) => {
+                const selectedOption = question.querySelector('input[type="radio"]:checked');
+                if (selectedOption) {
+                    totalScore += scoreValues[selectedOption.value];
+                    responses[selectedOption.name] = selectedOption.value;
+                }
+            });
+
+            const maxScore = questions.length * 5;
+            const percentage = ((totalScore / maxScore) * 100).toFixed(2);
+
+            return { score: totalScore, maxScore, percentage, responses };
+        }
+
+        async function storeQuestionnaireDataInFirebase(data) {
+            const user = auth.currentUser;
+            const collectionName = 'Questionnaire';
+
+            if (user) {
+                try {
+                    const docRef = doc(db, "users", user.uid, collectionName, "sensoryAspects");
+                    await setDoc(docRef, {
+                        timestamp: new Date(),
+                        domain: 'sensoryAspects',
+                        ...data
+                    });
+                    console.log("Data stored successfully!");
+                    window.location.href = 'cognitive_hindi.html?collectionName=' + encodeURIComponent(collectionName);
+                } catch (error) {
+                    console.error("Error storing data: ", error);
+                }
+            } else {
+                console.error("User not signed in.");
+            }
+        }
+
+        function saveFormDataToLocalStorage() {
+            const data = calculateScore();
+            localStorage.setItem('संवेदी पहलू', JSON.stringify(data.responses));
+        }
+
+        function loadFormDataFromLocalStorage() {
+            const savedData = JSON.parse(localStorage.getItem('संवेदी पहलू'));
+            if (savedData) {
+                Object.entries(savedData).forEach(([name, value]) => {
+                    const input = document.querySelector(`input[name="${name}"][value="${value}"]`);
+                    if (input) input.checked = true;
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeRadioButtons(['unusuallySensitive','staresIntoSpace','hasDifficulty','hasUnusualVision','insensitive','responds']);
+
+            loadFormDataFromLocalStorage();
+
+            onAuthStateChanged(auth, (user) => {
+                if (!user) {
+                    console.error("User not signed in.");
+                }
+            });
+
+            document.querySelector('form').onsubmit = (e) => {
+                e.preventDefault();
+                if (validateForm()) {
+                    const data = calculateScore();
+                    saveFormDataToLocalStorage();
+                    storeQuestionnaireDataInFirebase(data);
+                } else {
+                    showAlert();
+                }
+            };
+
+            document.querySelector('.custom-alert-btn').addEventListener('click', closeAlert);
+        });
+    </script>
+</head>
+<body>
+
+    <h2>V. संवेदी पहलू</h2>
+
+    <form id="form" action="cognitive_hindi.html" method="post">  
+        <div class="question">
+            <label>31. संवेदना की उत्तेजना के प्रति असामान्य रूप से संवेदनशील होना <span class="required">*</span></label>
+            <div id="unusuallySensitive" class ="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>32. बहुत समय तक कहीं दूर तक टकटकी लगाए रहना <span class="required">*</span></label>
+            <div id="staresIntoSpace" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>33. गतिशील वस्तुओं पर नजर टिकाने में कठिनाई <span class="required">*</span></label>
+            <div id="hasDifficulty" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>34. असामान्य दृष्टि होना <span class="required">*</span></label>
+            <div id="hasUnusualVision" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>35.  दर्द के प्रति असंवेदनशील होना <span class="required">*</span></label>
+            <div id="insensitive" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>36. वस्तुओं का असामान्य रूप से सूंघकर, छूकर, या चखकर प्रतिक्रिया दिखाना <span class="required">*</span></label>
+            <div id="responds" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+         <br>
+         <br>
+        <div class="button-container">
+            <button type="button" class="prev-btn" onclick="window.location.href='behaviour_hindi.html'">पिछला(Previous)</button>
+            <button type="submit">अगला(Next)</button>
+        </div>
+    </form>
+ 
+    <!-- Custom Modal for Validation Message -->
+    <div id="customAlert" class="custom-alert">
+        <div class="custom-alert-content">
+            <p>कृपया अगले पृष्ठ पर जाने से पहले सभी प्रश्नों का उत्तर दें।</p>
+            <button class="custom-alert-btn" onclick="closeAlert()">ठीक है(OK)</button>
+        </div>
+    </div>
+
+
+
+</body>
+</html>

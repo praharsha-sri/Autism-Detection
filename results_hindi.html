@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISAA मूल्यांकन परिणाम</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .classification {
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-top: 20px;
+        }
+        .range {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #e9f5ff;
+            border: 1px solid #cce4ff;
+            border-radius: 5px;
+        }
+        .home-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .home-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ISAA मूल्यांकन परिणाम</h1>
+        <table id="resultsTable">
+            <tr><th>डोमेन</th><th>स्कोर</th></tr>
+            <tr><td>व्यवहार पैटर्न</td><td id="behaviourPatterns">0</td></tr>
+            <tr><td>संज्ञानात्मक घटक</td><td id="cognitiveComponent">0</td></tr>
+            <tr><td>भावनात्मक प्रतिक्रियाशीलता</td><td id="emotionalResponsiveness">0</td></tr>
+            <tr><td>संवेदी पहलू</td><td id="sensoryAspects">0</td></tr>
+            <tr><td>सामाजिक संबंध</td><td id="socialRelationship">0</td></tr>
+            <tr><td>भाषा और संचार</td><td id="speechLanguageCommunication">0</td></tr>
+            <tr><th>कुल स्कोर</th><td id="totalScore">0</td></tr>
+        </table>
+        <div class="classification" id="classification"></div>
+        <div class="range">
+            <strong>ऑटिज्म रेंज:</strong>
+            <div id="autismRangeResult"></div>
+        </div>
+        <!-- Home Page Button -->
+        <a href="parent_dashboard_hi.html" class="home-btn">होम पेज</a>
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+            authDomain: "autism-evaluation-platform.firebaseapp.com",
+            projectId: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform.appspot.com",
+            messagingSenderId: "748226978662",
+            appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+            measurementId: "G-1TGEHTTJF4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const documentIds = [
+            'behaviourPatterns',
+            'cognitiveComponent',
+            'emotionalResponsiveness',
+            'sensoryAspects',
+            'socialRelationship',
+            'speechLanguageCommunication'
+        ];
+
+        function classifyAutism(totalScore) {
+            if (totalScore <= 70) {
+                return "ऑटिज्म नहीं";
+            } else if (totalScore <= 106) {
+                return "हल्का ऑटिज्म";
+            } else if (totalScore <= 153) {
+                return "मध्यम ऑटिज्म";
+            } else {
+                return "गंभीर ऑटिज्म";
+            }
+        }
+
+        async function fetchScoresAndStore(userId) {
+            try {
+                let totalScore = 0;
+                const scores = {};
+
+                for (const docId of documentIds) {
+                    const docRef = doc(db, 'users', userId, 'Questionnaire', docId);
+                    const docSnap = await getDoc(docRef);
+                    
+                    if (docSnap.exists()) {
+                        const score = docSnap.data().score || 0;
+                        totalScore += score;
+                        scores[docId] = score;
+                        document.getElementById(docId).textContent = score;
+                    } else {
+                        console.log(`${docId} के लिए डेटा नहीं मिला।`);
+                        document.getElementById(docId).textContent = '0';
+                    }
+                }
+
+                document.getElementById('totalScore').textContent = totalScore;
+
+                const autismRange = classifyAutism(totalScore);
+                document.getElementById('autismRangeResult').textContent = autismRange;
+
+                // Store results in Firestore
+                const submissionsRef = collection(db,'users', userId, 'submissions');
+                await addDoc(submissionsRef, {
+                    userId: userId,
+                    scores: scores,
+                    totalScore: totalScore,
+                    autismRange: autismRange,
+                    submittedAt: new Date()
+                });
+
+                console.log("परिणाम सफलतापूर्वक सहेजा गया।");
+            } catch (error) {
+                console.error("स्कोर प्राप्त करने या सहेजने में त्रुटि:", error);
+            }
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                fetchScoresAndStore(user.uid);
+            } else {
+                console.log("कोई उपयोगकर्ता लॉग इन नहीं है");
+                documentIds.forEach(id => {
+                    document.getElementById(id).textContent = '0';
+                });
+                document.getElementById('totalScore').textContent = '0';
+                document.getElementById('autismRangeResult').textContent = 'उपलब्ध नहीं है';
+            }
+        });
+    </script>
+</body>
+</html>

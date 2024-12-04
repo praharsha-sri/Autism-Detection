@@ -5,7 +5,87 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Family History Form</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <script type="module">
+    // Import Firebase libraries
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+        authDomain: "autism-evaluation-platform.firebaseapp.com",
+        projectId: "autism-evaluation-platform",
+        storageBucket: "autism-evaluation-platform.appspot.com",
+        messagingSenderId: "748226978662",
+        appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+        measurementId: "G-1TGEHTTJF4"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadFormData();  // Load saved data on page load
+        const form = document.getElementById('family');
+        form.addEventListener('submit', handleFormSubmit);
+            // Save form data on every input change
+            document.querySelectorAll('input, textarea').forEach(input => {
+                input.addEventListener('input', saveFormData);
+            });
+    });
+
+    // Save form data to localStorage
+    function saveFormData() {
+            const data = {
+              siblingHistory: document.getElementById('siblingHistory').value,
+              consanguinity: document.getElementById('consanguinity').value,
+              anyOthers: document.getElementById('anyOthers').value
+            };
+            localStorage.setItem('familyhistoryFormData', JSON.stringify(data));
+        }
+
+         // Load saved data from localStorage
+         function loadFormData() {
+            const savedData = JSON.parse(localStorage.getItem('familyhistoryFormData'));
+            if (savedData) {
+                document.getElementById('siblingHistory').value = savedData.siblingHistory || '';
+                document.getElementById('consanguinity').value = savedData.consanguinity || '';
+                document.getElementById('anyOthers').value = savedData.anyOthers || '';
+            }
+        }
+
+    async function handleFormSubmit(event) {
+        event.preventDefault(); // Prevent default form submission
+
+        const user = auth.currentUser; // Get current user
+        if (!user) {
+            alert('Please sign in to submit the form.');
+            return;
+        }
+
+        const formData = JSON.parse(localStorage.getItem('familyhistoryFormData')) || {};
+            formData.timestamp = new Date();  // Add timestamp
+
+        try {
+            // Store data in Firestore under users/{userId}/casehistory/family
+            const docRef = doc(db, "users", user.uid, "casehistory", "family");
+            await setDoc(docRef, formData);
+
+            console.log("Family history data successfully stored in Firebase.");
+            alert('Family history submitted successfully.');
+
+            // Redirect to the next page after submission
+            window.location.href = 'playhistory.html'; // Change to your desired page
+        } catch (error) {
+            console.error("Error storing family history data in Firebase:", error);
+            alert('Failed to submit data. Please try again.');
+        }
+    }
+  </script>
 </head>
 <body>
   <div class="container mt-5">
@@ -13,33 +93,28 @@
     <form id="family">
       <div class="mb-3">
         <label for="siblingHistory" class="form-label">Sibling history:</label>
-        <textarea class="form-control" id="siblingHistory" rows="2"></textarea>
+        <textarea class="form-control" id="siblingHistory" rows="2" placeholder="Enter sibling history details"></textarea>
       </div>
 
       <div class="mb-3">
         <label for="consanguinity" class="form-label">Consanguinity:</label>
-        <textarea class="form-control" id="consanguinity" rows="2"></textarea>
+        <textarea class="form-control" id="consanguinity" rows="2" placeholder="Enter details about consanguinity"></textarea>
       </div>
 
       <div class="mb-3">
         <label for="anyOthers" class="form-label">Any others:</label>
-        <textarea class="form-control" id="anyOthers" rows="2"></textarea>
+        <textarea class="form-control" id="anyOthers" rows="2" placeholder="Enter any other relevant family history"></textarea>
       </div>
 
-     <div class="d-flex justify-content-between">
+      <div class="d-flex justify-content-between">
         <a href="educationalhistory.html" class="btn btn-secondary">Previous</a>
         <button type="submit" class="btn btn-primary">Next</button>
-    </div>
+      </div>
     </form>
   </div>
-
+  
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <script>
-        document.getElementById('family').addEventListener('submit', function(event) {
-            event.preventDefault();
-            window.location.href = 'playhistory.html';
-        });
-    </script>
+
+
 </body>
 </html>

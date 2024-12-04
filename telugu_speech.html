@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="te">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>భాష-మాటల మరియు సంచార సామర్థ్యం ఫారం</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="questionnaire_style.css">
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+            authDomain: "autism-evaluation-platform.firebaseapp.com",
+            projectId: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform.appspot.com",
+            messagingSenderId: "748226978662",
+            appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+            measurementId: "G-1TGEHTTJF4"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const radioOptions = ['అరుదుగా', 'కొన్నిసార్లు', 'తరచుగా', 'ఎక్కువగా', 'ఎల్లప్పుడూ'];
+
+        // Scoring system in Telugu
+        const scoreValues = {
+            'అరుదుగా': 1,
+            'కొన్నిసార్లు': 2,
+            'తరచుగా': 3,
+            'ఎక్కువగా': 4,
+            'ఎల్లప్పుడూ': 5,
+        };
+
+        function generateRadioButtons(questionId) {
+            const radioGroup = document.getElementById(questionId);
+            radioOptions.forEach((option) => {
+                const label = document.createElement("label");
+                label.innerHTML = `<input type="radio" name="${questionId}" value="${option}"> ${option}`;
+                radioGroup.appendChild(label);
+            });
+        }
+
+        function initializeRadioButtons(questionIds) {
+            questionIds.forEach(generateRadioButtons);
+        }
+
+        function showAlert() {
+            document.getElementById("customAlert").style.display = "flex";
+        }
+
+        function closeAlert() {
+            document.getElementById("customAlert").style.display = "none";
+        }
+
+        function validateForm() {
+            const questions = document.querySelectorAll(".radio-group");
+            for (let question of questions) {
+                const radioButtons = question.querySelectorAll('input[type="radio"]');
+                if (![...radioButtons].some(rb => rb.checked)) {
+                    showAlert();
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function calculateScore() {
+            const questions = document.querySelectorAll(".radio-group");
+            let totalScore = 0;
+            const responses = {};
+
+            questions.forEach((question) => {
+                const selectedOption = question.querySelector('input[type="radio"]:checked');
+                if (selectedOption) {
+                    totalScore += scoreValues[selectedOption.value];
+                    responses[selectedOption.name] = selectedOption.value;
+                }
+            });
+
+            const maxScore = questions.length * 5;
+            const percentage = ((totalScore / maxScore) * 100).toFixed(2);
+
+            return { score: totalScore, maxScore, percentage, responses };
+        }
+
+        async function storeQuestionnaireDataInFirebase(data) {
+            const user = auth.currentUser;
+            const collectionName = 'Questionnaire';
+
+            if (user) {
+                try {
+                    const docRef = doc(db, "users", user.uid, collectionName, "speechLanguageCommunication");
+                    await setDoc(docRef, {
+                        timestamp: new Date(),
+                        domain: 'speechLanguageCommunication',
+                        ...data
+                    });
+                    console.log("Data stored successfully!");
+                    window.location.href = 'telugu_behaviour.html?collectionName=' + encodeURIComponent(collectionName);
+                } catch (error) {
+                    console.error("Error storing data: ", error);
+                }
+            } else {
+                console.error("User not signed in.");
+            }
+        }
+
+        function saveFormDataToLocalStorage() {
+            const data = calculateScore();
+            localStorage.setItem('భాష-మాటలు', JSON.stringify(data.responses));
+        }
+
+        function loadFormDataFromLocalStorage() {
+            const savedData = JSON.parse(localStorage.getItem('భాష-మాటలు'));
+            if (savedData) {
+                Object.entries(savedData).forEach(([name, value]) => {
+                    const input = document.querySelector(`input[name="${name}"][value="${value}"]`);
+                    if (input) input.checked = true;
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeRadioButtons([
+'acquired', 'hasDifficulty', 'engagesInStereotyped',
+'engagesInEcholalic', 'producesInfantile', 'unableToInitiate',
+'usesJargon', 'usesPronounReversals', 'unableToGrasp'
+]);
+
+            loadFormDataFromLocalStorage();
+
+            onAuthStateChanged(auth, (user) => {
+                if (!user) {
+                    console.error("User not signed in.");
+                }
+            });
+
+            document.querySelector('form').onsubmit = (e) => {
+                e.preventDefault();
+                if (validateForm()) {
+                    const data = calculateScore();
+                    saveFormDataToLocalStorage();
+                    storeQuestionnaireDataInFirebase(data);
+                } else {
+                    showAlert();
+                }
+            };
+
+            document.querySelector('.custom-alert-btn').addEventListener('click', closeAlert);
+        });
+    </script>
+</head>
+<body> 
+
+    <h2>III. భాష-మాటల మరియు సంచార సామర్థ్యం</h2>
+
+    <form id="form" action="telugu_behaviour.html" method="post">
+        <!-- Section 1 -->
+        <div class="question">
+            <label>15. మాట్లాడటం నేర్చుకున్న తరువాత కోల్పోవడం  <span class="required">*</span></label>
+            <div class="question-description">మాటలు నేర్చుకోగలిగిన వారు, కానీ తర్వాత అది కోల్పోయే అవకాశం ఉంది. సుమారు 50% ఆటీజం ఉన్న వ్యక్తులు మాటాడకపోవచ్చు.</div>
+            <div id="acquired" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>16. సంభాషణలో మాట్లాడడం లేదా సంకేతాలను ఉపయోగించడంలో ఇబ్బంది పడుతాడు <span class="required">*</span></label>
+            <div class="question-description">సంభాషణలో ఇషారాలు లేదా సంకేతాలను సరిగ్గా ఉపయోగించడం కష్టంగా ఉంటుంది. ఈ కారణంగా, భావాలను మరియు ఆలోచనలను సరిగ్గా వ్యక్తపరచలేరు.
+            </div>
+            <div id="hasDifficulty" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>17. సంభాషణలో సాధారణ మరియు మళ్లీ మళ్లీ పదాలను ఉపయోగించడం జరుగుతుంది<span class="required">*</span></label>
+            <div class="question-description">సాధారణంగా పదాలు లేదా వాక్యాలను మళ్లీ మళ్లీ చెప్పడం, సందర్భానికి సరిపోలకుండా చెప్పడం జరుగుతుంది.
+            </div>
+            <div id="engagesInStereotyped" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>18. అనుకరణాత్మక సంభాషణలో పాల్గొంటాడు <span class="required">*</span></label>
+            <div class="question-description">ఇతరులు చెప్పినదానిని అర్ధం లేకుండా పునరావృతం చేస్తాడు, ప్రశ్నకు బదులివ్వాల్సిన అవసరాన్ని అర్ధం చేసుకోడు.
+            </div>
+            <div id="engagesInEcholalic" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>19. శిశువులకు సంబంధించిన అరుపులు/ అసాధారణ శబ్దాలు  చేస్తాడు <span class="required">*</span></label>
+            <div class="question-description">అస్పష్టమైన లేదా అర్ధం లేని శబ్దాలను ఉత్పత్తి చేస్తాడు, వీటికి స్పష్టమైన అర్ధం ఉండకపోవచ్చు.
+            </div>
+            <div id="producesInfantile" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <!-- Section 2 -->
+        <div class="question">
+            <label>20. ఇతరులతో సంభాషణ ప్రారంభించడంలో లేదా కొనసాగించడంలో అసమర్థుడు<span class="required">*</span></label>
+            <div class="question-description">ఇతరులతో సంభాషణ ప్రారంభించడం లేదా కొనసాగించడం కష్టంగా ఉంటుంది.
+            </div>
+            <div id="unableToInitiate" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>21. అర్థం లేని పదాలు లేదా సంక్లిష్ట పదాలు ఉపయోగించడం<span class="required">*</span></label>
+            <div class="question-description">స్పష్టత లేని లేదా ప్రాముఖ్యత లేని పదాలు వాడుతాడు.
+            </div>
+            <div id="usesJargon" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>22. సర్వనామాలను తారుమారు చేయడం <span class="required">*</span></label>
+            <div class="question-description">తనను "నువ్వు" అని, ఇతరులను "నేను" అని సూచించవచ్చు.
+            </div>
+            <div id="usesPronounReversals" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+
+        <div class="question">
+            <label>23. సంభాషణ యొక్క వాస్తవ అర్థాన్ని అర్థం చేసుకోలేకపోవడం<span class="required">*</span></label>
+            <div class="question-description">పదాల వెనుక ఉన్న అర్థం లేదా సాంఘిక సంకేతాలు అర్థం చేసుకోలేడు.
+            </div>
+            <div id="unableToGrasp" class="radio-group"></div> <!-- Placeholder for radio buttons -->
+        </div>
+<!-- Add more questions here if needed -->
+<br>
+<br>
+ <div class="button-container">
+     <button class="prev-btn" type="button" onclick="window.location.href='telugu_emotional.html'">మునుపటి (Previous)</button>
+     <button type="submit">తరువాత (Next)</button>
+ </div>
+</form>
+
+
+<!-- Custom Modal for Validation Message -->
+<div id="customAlert" class="custom-alert">
+ <div class="custom-alert-content">
+     <p>తరువాత పేజీలోకి వెళ్లడానికి ముందు అన్ని ప్రశ్నలకు సమాధానం ఇవ్వండి.</p>
+     <button class="custom-alert-btn" onclick="closeAlert()">సరే (OK)</button>
+ </div>
+</div>
+</body>
+</html>

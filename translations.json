@@ -1,0 +1,119 @@
+{
+    "en": {
+      "title": "Autism Evaluation Platform",
+      "selectLanguage": "Select Your Preferred Language",
+      "logout": "Logout",
+      "dashboard": {
+        "welcome": "Welcome to your dashboard",
+        "startEvaluation": "Start Evaluation",
+        "viewResults": "View Results",
+        "settings": "Settings"
+      },
+      "educationalHistory": {
+      "pageTitle": "Educational History",
+      "schoolAge": "Age of beginning of school",
+      "schoolAgePlaceholder": "Enter age",
+      "peerTeacherRelationship": "Relationship between peers and teachers",
+      "peerTeacherRelationshipPlaceholder": "Describe the relationship between peers and teachers",
+      "schoolIssues": "Any school phobia, non-attendance, truancy, any reading or writing difficulties",
+      "schoolIssuesPlaceholder": "Enter details of any school-related difficulties",
+      "anyOther": "Any other",
+      "anyOtherPlaceholder": "Enter other educational details",
+      "previous": "Previous",
+      "next": "Next"
+    },
+      "mainPage": {
+        "title": "IGNITO",
+        "identificationData": "Identification Data",
+        "parentalHistory": "Parental History",
+        "prenatalHistory": "Prenatal History",
+        "perinatalHistory": "Perinatal History",
+        "postnatalHistory": "Postnatal History",
+        "treatmentMedicalHistory": "Treatment and Medical History",
+        "educationalHistory": "Educational History",
+        "familyHistory": "Family History",
+        "playDevelopmentalHistory": "Play and Developmental History",
+        "behavioralCognitiveHistory": "Behavioral History and Higher Function",
+        "selfHelpSkills": "Self Help Skills",
+        "previousDiagnosis": "Previous Diagnosis & Therapy Details/Recommendation"
+      }
+    },
+    "hi": {
+      "title": "ऑटिज्म मूल्यांकन मंच",
+      "selectLanguage": "अपनी पसंदीदा भाषा चुनें",
+      "logout": "लॉग आउट",
+      "dashboard": {
+        "welcome": "अपने डैशबोर्ड में आपका स्वागत है",
+        "startEvaluation": "मूल्यांकन शुरू करें",
+        "viewResults": "परिणाम देखें",
+        "settings": "सेटिंग्स"
+      },
+      "educationalHistory": {
+      "pageTitle": "शैक्षिक इतिहास",
+      "schoolAge": "विद्यालय शुरू करने की आयु",
+      "schoolAgePlaceholder": "आयु दर्ज करें",
+      "peerTeacherRelationship": "साथियों और शिक्षकों के बीच संबंध",
+      "peerTeacherRelationshipPlaceholder": "साथियों और शिक्षकों के बीच संबंध का वर्णन करें",
+      "schoolIssues": "कोई स्कूल फोबिया, अनुपस्थिति, ट्रुएंसी, पढ़ने या लिखने में कठिनाइयाँ",
+      "schoolIssuesPlaceholder": "स्कूल से संबंधित किसी भी कठिनाई का विवरण दर्ज करें",
+      "anyOther": "कोई अन्य",
+      "anyOtherPlaceholder": "अन्य शैक्षिक विवरण दर्ज करें",
+      "previous": "पिछला",
+      "next": "अगला"
+    },
+      "mainPage": {
+        "title": "इग्निटो",
+        "identificationData": "पहचान डेटा",
+        "parentalHistory": "माता-पिता का इतिहास",
+        "prenatalHistory": "प्रसव पूर्व इतिहास",
+        "perinatalHistory": "प्रसव के दौरान का इतिहास",
+        "postnatalHistory": "प्रसवोत्तर इतिहास",
+        "treatmentMedicalHistory": "उपचार और चिकित्सा इतिहास",
+        "educationalHistory": "शैक्षिक इतिहास",
+        "familyHistory": "पारिवारिक इतिहास",
+        "playDevelopmentalHistory": "खेल और विकासात्मक इतिहास",
+        "behavioralCognitiveHistory": "व्यवहार इतिहास और उच्च कार्य",
+        "selfHelpSkills": "स्वयं सहायता कौशल",
+        "previousDiagnosis": "पिछला निदान और थेरेपी विवरण/सिफारिश"
+      }
+    },
+    "te": {
+      "title": "ఆటిజం మూల్యాంకన వేదిక",
+      "selectLanguage": "మీ ప్రాధాన్య భాషను ఎంచుకోండి",
+      "logout": "లాగ్అవుట్",
+      "dashboard": {
+        "welcome": "మీ డాష్‌బోర్డ్‌కు స్వాగతం",
+        "startEvaluation": "మూల్యాంకనం ప్రారంభించండి",
+        "viewResults": "ఫలితాలను వీక్షించండి",
+        "settings": "సెట్టింగ్‌లు"
+      },
+      "educationalHistory": {
+      "pageTitle": "విద్యా చరిత్ర",
+      "schoolAge": "పాఠశాల ప్రారంభ వయస్సు",
+      "schoolAgePlaceholder": "వయస్సును నమోదు చేయండి",
+      "peerTeacherRelationship": "సహచరులు మరియు ఉపాధ్యాయుల మధ్య సంబంధం",
+      "peerTeacherRelationshipPlaceholder": "సహచరులు మరియు ఉపాధ్యాయుల మధ్య సంబంధాన్ని వివరించండి",
+      "schoolIssues": "ఏదైనా పాఠశాల భయం, హాజరు కాకపోవడం, ట్రూయెన్సీ, చదవడం లేదా రాయడంలో ఇబ్బందులు",
+      "schoolIssuesPlaceholder": "పాఠశాలకు సంబంధించిన ఏవైనా ఇబ్బందుల వివరాలను నమోదు చేయండి",
+      "anyOther": "మరేమైనా",
+      "anyOtherPlaceholder": "ఇతర విద్యా వివరాలను నమోదు చేయండి",
+      "previous": "మునుపటి",
+      "next": "తదుపరి"
+    },
+      "mainPage": {
+        "title": "ఇగ్నిటో",
+        "identificationData": "గుర్తింపు డేటా",
+        "parentalHistory": "తల్లిదండ్రుల చరిత్ర",
+        "prenatalHistory": "గర్భధారణ చరిత్ర",
+        "perinatalHistory": "ప్రసవ సమయంలో చరిత్ర",
+        "postnatalHistory": "ప్రసవానంతర చరిత్ర",
+        "treatmentMedicalHistory": "చికిత్స మరియు వైద్య చరిత్ర",
+        "educationalHistory": "విద్యా చరిత్ర",
+        "familyHistory": "కుటుంబ చరిత్ర",
+        "playDevelopmentalHistory": "ఆట మరియు అభివృద్ధి చరిత్ర",
+        "behavioralCognitiveHistory": "ప్రవర్తన చరిత్ర మరియు ఉన్నత విధి",
+        "selfHelpSkills": "స్వీయ సహాయ నైపుణ్యాలు",
+        "previousDiagnosis": "మునుపటి రోగనిర్ధారణ & థెరపీ వివరాలు/సిఫార్సు"
+      }
+    }
+  }
