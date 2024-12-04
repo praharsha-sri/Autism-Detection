@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ISAA Assessment Results</title>
+    <title>ISAA मूल्यांकन परिणाम</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -66,24 +66,24 @@
 </head>
 <body>
     <div class="container">
-        <h1>ISAA Assessment Results</h1>
+        <h1>ISAA मूल्यांकन परिणाम</h1>
         <table id="resultsTable">
-            <tr><th>Domain</th><th>Score</th></tr>
-            <tr><td>Behavior Patterns</td><td id="behaviourPatterns">0</td></tr>
-            <tr><td>Cognitive Component</td><td id="cognitiveComponent">0</td></tr>
-            <tr><td>Emotional Responsiveness</td><td id="emotionalResponsiveness">0</td></tr>
-            <tr><td>Sensory Aspects</td><td id="sensoryAspects">0</td></tr>
-            <tr><td>Social Relationship</td><td id="socialRelationship">0</td></tr>
-            <tr><td>Speech Language Communication</td><td id="speechLanguageCommunication">0</td></tr>
-            <tr><th>Total Score</th><td id="totalScore">0</td></tr>
+            <tr><th>डोमेन</th><th>स्कोर</th></tr>
+            <tr><td>व्यवहार पैटर्न</td><td id="behaviourPatterns">0</td></tr>
+            <tr><td>संज्ञानात्मक घटक</td><td id="cognitiveComponent">0</td></tr>
+            <tr><td>भावनात्मक प्रतिक्रियाशीलता</td><td id="emotionalResponsiveness">0</td></tr>
+            <tr><td>संवेदी पहलू</td><td id="sensoryAspects">0</td></tr>
+            <tr><td>सामाजिक संबंध</td><td id="socialRelationship">0</td></tr>
+            <tr><td>भाषा और संचार</td><td id="speechLanguageCommunication">0</td></tr>
+            <tr><th>कुल स्कोर</th><td id="totalScore">0</td></tr>
         </table>
         <div class="classification" id="classification"></div>
         <div class="range">
-            <strong>Autism Range:</strong>
+            <strong>ऑटिज्म रेंज:</strong>
             <div id="autismRangeResult"></div>
         </div>
         <!-- Home Page Button -->
-        <a href="parent_dashboard_en.html" class="home-btn">Home</a>
+        <a href="parent_dashboard_hi.html" class="home-btn">होम पेज</a>
     </div>
 
     <!-- Firebase Scripts -->
@@ -117,13 +117,13 @@
 
         function classifyAutism(totalScore) {
             if (totalScore <= 70) {
-                return "No Autism";
+                return "ऑटिज्म नहीं";
             } else if (totalScore <= 106) {
-                return "Mild Autism";
+                return "हल्का ऑटिज्म";
             } else if (totalScore <= 153) {
-                return "Moderate Autism";
+                return "मध्यम ऑटिज्म";
             } else {
-                return "Severe Autism";
+                return "गंभीर ऑटिज्म";
             }
         }
 
@@ -142,7 +142,7 @@
                         scores[docId] = score;
                         document.getElementById(docId).textContent = score;
                     } else {
-                        console.log(`No data found for ${docId}`);
+                        console.log(`${docId} के लिए डेटा नहीं मिला।`);
                         document.getElementById(docId).textContent = '0';
                     }
                 }
@@ -162,9 +162,9 @@
                     submittedAt: new Date()
                 });
 
-                console.log("Submission stored successfully.");
+                console.log("परिणाम सफलतापूर्वक सहेजा गया।");
             } catch (error) {
-                console.error("Error fetching or storing scores:", error);
+                console.error("स्कोर प्राप्त करने या सहेजने में त्रुटि:", error);
             }
         }
 
@@ -172,12 +172,12 @@
             if (user) {
                 fetchScoresAndStore(user.uid);
             } else {
-                console.log("No user logged in");
+                console.log("कोई उपयोगकर्ता लॉग इन नहीं है");
                 documentIds.forEach(id => {
                     document.getElementById(id).textContent = '0';
                 });
                 document.getElementById('totalScore').textContent = '0';
-                document.getElementById('autismRangeResult').textContent = 'Not Available';
+                document.getElementById('autismRangeResult').textContent = 'उपलब्ध नहीं है';
             }
         });
     </script>

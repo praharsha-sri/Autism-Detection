@@ -92,14 +92,14 @@
 
         async function storeQuestionnaireDataInFirebase(data) {
             const user = auth.currentUser;
-            const collectionName = 'Telugu Questionnaire';
+            const collectionName = 'Questionnaire';
 
             if (user) {
                 try {
-                    const docRef = doc(db, "users", user.uid, collectionName, "భాష-మాటలు");
+                    const docRef = doc(db, "users", user.uid, collectionName, "speechLanguageCommunication");
                     await setDoc(docRef, {
-                        టైమ్‌స్టాంప్: new Date(),
-                        డొమెయిన్: 'భాష-మాటల మరియు సంచార సామర్థ్యం',
+                        timestamp: new Date(),
+                        domain: 'speechLanguageCommunication',
                         ...data
                     });
                     console.log("Data stored successfully!");

@@ -2,181 +2,117 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth-compat.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            background-color: #f5f5f5;
-        }
-
-        .container {
-            width: 95%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 1rem;
-                background-color: #b200ff29;
+            font-family: 'Arial', sans-serif;
+            background-color: #c58acd99;
+            color: #333;
+            padding-top: 20px;
         }
 
         h1 {
-            color: black;
+            font-size: 2rem;
             text-align: center;
-            font-size: clamp(1.5rem, 4vw, 2rem);
-            margin: 1rem 0;
-        }
-
-        .score-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
-            gap: 1rem;
-            margin: 1.5rem 0;
-        }
-
-        .score-card {
-            background: white;
-            padding: 1rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            text-align: center;
-            transition: transform 0.2s;
-        }
-
-        .score-card:hover {
-            transform: translateY(-2px);
-        }
-
-        .score-title {
-            font-size: clamp(0.875rem, 2vw, 1rem);
-            color: #666;
-            margin-bottom: 0.5rem;
-        }
-
-        .score-value {
-            font-size: clamp(1.25rem, 3vw, 1.5rem);
+            margin-bottom: 1.5rem;
+            color: #000000;
             font-weight: bold;
-            color: #333;
         }
 
-        .score-max {
-            font-size: clamp(0.875rem, 2vw, 1rem);
-            color: #666;
+        .submission-card {
+            background-color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .submission-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .submission-card h3 {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #fd0000;
+        }
+
+        .submission-card p {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #000000;
         }
 
         .chart-container {
-            background: white;
             padding: 1rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin: 1.5rem 0;
-            position: relative;
-            width: 100%;
-            min-height: 300px;
-            height: auto;
+            border-radius: 10px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
         }
 
         #severity-indicator {
-            text-align: center;
-            padding: 0.75rem;
-            margin: 1rem 0;
-            border-radius: 8px;
+            margin-top: 1rem;
+            padding: 10px;
             font-weight: bold;
-            font-size: clamp(1rem, 2.5vw, 1.25rem);
+            border-radius: 5px;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+
+        #severity-indicator.low {
+            background-color: #198754;
+            color: white;
+        }
+
+        #severity-indicator.medium {
+            background-color: #ffc107;
+            color: black;
+        }
+
+        #severity-indicator.high {
+            background-color: #dc3545;
+            color: white;
         }
 
         #loading {
             text-align: center;
-            padding: 1rem;
+            color: #0d6efd;
             font-style: italic;
-            color: #666;
+            font-size: 1.2rem;
+            margin-top: 20px;
         }
 
         .error {
-            color: #ef4444;
+            color: #dc3545;
             text-align: center;
-            padding: 0.75rem;
-            margin: 0.75rem 0;
-            background: #fecaca;
-            border-radius: 8px;
-            font-size: clamp(0.875rem, 2vw, 1rem);
+            margin: 20px 0;
+            font-size: 1.2rem;
         }
-
-        @media (max-width: 640px) {
-            .container {
-                width: 100%;
-                padding: 0.5rem;
-            }
-
-            .score-grid {
-                gap: 0.75rem;
-            }
-
-            .chart-container {
-                padding: 0.5rem;
-                min-height: 250px;
-            }
-
-            .score-card {
-                padding: 0.75rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .chart-container {
-                min-height: 200px;
-            }
-        }
-
-        @media (min-width: 1024px) {
-            .score-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
+        .home-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Visualization of Reports</h1>
-        <div id="loading">Loading scores...</div>
-        <div id="error" style="display: none;" class="error"></div>
-        
-        <div class="score-grid">
-            <div class="score-card">
-                <div class="score-title">Social Relationship</div>
-                <div class="score-value">-<span class="score-max"></span></div>
-            </div>
-            <div class="score-card">
-                <div class="score-title">Emotional Responsiveness</div>
-                <div class="score-value">-<span class="score-max"></span></div>
-            </div>
-            <div class="score-card">
-                <div class="score-title">Speech & Communication</div>
-                <div class="score-value">-<span class="score-max"></span></div>
-            </div>
-            <div class="score-card">
-                <div class="score-title">Behavior Patterns</div>
-                <div class="score-value">-<span class="score-max"></span></div>
-            </div>
-            <div class="score-card">
-                <div class="score-title">Sensory Aspects</div>
-                <div class="score-value">-<span class="score-max"></span></div>
-            </div>
-            <div class="score-card">
-                <div class="score-title">Cognitive Component</div>
-                <div class="score-value">-<span class="score-max"></span></div>
-            </div>
-        </div>
-
-        <div id="severity-indicator"></div>
-
+        <!-- Home Button -->
+        <a href="parent_dashboard_en.html" class="btn btn-primary home-button">Home</a>
+        <h1>Visualization Reports</h1>
+        <div id="submissionsContainer"></div>
+        <div id="loading">Loading submissions...</div>
+        <div id="error" class="error" style="display: none;">Error loading submissions. Please refresh the page.</div>
+        <div id="severity-indicator" style="display: none;"></div>
         <div class="chart-container">
             <canvas id="scoreChart"></canvas>
         </div>
@@ -199,153 +135,94 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        // Domain definitions
-        const domains = [
-            { id: 'socialRelationship', name: 'Social Relationship', max: 45},
-            { id: 'emotionalResponsiveness', name: 'Emotional Responsiveness', max: 25 },
-            { id: 'speechLanguageCommunication', name: 'Speech & Communication', max: 45 },
-            { id: 'behaviourPatterns', name: 'Behavior Patterns', max: 35 },
-            { id: 'sensoryAspects', name: 'Sensory Aspects', max: 30 },
-            { id: 'cognitiveComponent', name: 'Cognitive Component', max: 20 }
-        ];
+        // Function to display submissions and generate reports
+       // Function to display submissions and generate reports
+async function displaySubmissionsWithReport(userId) {
+    const submissionsContainer = document.getElementById('submissionsContainer');
+    const loading = document.getElementById('loading');
+    const error = document.getElementById('error');
 
-        let chart = null;
+    try {
+        loading.style.display = 'block';
+        error.style.display = 'none';
+        submissionsContainer.innerHTML = '';
 
-        // Function to update scores display
-        function updateScores(scores) {
-            // Update score cards
-            const scoreCards = document.querySelectorAll('.score-card');
-            scoreCards.forEach((card, index) => {
-                const scoreValue = card.querySelector('.score-value');
-                scoreValue.innerHTML = `${scores[index]}<span class="score-max">/${domains[index].max}</span>`;
-            });
+        // Fetch submissions
+        const submissionsRef = db.collection('users').doc(userId).collection('submissions');
+        const submissionsSnap = await submissionsRef.orderBy('submittedAt', 'desc').get();
 
-            // Calculate total score and update severity indicator
-            const totalScore = scores.reduce((a, b) => a + b, 0);
-            const severityIndicator = document.getElementById('severity-indicator');
-            let severity, color;
+        if (submissionsSnap.empty) {
+            loading.style.display = 'none';
+            error.style.display = 'block';
+            error.textContent = 'No submissions found.';
+            return;
+        }
 
-            if (totalScore <= 70) {
-                severity = 'No Autism';
-                color = '#4ade80';
-            } else if (totalScore <= 106) {
-                severity = 'Mild Autism';
-                color = '#fbbf24';
-            } else if (totalScore <= 153) {
-                severity = 'Moderate Autism';
-                color = '#fb923c';
-            } else {
-                severity = 'Severe Autism';
-                color = '#ef4444';
-            }
+        submissionsSnap.forEach(doc => {
+            const data = doc.data();
 
-            severityIndicator.textContent = `${severity} (Total Score: ${totalScore})`;
-            severityIndicator.style.backgroundColor = color + '20';
-            severityIndicator.style.color = color;
+            // Skip if scores are empty
+            if (!data.scores || Object.keys(data.scores).length === 0) return;
 
-            // Destroy existing chart if it exists
-            if (chart) {
-                chart.destroy();
-            }
+            const submissionCard = document.createElement('div');
+            submissionCard.classList.add('submission-card');
 
-            // Create new chart with responsive options
-            const ctx = document.getElementById('scoreChart').getContext('2d');
-            chart = new Chart(ctx, {
+            const scores = data.scores;
+            const chartLabels = Object.keys(scores).sort(); // Sort the labels (scores keys)
+            const chartData = chartLabels.map(label => scores[label]); // Match the sorted labels with the data
+
+            const reportHTML = `
+                <h3>Submission Date: ${data.submittedAt.toDate().toLocaleString()}</h3>
+                <p><strong>Total Score:</strong> ${data.totalScore}</p>
+                <p><strong>Autism Range:</strong> ${data.autismRange}</p>
+            `;
+
+            const canvas = document.createElement('canvas');
+            canvas.id = 'chart-' + doc.id;
+
+            submissionCard.innerHTML = reportHTML;
+            submissionCard.appendChild(canvas);
+            submissionsContainer.appendChild(submissionCard);
+
+            new Chart(canvas, {
                 type: 'bar',
                 data: {
-                    labels: domains.map(d => d.name),
+                    labels: chartLabels,
                     datasets: [{
-                        label: 'Score',
-                        data: scores,
-                        backgroundColor: color,
-                        borderColor: color,
-                        borderWidth: 1,
-                        borderRadius: 5,
-                    }, {
-                        label: 'Maximum Score',
-                        data: domains.map(d => d.max),
-                        backgroundColor: '#e5e7eb',
-                        borderColor: '#d1d5db',
-                        borderWidth: 1,
-                        borderRadius: 5,
+                        label: 'Scores',
+                        data: chartData,
+                        backgroundColor: '#58151c',
+                        borderColor: '#f8f9fa',
+                        borderWidth: 1
                     }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false,
                     scales: {
                         y: {
                             beginAtZero: true,
-                            max: Math.max(...domains.map(d => d.max)) + 10
-                        },
-                        x: {
-                            ticks: {
-                                maxRotation: 45,
-                                minRotation: 45
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'bottom'
+                            max: 40
                         }
                     }
                 }
             });
-        }
+        });
 
-        // Function to fetch scores from Firebase
-        async function fetchScores() {
-            const loading = document.getElementById('loading');
-            const error = document.getElementById('error');
-            
-            try {
-                const user = auth.currentUser;
-                if (!user) {
-                    throw new Error('No user logged in');
-                }
+        loading.style.display = 'none';
+    } catch (err) {
+        console.error('Error fetching submissions:', err);
+        loading.style.display = 'none';
+        error.style.display = 'block';
+    }
+}
 
-                const scores = [];
-                
-                // Fetch scores for each domain
-                for (const domain of domains) {
-                    const docRef = db.collection('users').doc(user.uid)
-                                   .collection('English Questionnaire').doc(domain.id);
-                    const docSnap = await docRef.get();
-                    
-                    if (docSnap.exists) {
-                        scores.push(docSnap.data().score || 0);
-                    } else {
-                        scores.push(0);
-                    }
-                }
-
-                loading.style.display = 'none';
-                error.style.display = 'none';
-                updateScores(scores);
-
-            } catch (err) {
-                console.error('Error fetching scores:', err);
-                loading.style.display = 'none';
-                error.style.display = 'block';
-                error.textContent = 'Error loading scores. Please refresh the page.';
-            }
-        }
 
         // Auth state listener
         auth.onAuthStateChanged(user => {
             if (user) {
-                fetchScores();
+                displaySubmissionsWithReport(user.uid);
             } else {
-                window.location.href = 'index.html';
-            }
-        });
-
-        // Handle window resize for chart responsiveness
-        window.addEventListener('resize', () => {
-            if (chart) {
-                chart.resize();
+                window.location.href = 'login.html';
             }
         });
     </script>

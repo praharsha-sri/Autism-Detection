@@ -1,159 +1,102 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html>
 <head>
-    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth-compat.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            background-color: #f5f5f5;
-        }
-
-        .container {
-            width: 95%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 1rem;
-            background-color: #b200ff29;
+            font-family: 'Arial', sans-serif;
+            background-color: #c58acd99;
+            color: #333;
+            padding-top: 20px;
         }
 
         h1 {
-            color: black;
+            font-size: 2rem;
             text-align: center;
-            font-size: clamp(1.5rem, 4vw, 2rem);
-            margin: 1rem 0;
-        }
-
-        .score-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
-            gap: 1rem;
-            margin: 1.5rem 0;
-        }
-
-        .score-card {
-            background: white;
-            padding: 1rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            text-align: center;
-            transition: transform 0.2s;
-        }
-
-        .score-card:hover {
-            transform: translateY(-2px);
-        }
-
-        .score-title {
-            font-size: clamp(0.875rem, 2vw, 1rem);
-            color: #666;
-            margin-bottom: 0.5rem;
-        }
-
-        .score-value {
-            font-size: clamp(1.25rem, 3vw, 1.5rem);
+            margin-bottom: 1.5rem;
+            color: #000000;
             font-weight: bold;
-            color: #333;
         }
 
-        .score-max {
-            font-size: clamp(0.875rem, 2vw, 1rem);
-            color: #666;
+        .home-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .submission-card {
+            background-color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .submission-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .submission-card h3 {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #fd0000;
+        }
+
+        .submission-card p {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #000000;
         }
 
         .chart-container {
-            background: white;
             padding: 1rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin: 1.5rem 0;
-            position: relative;
-            width: 100%;
-            min-height: 300px;
-            height: auto;
-        }
-
-        #severity-indicator {
-            text-align: center;
-            padding: 0.75rem;
-            margin: 1rem 0;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: clamp(1rem, 2.5vw, 1.25rem);
+            border-radius: 10px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
         }
 
         #loading {
             text-align: center;
-            padding: 1rem;
+            color: #0d6efd;
             font-style: italic;
-            color: #666;
+            font-size: 1.2rem;
+            margin-top: 20px;
         }
 
         .error {
-            color: #ef4444;
+            color: #dc3545;
             text-align: center;
-            padding: 0.75rem;
-            margin: 0.75rem 0;
-            background: #fecaca;
-            border-radius: 8px;
-            font-size: clamp(0.875rem, 2vw, 1rem);
+            margin: 20px 0;
+            font-size: 1.2rem;
         }
     </style>
-    <title>प्रदर्शन परिणाम</title>
 </head>
 <body>
     <div class="container">
-        <h1>प्रदर्शन रिपोर्ट</h1>
-        <div id="loading">स्कोर लोड हो रहे हैं...</div>
-        <div id="error" style="display: none;" class="error"></div>
-        
-        <div class="score-grid">
-            <div class="score-card">
-                <div class="score-title">सामाजिक संबंध</div>
-                <div class="score-value">-<span class="score-max"></span></div>
-            </div>
-            <div class="score-card">
-                <div class="score-title">भावात्मक अनुक्रियाशीलता</div>
-                <div class="score-value">-<span class="score-max"></span></div>
-            </div>
-            <div class="score-card">
-                <div class="score-title">भाषण और संचार</div>
-                <div class="score-value">-<span class="score-max"></span></div>
-            </div>
-            <div class="score-card">
-                <div class="score-title">व्यवहार पैटर्न</div>
-                <div class="score-value">-<span class="score-max"></span></div>
-            </div>
-            <div class="score-card">
-                <div class="score-title">संवेदी पहलू</div>
-                <div class="score-value">-<span class="score-max"></span></div>
-            </div>
-            <div class="score-card">
-                <div class="score-title">संज्ञानात्मक अवयव</div>
-                <div class="score-value">-<span class="score-max"></span></div>
-            </div>
-        </div>
+        <!-- Home Button -->
+        <a href="parent_dashboard_hi.html" class="btn btn-primary home-button">होम</a>
 
-        <div id="severity-indicator"></div>
-
+        <h1>प्रदर्शन परिणाम</h1>
+        <div id="submissionsContainer"></div>
+        <div id="loading">सबमिशन लोड हो रहे हैं...</div>
+        <div id="error" class="error" style="display: none;">सबमिशन लोड करने में त्रुटि। कृपया पेज को रीफ्रेश करें।</div>
         <div class="chart-container">
             <canvas id="scoreChart"></canvas>
         </div>
     </div>
 
     <script>
-        // Firebase configuration
+        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
             authDomain: "autism-evaluation-platform.firebaseapp.com",
@@ -169,131 +112,102 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        // Domain definitions in Hindi
-        const domains = [
-            { id: 'समाजिक संबंध', name: 'सामाजिक संबंध', max: 45 },
-            { id: 'भावात्मक अनुक्रियाशीलता', name: 'भावनात्मक प्रतिक्रिया', max: 25 },
-            { id: 'वाणी-भाषा', name: 'भाषण और संचार', max: 45 },
-            { id: 'व्यवहारगत पैटर्न', name: 'व्यवहार पैटर्न', max: 35 },
-            { id: 'संवेदी पहलू', name: 'संवेदी पहलू', max: 30 },
-            { id: 'संज्ञानात्मक अवयव', name: 'संज्ञानात्मक घटक', max: 20 }
-        ];
+        // Translate X-axis labels to Hindi
+        const translations = {
+            socialRelationship: "सामाजिक संबंध",
+            emotionalResponsiveness: "भावनात्मक प्रतिक्रिया",
+            cognitiveComponent: "संज्ञानात्मक घटक",
+            behaviourPatterns: "व्यवहार पैटर्न",
+            speechLanguageCommunication: "भाषा और संचार",
+            sensoryAspects: "संवेदी पहलू"
+        };
 
-        let chart = null;
-
-        // Function to update scores display
-        function updateScores(scores) {
-            const scoreCards = document.querySelectorAll('.score-card');
-            scoreCards.forEach((card, index) => {
-                const scoreValue = card.querySelector('.score-value');
-                scoreValue.innerHTML = `${scores[index]}<span class="score-max">/${domains[index].max}</span>`;
-            });
-
-            const totalScore = scores.reduce((a, b) => a + b, 0);
-            const severityIndicator = document.getElementById('severity-indicator');
-            let severity, color;
-
-            if (totalScore <= 70) {
-                severity = 'ऑटिज़्म नहीं है';
-                color = '#4ade80';
-            } else if (totalScore <= 106) {
-                severity = 'हल्का ऑटिज़्म';
-                color = '#fbbf24';
-            } else if (totalScore <= 153) {
-                severity = 'मध्यम ऑटिज़्म';
-                color = '#fb923c';
-            } else {
-                severity = 'गंभीर ऑटिज़्म';
-                color = '#ef4444';
-            }
-
-            severityIndicator.textContent = `${severity} (कुल स्कोर: ${totalScore})`;
-            severityIndicator.style.backgroundColor = color + '20';
-            severityIndicator.style.color = color;
-
-            if (chart) {
-                chart.destroy();
-            }
-
-            const ctx = document.getElementById('scoreChart').getContext('2d');
-            chart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: domains.map(d => d.name),
-                    datasets: [
-                        {
-                            label: 'स्कोर',
-                            data: scores,
-                            backgroundColor: color,
-                            borderColor: color,
-                            borderWidth: 1,
-                            borderRadius: 5,
-                        },
-                        {
-                            label: 'अधिकतम स्कोर',
-                            data: domains.map(d => d.max),
-                            backgroundColor: '#e5e7eb',
-                            borderColor: '#d1d5db',
-                            borderWidth: 1,
-                            borderRadius: 5,
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: Math.max(...domains.map(d => d.max)) + 10
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'bottom',
-                            labels: {
-                                color: '#000'
-                            }
-                        }
-                    }
-                }
-            });
+        function translateToHindi(label) {
+            return translations[label] || label;
         }
 
-        // Fetch scores from Firebase
-        async function fetchScores() {
+        async function displaySubmissionsWithReport(userId) {
+            const submissionsContainer = document.getElementById('submissionsContainer');
             const loading = document.getElementById('loading');
             const error = document.getElementById('error');
-            
-            try {
-                const user = auth.currentUser;
-                if (!user) throw new Error('कोई उपयोगकर्ता लॉग इन नहीं है');
 
-                const scores = [];
-                for (const domain of domains) {
-                    const docRef = db.collection('users').doc(user.uid)
-                                   .collection('Hindi Questionnaire').doc(domain.id);
-                    const docSnap = await docRef.get();
-                    scores.push(docSnap.exists ? docSnap.data().score || 0 : 0);
+            try {
+                loading.style.display = 'block';
+                error.style.display = 'none';
+                submissionsContainer.innerHTML = '';
+
+                const submissionsRef = db.collection('users').doc(userId).collection('submissions');
+                const submissionsSnap = await submissionsRef.orderBy('submittedAt', 'desc').get();
+
+                if (submissionsSnap.empty) {
+                    loading.style.display = 'none';
+                    error.style.display = 'block';
+                    error.textContent = 'कोई सबमिशन नहीं मिला।';
+                    return;
                 }
 
+                submissionsSnap.forEach(doc => {
+                    const data = doc.data();
+
+                    if (!data.scores || Object.keys(data.scores).length === 0) return;
+
+                    const submissionCard = document.createElement('div');
+                    submissionCard.classList.add('submission-card');
+
+                    const scores = data.scores;
+                    const chartLabels = Object.keys(scores).sort().map(translateToHindi); // Translate labels
+                    const chartData = Object.keys(scores).sort().map(key => scores[key]); // Match data
+
+                    const reportHTML = `
+                        <h3>सबमिशन तिथि: ${data.submittedAt.toDate().toLocaleString()}</h3>
+                        <p><strong>कुल स्कोर:</strong> ${data.totalScore}</p>
+                        <p><strong>ऑटिज़्म रेंज:</strong> ${data.autismRange}</p>
+                    `;
+
+                    const canvas = document.createElement('canvas');
+                    canvas.id = 'chart-' + doc.id;
+
+                    submissionCard.innerHTML = reportHTML;
+                    submissionCard.appendChild(canvas);
+                    submissionsContainer.appendChild(submissionCard);
+
+                    new Chart(canvas, {
+                        type: 'bar',
+                        data: {
+                            labels: chartLabels, // Use translated labels
+                            datasets: [{
+                                label: 'स्कोर',
+                                data: chartData,
+                                backgroundColor: '#58151c',
+                                borderColor: '#f8f9fa',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 40
+                                }
+                            }
+                        }
+                    });
+                });
+
                 loading.style.display = 'none';
-                error.style.display = 'none';
-                updateScores(scores);
             } catch (err) {
-                console.error('त्रुटि:', err);
+                console.error('सबमिशन प्राप्त करने में त्रुटि:', err);
                 loading.style.display = 'none';
                 error.style.display = 'block';
-                error.textContent = 'लोडिंग में त्रुटि, कृपया पत्र को रीफ्रेश करें।';
             }
         }
 
         auth.onAuthStateChanged(user => {
             if (user) {
-                fetchScores();
+                displaySubmissionsWithReport(user.uid);
             } else {
-                window.location.href = 'index.html';
+                window.location.href = 'login.html';
             }
         });
     </script>

@@ -29,12 +29,21 @@
         const auth = getAuth(app);
 
         // Save form data to Firestore
-        async function storeFormDataInFirestore(data) {
+        async function storeFormDataInFirestore(data, studentName) {
             const user = auth.currentUser;
             if (user) {
+                const role = 'teacher'; // Simulate role-checking. Replace with actual role-check logic.
                 try {
-                    const docRef = doc(db, "users", user.uid, "English Questionnaire", "details");
-                    await setDoc(docRef, data, { merge: true });  // Merges data instead of overwriting
+                    let docRef;
+                    if (role === 'teacher') {
+                     const questionnaireId = studentName.replace(/\s+/g, "_").toLowerCase();
+                    docRef = doc(db, "users", user.uid, "Students Questionnaires", questionnaireId, "details");
+                    }
+                    else {
+                        docRef = doc(db, "users", user.uid, "Questionnaire", "details");
+                    }
+
+                    await setDoc(docRef, data, { merge: true });
                     console.log("Data stored successfully!");
                 } catch (error) {
                     console.error("Error storing data: ", error);
@@ -75,40 +84,30 @@
 
             const form = document.getElementById('autismForm');
             form.onsubmit = async (e) => {
-                e.preventDefault(); // Prevent default form submission
-                
-                // Validate the form data
+                e.preventDefault();
+
                 let allFilled = true;
                 let age = parseInt(document.getElementById('age').value);
                 const errorMessageElement = document.getElementById('error-message');
                 errorMessageElement.textContent = '';
 
-                // Check if all required inputs are filled
                 form.querySelectorAll('input, select').forEach(function(input) {
                     if (!input.value) {
                         allFilled = false;
                     }
                 });
 
-            // Check if all required inputs are filled
-            form.querySelectorAll('input, select').forEach(function(input) {
-                if (!input.value) {
+                if (isNaN(age) || age < 3 || age > 9) {
                     allFilled = false;
+                    errorMessageElement.textContent = 'Age must be between 3 and 9 years.';
                 }
-            });
 
-            // Check if age is in valid range
-            if (isNaN(age) || age < 3 || age > 9) {
-                allFilled = false;
-                errorMessageElement.textContent = 'Age must be between 3 and 9 years.';
-            }
+                if (allFilled) {
+                    saveFormDataToLocalStorage();
 
-            if (allFilled) {
-                    saveFormDataToLocalStorage(); // Save data locally
-
-                    // Store in Firestore
+                    const studentName = document.getElementById('name').value;
                     const formData = {
-                        name: document.getElementById('name').value,
+                        name: studentName,
                         gender: document.getElementById('gender').value,
                         date: document.getElementById('date').value,
                         dob: document.getElementById('dob').value,
@@ -116,22 +115,20 @@
                         examiner: document.getElementById('examiner').value,
                         timestamp: new Date()
                     };
-                    await storeFormDataInFirestore(formData);
 
-                    // Navigate to the next page
+                    await storeFormDataInFirestore(formData, studentName);
+
                     window.location.href = "social.html";
                 }
             };
 
-            // Firebase auth state listener
             onAuthStateChanged(auth, (user) => {
                 if (!user) {
                     console.error("User not signed in.");
                 }
             });
         });
- </script>
-
+    </script>
 </head>
 <body>
     <h2>Indian Scale for Assessment of Autism</h2>
@@ -179,82 +176,37 @@
             <button type="submit">Next</button>
         </div>
     </form>
+
     <script>
-        window.onload = function() {
-
-            var today = new Date().toISOString().split('T')[0];
+        window.onload = function () {
+            const today = new Date().toISOString().split('T')[0];
             document.getElementById('date').value = today;
-
-
             document.getElementById('dob').setAttribute('max', today);
         };
 
-
-        document.getElementById('dob').addEventListener('change', function() {
-            var dobValue = this.value;
-
+        document.getElementById('dob').addEventListener('change', function () {
+            const dobValue = this.value;
+            const errorMessageElement = document.getElementById('error-message');
 
             if (dobValue.length === 10) {
-                var dob = new Date(dobValue);
-                var today = new Date();
-                var age = today.getFullYear() - dob.getFullYear();
-                var monthDifference = today.getMonth() - dob.getMonth();
-                
+                const dob = new Date(dobValue);
+                const today = new Date();
+                let age = today.getFullYear() - dob.getFullYear();
+                const monthDifference = today.getMonth() - dob.getMonth();
+
                 if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < dob.getDate())) {
                     age--;
                 }
 
                 document.getElementById('age').value = age;
+
                 if (age < 3 || age > 9) {
-                    document.getElementById('error-message').textContent = 'Age must be between 3 and 9 years';
+                    errorMessageElement.textContent = 'Age must be between 3 and 9 years.';
                 } else {
-                    document.getElementById('error-message').textContent = '';
+                    errorMessageElement.textContent = '';
                 }
             }
         });
-
-
-        document.getElementById('autismForm').addEventListener('submit', function(event) {
-    let allFilled = true;
-    let age = parseInt(document.getElementById('age').value);
-
-    document.getElementById('error-message').textContent = '';
-
-    // Check if all required inputs are filled
-    this.querySelectorAll('input, select').forEach(function(input) {
-        if (!input.value) {
-            allFilled = false;
-        }
-    });
-
-    // Check if age is in valid range
-    if (isNaN(age) || age < 3 || age > 9) {
-        allFilled = false;
-        document.getElementById('error-message').textContent = 'Age must be between 3 and 9 years';
-    }
-
-    if (allFilled) {
-        saveFormDataToLocalStorage(); // Save data locally
-        storeFormDataInFirestore({
-            name: document.getElementById('name').value,
-            gender: document.getElementById('gender').value,
-            date: document.getElementById('date').value,
-            dob: document.getElementById('dob').value,
-            age: document.getElementById('age').value,
-            examiner: document.getElementById('examiner').value,
-            timestamp: new Date()
-        });
-
-        // Navigate to the next page
-        window.location.href = "social.html";
-    } else {
-        // Prevent form submission if validation fails
-        event.preventDefault();
-    }
-});
-
-</script>
-
-
+    </script>
 </body>
 </html>
