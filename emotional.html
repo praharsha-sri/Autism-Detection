@@ -9,7 +9,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc,getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 
         // Firebase configuration
@@ -97,10 +97,19 @@
     }
 
     if (user) {
-        const role = 'teacher'; // Simulate role-checking. Replace with actual role-check logic.
         try {
             // Convert student name to a valid Firestore path format
             const studentCollectionName = studentName.replace(/\s+/g, "_").toLowerCase(); 
+
+            // Retrieve the user's role from Firestore
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (!userDoc.exists()) {
+                console.error("User document does not exist.");
+                return;
+            }
+
+            const userData = userDoc.data();
+            const role = userData.role; // Assuming 'role' field is present in the user's Firestore document
 
             let docRef;
 
