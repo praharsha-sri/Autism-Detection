@@ -83,7 +83,7 @@
 
                 if (allFilled) {
                     await storeFormDataInFirestore(formData, studentName); // Store data in Firestore
-                    window.location.href = "social.html"; // Redirect to the next page
+                    window.location.href = `social.html?studentName=${encodeURIComponent(studentName)}`;
                 }
             };
 
