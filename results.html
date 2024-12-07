@@ -169,8 +169,19 @@
 
                 // Store the results
                 if (isTeacher) {
+                    //store overall socre inside the collection of the user (student)
                     const overallScoreRef = doc(db, 'users', userId, studentCollectionName, 'overallscore');
                     await setDoc(overallScoreRef, {
+                        userId: userId,
+                        studentName: studentName,
+                        scores: scores,
+                        totalScore: totalScore,
+                        autismRange: autismRange,
+                        submittedAt: new Date()
+                    });
+                    //store all the data again in the submissions collections, inside with unique id and all the other detials inside it
+                    const submissionsRef = collection(db, 'users', userId, 'submissions');
+                    await addDoc(submissionsRef, {
                         userId: userId,
                         studentName: studentName,
                         scores: scores,
