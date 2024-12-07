@@ -88,6 +88,7 @@
     const user = auth.currentUser;
     const collectionName = new URLSearchParams(window.location.search).get('collectionName') || 'Questionnaire';
     const studentName = new URLSearchParams(window.location.search).get('studentName'); // Get student name from URL
+    const studentAge = new URLSearchParams(window.location.search).get('studentAge'); // Get student age from URL
 
     // Ensure studentName is available
     if (!studentName) {
@@ -129,7 +130,7 @@
             });
 
             console.log("Data stored successfully!");
-            window.location.href = `speech.html?collectionName=${encodeURIComponent(collectionName)}&studentName=${encodeURIComponent(studentName)}`;
+            window.location.href = `speech.html?collectionName=${encodeURIComponent(collectionName)}&studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(studentAge)}`;
         } catch (error) {
             console.error("Error storing data: ", error);
         }

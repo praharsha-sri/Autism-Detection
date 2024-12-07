@@ -67,7 +67,7 @@
 
             form.onsubmit = async (e) => {
                 e.preventDefault(); // Prevent default form submission
-                
+                const studentAge = document.getElementById('age').value; // Age
                 const studentName = document.getElementById('name').value; // Student name
                 const formData = {
                     name: studentName,
@@ -92,7 +92,7 @@
 
                 if (allFilled) {
                     await storeFormDataInFirestore(formData, studentName); // Store data in Firestore
-                    window.location.href = `social.html?studentName=${encodeURIComponent(studentName)}`;
+                    window.location.href = `social.html?studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(studentAge)}`;
                 }
             };
 
