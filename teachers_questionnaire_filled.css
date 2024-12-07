@@ -1,0 +1,63 @@
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #dde29b99;
+            color: #333;
+            padding-top: 20px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: #000000;
+            font-weight: bold;
+        }
+
+        .submission-card {
+            background-color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .submission-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .submission-card h3 {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #fd0000;
+        }
+
+        .submission-card p {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #000000;
+        }
+
+        #loading {
+            text-align: center;
+            color: #0d6efd;
+            font-style: italic;
+            font-size: 1.2rem;
+            margin-top: 20px;
+        }
+
+        .error {
+            color: #dc3545;
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.2rem;
+        }
+
+        .home-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }

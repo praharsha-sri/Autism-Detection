@@ -172,7 +172,8 @@ async function displaySubmissionsWithReport(userId) {
             const chartData = chartLabels.map(label => scores[label]); // Match the sorted labels with the data
 
             const reportHTML = `
-                <h3>Submission Date: ${data.submittedAt.toDate().toLocaleString()}</h3>
+                <p><strong>Student Name:</strong> ${data.studentName || 'Unknown'}</p>
+                <p><strong>Submission Date:</strong> ${data.submittedAt.toDate().toLocaleString()}</p>
                 <p><strong>Total Score:</strong> ${data.totalScore}</p>
                 <p><strong>Autism Range:</strong> ${data.autismRange}</p>
             `;
