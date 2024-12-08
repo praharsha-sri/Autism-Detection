@@ -1,71 +1,123 @@
+/* General Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 /* Custom Background */
-body.bg-light-teal {
-    background: linear-gradient(to right, #b2dfdb, #e0f2f1); /* Slightly adjusted teal gradient */
-    color: #333; /* Dark gray for contrast */
+body {
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+    background: linear-gradient(to right, #b99bd9, #2575fc52);
+    margin: 0;
+    font-family: 'Arial', sans-serif;
 }
 
 /* Navbar Styling (Fixed at the top) */
 .navbar {
-    background-color: #e3f2fd; /* Light blue-teal navbar */
-    border-bottom: 2px solid #42a5f5; /* Soft blue underline */
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 0.5rem 1rem;
+    position: fixed;
     width: 100%;
-    position: fixed; /* Fixed at the top */
     top: 0;
     z-index: 1000;
-    padding: 10px 20px;
 }
 
 .navbar-brand {
     font-weight: bold;
     font-size: 1.5rem;
-    color: #42a5f5; /* Muted blue navbar brand */
+    color: #000000;
 }
 
 .navbar .btn-danger {
-    background-color: #29b6f6; /* Calm blue button */
-    border-color: #29b6f6;
+    background-color: #f62929;
+    border-color: #f3f3f3;
     color: white;
-    font-size: 1.1rem; /* Slightly increased font size */
-    padding: 10px 20px; /* Increased padding */
+    font-size: 1rem;
+    padding: 10px 15px;
+    border-radius: 5px;
 }
 
 .navbar .btn-danger:hover {
-    background-color: #0288d1; /* Slightly darker blue on hover */
-    border-color: #0288d1;
+    background-color: #ff7474;
+    border-color: #000000;
 }
 
 /* Card Styling */
 .card {
-    background-color: #ffffff; /* White background for contrast */
+    background-color: #ffffff;
     border: none;
-    border-radius: 20px; /* Softer rounded corners */
+    border-radius: 10px;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-    padding: 20px;
+    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+    padding: 10px;
     text-align: center;
+    margin: 10px;
 }
 
 .card:hover {
-    transform: translateY(-5px); /* Slight upward movement on hover */
-    box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.15); /* Stronger shadow on hover */
+    transform: translateY(-5px);
+    box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.15);
 }
 
-/* Card Text and Icons */
 .card h5 {
     font-weight: bold;
-    color: #546e7a; /* Slate gray for professional feel */
+    color: #546e7a;
     margin-top: 15px;
 }
 
 .card-body span {
-    color: #29b6f6; /* Calm blue icon */
+    color: #041d4d;
     font-size: 2.5rem;
 }
 
 /* Centered Content */
 .container {
-    padding-top: 150px; /* Offset to make space for the navbar */
+    padding-top: 120px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    /* Adjust navbar padding */
+    .navbar {
+        padding: 0.5rem;
+    }
+    .navbar-brand {
+        font-size: 1.2rem;
+    }
+    .navbar .btn-danger {
+        font-size: 0.9rem;
+        padding: 8px 12px;
+    }
+    /* Cards */
+    .card {
+        padding: 15px;
+        margin: 15px 10px;
+    }
+    .card-body span {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 576px) {
+    /* Navbar */
+    .navbar-brand {
+        font-size: 1rem;
+    }
+    .navbar .btn-danger {
+        font-size: 0.8rem;
+        padding: 5px 10px;
+    }
+    /* Card content */
+    .card h5 {
+        font-size: 1rem;
+    }
+    .card-body span {
+        font-size: 1.8rem;
+    }
+    /* Centered content padding */
+    .container {
+        padding-top: 100px;
+    }
 }
