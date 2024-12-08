@@ -134,11 +134,6 @@
         async function initializeDashboard(user) {
             showLoading();
             try {
-                if (!checkLanguageSelection()) {
-                    window.location.href = 'language.html';
-                    return;
-                }
-
                 const userDoc = await getDoc(doc(db, "users", user.uid));
                 if (userDoc.exists()) {
                     const userData = userDoc.data();

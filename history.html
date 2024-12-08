@@ -172,10 +172,10 @@ async function displaySubmissionsWithReport(userId) {
             const chartData = chartLabels.map(label => scores[label]); // Match the sorted labels with the data
 
             const reportHTML = `
-                <p><strong>Student Name:</strong> ${data.studentName || 'Unknown'}</p>
-                <p><strong>Submission Date:</strong> ${data.submittedAt.toDate().toLocaleString()}</p>
+                <h3><strong>Student Name: ${data.studentName || 'Unknown'}</strong> </h3>
+                <h3><strong>Autism Range: ${data.autismRange}</strong></h3>
                 <p><strong>Total Score:</strong> ${data.totalScore}</p>
-                <p><strong>Autism Range:</strong> ${data.autismRange}</p>
+                <p><strong>Submission Date:</strong> ${data.submittedAt.toDate().toLocaleString()}</p>
             `;
 
             const canvas = document.createElement('canvas');
