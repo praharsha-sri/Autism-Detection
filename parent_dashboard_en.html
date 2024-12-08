@@ -134,7 +134,6 @@
         async function initializeDashboard(user) {
             showLoading();
             try {
-
                 const userDoc = await getDoc(doc(db, "users", user.uid));
                 if (userDoc.exists()) {
                     const userData = userDoc.data();
@@ -146,10 +145,6 @@
                         window.location.href = 'index.html';
                         return;
                     }
-                    if (!checkLanguageSelection()) {
-                    window.location.href = 'language.html';
-                    return;
-                }
 
                     const userName = userData.name || "User";
                     document.getElementById('user-name').textContent = `${userName}'s Dashboard`;
