@@ -87,8 +87,9 @@
         async function storeQuestionnaireDataInFirebase(data) {
     const user = auth.currentUser;
     const collectionName = new URLSearchParams(window.location.search).get('collectionName') || 'Questionnaire';
+    const studentAge =new URLSearchParams(window.location.search).get('studentAge'); // Get student age from URL
     const studentName = new URLSearchParams(window.location.search).get('studentName'); // Get student name from URL
-    const studentAge = new URLSearchParams(window.location.search).get('studentAge'); // Get student age from URL
+    const studentDob = new URLSearchParams(window.location.search).get('studentDob'); // Get student dob from URL
     // Ensure studentName is available
     if (!studentName) {
         console.error("Student name is missing.");
@@ -129,7 +130,7 @@
             });
 
             console.log("Data stored successfully!");
-            window.location.href = `emotional.html?collectionName=${encodeURIComponent(collectionName)}&studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(studentAge)}`;
+            window.location.href = `emotional.html?collectionName=${encodeURIComponent(collectionName)}&studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(studentAge)}&studentDob=${encodeURIComponent(studentDob)}`;
         } catch (error) {
             console.error("Error storing data: ", error);
         }
