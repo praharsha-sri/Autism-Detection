@@ -160,9 +160,11 @@
 
                     const reportHTML = `
                     <h3><strong>नाम: ${data.studentName || 'Unknown'}</strong> </h3>
-                <h3><strong>ऑटिज़्म रेंज: ${data.autismRange}</strong></h3>
-                <p><strong>Tकुल स्कोर: </strong> ${data.totalScore}</p>
-                <p><strong>सबमिशन तिथि: </strong> ${data.submittedAt.toDate().toLocaleString()}</p>
+                    <h3><strong>आयु: ${data.studentAge || 'Unknown'}</strong> </h3>
+                    <h3><strong>जन्म तिथि: ${data.studentDob || 'Unknown'}</strong> </h3>
+                    <h3><strong>ऑटिज़्म रेंज: ${data.autismRange}</strong></h3>
+                    <p><strong>Tकुल स्कोर: </strong> ${data.totalScore}</p>
+                    <p><strong>सबमिशन तिथि: </strong> ${data.submittedAt.toDate().toLocaleString()}</p>
                     `;
 
                     const canvas = document.createElement('canvas');

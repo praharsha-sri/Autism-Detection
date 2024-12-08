@@ -161,9 +161,11 @@
                     const reportHTML = `
 
                     <h3><strong>పేరు: ${data.studentName || 'Unknown'}</strong> </h3>
-                <h3><strong>ఆటిజం రేంజ్: ${data.autismRange}</strong></h3>
-                <p><strong>మొత్తం స్కోర్: </strong> ${data.totalScore}</p>
-                <p><strong>ఆటిజం రేంజ్: </strong> ${data.submittedAt.toDate().toLocaleString()}</p>
+                    <h3><strong>వయస్సు: ${data.studentAge || 'Unknown'}</strong> </h3>
+                    <h3><strong>పుట్టిన తేదీ: ${data.studentDob || 'Unknown'}</strong> </h3>
+                     <h3><strong>ఆటిజం రేంజ్: ${data.autismRange}</strong></h3>
+                    <p><strong>మొత్తం స్కోర్: </strong> ${data.totalScore}</p>
+                    <p><strong>ఆటిజం రేంజ్: </strong> ${data.submittedAt.toDate().toLocaleString()}</p>
                     `;
 
                     const canvas = document.createElement('canvas');

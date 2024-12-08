@@ -68,6 +68,8 @@
 
                     const reportHTML = `
                         <h3>Name of the Student: ${data.studentName || 'Unknown'}</h3>
+                         <h3>Student Age: ${data.studentAge || 'Unknown'} </h3>
+                         <h3>Student DOB: ${data.studentDob || 'Unknown'} </h3>
                         <p><strong>Submission Date:</strong> ${data.submittedAt.toDate().toLocaleString()}</p>
                         <p><strong>Total Score:</strong> ${data.totalScore}</p>
                         <p><strong>Autism Range:</strong> ${data.autismRange}</p>
