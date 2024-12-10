@@ -8,30 +8,38 @@
     <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth-compat.js"></script>
-    <link rel="stylesheet" href="teachers_questionnaire_filled.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="filledquestionnaire.css" rel="stylesheet">
 </head>
 <body>
     <!-- Home Button -->
     <a href="teacher_dashboard.html" class="btn btn-primary home-button">Home</a>
 
-    <div class="container mt-4">
+    <div class="container-fluid mt-4">
         <!-- Page Title -->
-        <h1 class="text-center my-4">Teachers Filled Questionnaires</h1>
         <br>
-        <!-- Submissions Container -->
-        <div id="submissionsContainer" class="row"></div>
+        <h1 class="text-center my-4">Teachers Filled Questionnaires</h1>
+        <!-- Search Input -->
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search by student name..." class="form-control">
+            <i class="search-icon">🔍</i>
+        </div>
 
-        <!-- Loading Indicator -->
-        <div id="loading" class="text-center text-primary my-4">Loading submissions...</div>
+        <!-- Student Buttons Container -->
+        <div id="studentButtonsContainer" class="student-buttons text-center"></div>
 
-        <!-- Error Message -->
-        <div id="error" class="text-center text-danger my-4" style="display: none;">
-            Error loading submissions. Please refresh the page.
+        <!-- Modal Backdrop -->
+        <div id="modalBackdrop" class="modal-backdrop"></div>
+
+        <!-- Student Modal -->
+        <div id="studentModal" class="student-modal">
+            <button class="btn-close-modal" onclick="closeModal()">&times;</button>
+            <div id="studentModalContent" class="p-4"></div>
         </div>
     </div>
 
     <script>
-        // Firebase configuration
+        // Firebase configuration remains the same as in the previous version
         const firebaseConfig = {
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
             authDomain: "autism-evaluation-platform.firebaseapp.com",
@@ -47,65 +55,122 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        // Function to display submissions as cards
+        // Function to display submissions as buttons and modal
         async function displaySubmissions(userId) {
-            const submissionsContainer = document.getElementById('submissionsContainer');
-            const loading = document.getElementById('loading');
-            const error = document.getElementById('error');
+            const studentButtonsContainer = document.getElementById('studentButtonsContainer');
+            const modalBackdrop = document.getElementById('modalBackdrop');
+            const studentModal = document.getElementById('studentModal');
+            const studentModalContent = document.getElementById('studentModalContent');
+            const searchInput = document.getElementById('searchInput');
 
             try {
-                loading.style.display = 'block';
-                error.style.display = 'none';
-                submissionsContainer.innerHTML = '';
-
                 // Fetch submissions
                 const submissionsRef = db.collection('users').doc(userId).collection('submissions');
                 const submissionsSnap = await submissionsRef.orderBy('submittedAt', 'desc').get();
 
                 if (submissionsSnap.empty) {
-                    loading.style.display = 'none';
-                    error.style.display = 'block';
-                    error.textContent = 'No submissions found.';
+                    studentButtonsContainer.innerHTML = '<p class="text-center text-danger">No submissions found.</p>';
                     return;
                 }
 
+                const submissions = [];
                 submissionsSnap.forEach(doc => {
                     const data = doc.data();
-
-                    // Skip if scores are empty
                     if (!data.scores || Object.keys(data.scores).length === 0) return;
-
-                    const cardHTML = `
-                        <div class="col-lg-4 col-md-6 col-sm-12 mb-4">
-                            <div class="card shadow-sm h-100">
-                                <div class="card-body">
-                                    <h5 class="card-title text-primary"><strong>Name: ${data.studentName || 'Unknown'}</strong></h5>
-                                    <h5 class="card-title text-primary"><strong>Age:</strong> ${data.studentAge || 'Unknown'}</h5>
-                                    <h5 class="card-title text-primary"><strong>DOB:</strong> ${data.studentDob || 'Unknown'}</h5>
-                                    <p class="card-text"><strong>Submission Date:</strong> ${data.submittedAt.toDate().toLocaleString()}</p>
-                                    <p class="card-text"><strong>Total Score:</strong> ${data.totalScore}</p>
-                                    <p class="card-text"><strong>Autism Range:</strong> ${data.autismRange}</p>
-                                    <p><strong>Scores Breakdown:</strong></p>
-                                    <ul class="list-unstyled">
-                                        ${Object.keys(data.scores).map(key => `
-                                            <li><strong>${key}:</strong> ${data.scores[key]}</li>
-                                        `).join('')}
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-
-                    submissionsContainer.insertAdjacentHTML('beforeend', cardHTML);
+                    submissions.push({...data, id: doc.id});
                 });
 
-                loading.style.display = 'none';
+                // Create buttons and modal content for each student
+                submissions.forEach((data, index) => {
+                    const buttonId = `student-btn-${index}`;
+                    
+                    // Create student button
+                    const buttonHTML = `
+                        <button id="${buttonId}" class="btn" 
+                                onclick="showStudentModal(${index})">
+                            <strong>${data.studentName || 'Unknown'}</strong>
+                            <small>DOB: ${data.studentDob || 'Unknown'}</small>
+                            <small>Age: ${data.studentAge || 'Unknown'}</small>
+                        </button>
+                    `;
+                    studentButtonsContainer.insertAdjacentHTML('beforeend', buttonHTML);
+                });
+
+                // Search functionality
+                searchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    const buttons = document.querySelectorAll('.student-buttons .btn');
+                    
+                    buttons.forEach(button => {
+                        const studentName = button.querySelector('strong').textContent.toLowerCase();
+                        button.style.display = studentName.includes(searchTerm) ? 'flex' : 'none';
+                    });
+                });
+
+                // Store submissions in a global variable for modal access
+                window.submissions = submissions;
             } catch (err) {
                 console.error('Error fetching submissions:', err);
-                loading.style.display = 'none';
-                error.style.display = 'block';
+                studentButtonsContainer.innerHTML = `
+                    <p class="text-center text-danger">
+                        Error loading submissions. Please refresh the page.
+                    </p>
+                `;
             }
         }
+
+        // Function to show student modal
+        function showStudentModal(index) {
+            const modalBackdrop = document.getElementById('modalBackdrop');
+            const studentModal = document.getElementById('studentModal');
+            const studentModalContent = document.getElementById('studentModalContent');
+            const data = window.submissions[index];
+
+            // Populate modal content
+            studentModalContent.innerHTML = `
+                <h2 class="text-primary mb-4">${data.studentName || 'Unknown'}</h2>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Age:</strong> ${data.studentAge || 'Unknown'}</p>
+                        <p><strong>Date of Birth:</strong> ${data.studentDob || 'Unknown'}</p>
+                        <p><strong>Submission Date:</strong> ${data.submittedAt.toDate().toLocaleString()}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Total Score:</strong> ${data.totalScore}</p>
+                        <p><strong>Autism Range:</strong> ${data.autismRange}</p>
+                    </div>
+                </div>
+                <h4 class="mt-4 text-primary">Scores Breakdown</h4>
+                <ul class="list-group">
+                    ${Object.keys(data.scores).map(key => `
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            ${key}
+                            <span class="badge bg-primary rounded-pill">${data.scores[key]}</span>
+                        </li>
+                    `).join('')}
+                </ul>
+            `;
+
+            // Show modal and backdrop
+            modalBackdrop.classList.add('show');
+            studentModal.classList.add('show');
+        }
+
+        // Function to close modal
+        function closeModal() {
+            const modalBackdrop = document.getElementById('modalBackdrop');
+            const studentModal = document.getElementById('studentModal');
+
+            modalBackdrop.classList.remove('show');
+            studentModal.classList.remove('show');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('modalBackdrop').addEventListener('click', function(event) {
+            if (event.target === this) {
+                closeModal();
+            }
+        });
 
         // Auth state listener
         auth.onAuthStateChanged(user => {
