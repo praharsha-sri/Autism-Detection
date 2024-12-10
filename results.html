@@ -126,7 +126,7 @@
             }
         }
 
-        async function fetchScoresAndStore(userId, studentName) {
+        async function fetchScoresAndStore(userId, studentName, studentAge, studentDob) {
             const studentCollectionName = studentName.replace(/\s+/g, "_").toLowerCase();
             try {
                 let totalScore = 0;
@@ -169,10 +169,25 @@
 
                 // Store the results
                 if (isTeacher) {
+                    //store overall socre inside the collection of the user (student)
                     const overallScoreRef = doc(db, 'users', userId, studentCollectionName, 'overallscore');
                     await setDoc(overallScoreRef, {
                         userId: userId,
                         studentName: studentName,
+                        studentDob:studentDob,
+                        studentAge:studentAge,
+                        scores: scores,
+                        totalScore: totalScore,
+                        autismRange: autismRange,
+                        submittedAt: new Date()
+                    });
+                    //store all the data again in the submissions collections, inside with unique id and all the other detials inside it
+                    const submissionsRef = collection(db, 'users', userId, 'submissions');
+                    await addDoc(submissionsRef, {
+                        userId: userId,
+                        studentName: studentName,
+                        studentDob:studentDob,
+                        studentAge:studentAge,
                         scores: scores,
                         totalScore: totalScore,
                         autismRange: autismRange,
@@ -183,6 +198,8 @@
                     await addDoc(submissionsRef, {
                         userId: userId,
                         studentName: studentName,
+                        studentDob:studentDob,
+                        studentAge:studentAge,
                         scores: scores,
                         totalScore: totalScore,
                         autismRange: autismRange,
@@ -213,8 +230,10 @@
                     }
 
                     const studentName = new URLSearchParams(window.location.search).get('studentName');
+                    const studentAge = new URLSearchParams(window.location.search).get('studentAge');
+                    const studentDob = new URLSearchParams(window.location.search).get('studentDob'); // Get student dob from URL
                     if (studentName) {
-                        fetchScoresAndStore(user.uid, studentName);
+                        fetchScoresAndStore(user.uid, studentName,studentAge,studentDob);
                     }
                 }
             } else {
