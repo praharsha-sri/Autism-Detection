@@ -1,0 +1,234 @@
+<!-- index.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autism Evaluation Platform - Case History</title>
+    <link rel="stylesheet" href="casehistory_details.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Identification Section -->
+        <div class="section">
+            <h2>Identification</h2>
+            <div class="info-row">
+                <span class="label">Name: </span>
+                <span class="value" id="identification-name"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Age: </span>
+                <span class="value" id="identification-age"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Gender: </span>
+                <span class="value" id="identification-gender"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Date of Birth: </span>
+                <span class="value" id="identification-dob"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Informant: </span>
+                <span class="value" id="identification-informant"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Parent Occupation: </span>
+                <span class="value" id="identification-parentOccupation"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Referral: </span>
+                <span class="value" id="identification-referral"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Complaints: </span>
+                <span class="value" id="identification-complaints"></span>
+            </div>
+        </div>
+
+        <!-- Behavior Section -->
+        <div class="section">
+            <h2>Behavior</h2>
+            <div class="info-row">
+                <span class="label">Behavior: </span>
+                <span class="value" id="behavior-behave"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Different Behaviors: </span>
+                <span class="value" id="behavior-differentbeh"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Hearing: </span>
+                <span class="value" id="behavior-hearing"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Home Behavior: </span>
+                <span class="value" id="behavior-homebehaviour"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Orientation: </span>
+                <span class="value" id="behavior-orientation"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Social Behavior: </span>
+                <span class="value" id="behavior-socialbehaviour"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Speech: </span>
+                <span class="value" id="behavior-speech"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Vision: </span>
+                <span class="value" id="behavior-vision"></span>
+            </div>
+        </div>
+
+        <!-- Educational Section -->
+        <div class="section">
+            <h2>Educational</h2>
+            <div class="info-row">
+                <span class="label">Any Other Educational: </span>
+                <span class="value" id="educational-anyOtherEducational"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Peer Teacher Relationship: </span>
+                <span class="value" id="educational-peerTeacherRelationship"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">School Age: </span>
+                <span class="value" id="educational-schoolAge"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">School Issues: </span>
+                <span class="value" id="educational-schoolIssues"></span>
+            </div>
+        </div>
+
+        <!-- Family Section -->
+        <div class="section">
+            <h2>Family</h2>
+            <div class="info-row">
+                <span class="label">Any Others: </span>
+                <span class="value" id="family-anyOthers"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Consanguinity: </span>
+                <span class="value" id="family-consanguinity"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Sibling History: </span>
+                <span class="value" id="family-siblingHistory"></span>
+            </div>
+        </div>
+
+        <!-- Parental Section -->
+        <div class="section">
+            <h2>Parental</h2>
+            <div class="info-row">
+                <span class="label">Addiction: </span>
+                <span class="value" id="parental-addiction"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Age of Mother: </span>
+                <span class="value" id="parental-ageOfMother"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Family Illness: </span>
+                <span class="value" id="parental-familyIllness"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Marriage Details: </span>
+                <span class="value" id="parental-marriageDetails"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Mother's Health: </span>
+                <span class="value" id="parental-mothersHealth"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Other Details: </span>
+                <span class="value" id="parental-otherDetails"></span>
+            </div>
+        </div>
+
+        <!-- Perinatal Section -->
+        <div class="section">
+            <h2>Perinatal</h2>
+            <div class="info-row">
+                <span class="label">Birth Cry: </span>
+                <span class="value" id="perinatal-birthCry"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Birth Weight: </span>
+                <span class="value" id="perinatal-birthWeight"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Complication During Birth: </span>
+                <span class="value" id="perinatal-complicationDuringBirth"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Delivery Nature: </span>
+                <span class="value" id="perinatal-deliveryNature"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Premature: </span>
+                <span class="value" id="perinatal-premature"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Prolonged Labor: </span>
+                <span class="value" id="perinatal-prolongedLabor"></span>
+            </div>
+        </div>
+
+        <!-- Play History Section -->
+        <div class="section">
+            <h2>Play History</h2>
+            <div class="info-row">
+                <span class="label">Motor Development: </span>
+                <span class="value" id="playhistory-motordev"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Playing History: </span>
+                <span class="value" id="playhistory-playinghistory"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Sensory Development: </span>
+                <span class="value" id="playhistory-sensorydev"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Social Development: </span>
+                <span class="value" id="playhistory-socialdev"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Speech Development: </span>
+                <span class="value" id="playhistory-speechdev"></span>
+            </div>
+        </div>
+
+        <!-- Postnatal Section -->
+        <div class="section">
+            <h2>Postnatal</h2>
+            <div class="info-row">
+                <span class="label">Age of Walking: </span>
+                <span class="value" id="postnatal-ageWalking"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Developmental Milestones: </span>
+                <span class="value" id="postnatal-milestones"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Night Sleep: </span>
+                <span class="value" id="postnatal-nightSleep"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Vaccination Details: </span>
+                <span class="value" id="postnatal-vaccination"></span>
+            </div>
+        </div>
+
+       
+    </div>
+
+    <script src="casehistory_details.js"></script>
+</body>
+</html>
