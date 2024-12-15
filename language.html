@@ -11,7 +11,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+    
         const firebaseConfig = {
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
             authDomain: "autism-evaluation-platform.firebaseapp.com",
@@ -21,36 +22,55 @@
             appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
             measurementId: "G-1TGEHTTJF4"
         };
-
+    
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-
-        onAuthStateChanged(auth, (user) => {
+        const db = getFirestore(app);
+    
+        onAuthStateChanged(auth, async (user) => {
             if (!user) {
                 window.location.href = 'login.html';
+            } else {
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        const userRole = userDoc.data().role;
+    
+                        // Handle language selection
+                        document.querySelectorAll('.language-btn').forEach(button => {
+                            button.addEventListener('click', function() {
+                                const language = this.getAttribute('data-language');
+                                localStorage.setItem('selectedLanguage', language);
+    
+                                if (userRole === "teacher") {
+                                    window.location.href = `teacher_dashboard_${language}.html`;
+                                } else if (userRole === "parent") {
+                                    window.location.href = `parent_dashboard_${language}.html`;
+                                } else {
+                                    alert("Unauthorized role: Access Denied");
+                                }
+                            });
+                        });
+                    } else {
+                        console.error("User document does not exist");
+                    }
+                } catch (error) {
+                    console.error("Error fetching user role:", error);
+                }
             }
         });
-
+    
         document.addEventListener('DOMContentLoaded', function () {
-            document.getElementById('logout-btn').addEventListener('click', function() {
+            document.getElementById('logout-btn').addEventListener('click', function () {
                 signOut(auth).then(() => {
                     window.location.href = 'login.html';
                 }).catch((error) => {
                     console.error('Error signing out:', error);
                 });
             });
-
-            // Handle language selection
-            const languageButtons = document.querySelectorAll('.language-btn');
-            languageButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const language = this.getAttribute('data-language');
-                    localStorage.setItem('selectedLanguage', language);
-                    window.location.href = `parent_dashboard_${language}.html`;
-                });
-            });
         });
     </script>
+    
 </head>
 <body>
     <!-- Header Section -->
