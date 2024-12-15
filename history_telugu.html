@@ -153,7 +153,6 @@
 
                     const submissionCard = document.createElement('div');
                     submissionCard.classList.add('submission-card');
-
                     const scores = data.scores;
                     const chartLabels = Object.keys(scores).sort().map(translateToTelugu); // Translate labels
                     const chartData = Object.keys(scores).sort().map(key => scores[key]); // Match data
@@ -163,7 +162,7 @@
                     <h3><strong>పేరు: ${data.studentName || 'Unknown'}</strong> </h3>
                 <h3><strong>ఆటిజం రేంజ్: ${data.autismRange}</strong></h3>
                 <p><strong>మొత్తం స్కోర్: </strong> ${data.totalScore}</p>
-                <p><strong>ఆటిజం రేంజ్: </strong> ${data.submittedAt.toDate().toLocaleString()}</p>
+                <p><strong>సమర్పణ తేదీ: </strong> ${data.submittedAt.toDate().toLocaleString()}</p>
                     `;
 
                     const canvas = document.createElement('canvas');
