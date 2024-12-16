@@ -215,7 +215,13 @@ const scoreValues = {
         <br>
         <br>
         <div class="button-container">
-            <button type="button" class="prev-btn" onclick="window.location.href='sensory_hindi.html'">पिछला(Previous)</button>
+            <button class="prev-btn" type="button" onclick="
+    const params = new URLSearchParams(window.location.search);
+    const studentName = encodeURIComponent(params.get('studentName'));
+    const studentAge = encodeURIComponent(params.get('studentAge'));
+    const studentDob = encodeURIComponent(params.get('studentDob'));
+    window.location.href = `sensory_hindi.html?studentName=${studentName}&studentAge=${studentAge}&studentDob=${studentDob}`;
+">पिछला(Previous)</button>
             <button type="submit">अगला(Next)</button>
         </div>
     </form>
