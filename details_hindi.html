@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="questionnaire_style.css">
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-        import { getFirestore, doc, setDoc,getDoc} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 
         // Firebase configuration
@@ -32,26 +32,24 @@
             const user = auth.currentUser;
             if (user) {
                 try {
-                    // Retrieve the user's role from Firestore
-            const userDoc = await getDoc(doc(db, "users", user.uid));
-            if (!userDoc.exists()) {
-                console.error("User document does not exist.");
-                return;
-            }
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (!userDoc.exists()) {
+                        console.error("User document does not exist.");
+                        return;
+                    }
 
-            const userData = userDoc.data();
-            const role = userData.role; // Assuming 'role' field is present in the user's Firestore document
+                    const userData = userDoc.data();
+                    const role = userData.role;
 
-            let docRef;
+                    let docRef;
                     if (role === 'teacher') {
                         const studentCollectionName = studentName.replace(/\s+/g, "_").toLowerCase();
-                        // Reference to the 'details' document inside the student's collection
                         docRef = doc(db, "users", user.uid, studentCollectionName, "details");
                     } else {
                         docRef = doc(db, "users", user.uid, "Questionnaire", "details");
                     }
 
-                    await setDoc(docRef, data); // Store data in the 'details' document
+                    await setDoc(docRef, data);
                     console.log("Data stored successfully!");
                 } catch (error) {
                     console.error("Error storing data: ", error);
@@ -65,16 +63,18 @@
             const form = document.getElementById('autismForm');
 
             form.onsubmit = async (e) => {
-                e.preventDefault(); // Prevent default form submission
-                const studentAge = document.getElementById('age').value; // Age
-                const studentName = document.getElementById('name').value; // Student name
-                const studentDob = document.getElementById('dob').value; // Student name
+                e.preventDefault();
+
+                const studentName = document.getElementById('name').value;
+                const studentAge = document.getElementById('age').value;
+                const studentDob = document.getElementById('dob').value;
+
                 const formData = {
                     name: studentName,
                     gender: document.getElementById('gender').value,
                     date: document.getElementById('date').value,
-                    dob: document.getElementById('dob').value,
-                    age: document.getElementById('age').value,
+                    dob: studentDob,
+                    age: studentAge,
                     examiner: document.getElementById('examiner').value,
                     timestamp: new Date()
                 };
@@ -82,16 +82,15 @@
                 const errorMessageElement = document.getElementById('error-message');
                 errorMessageElement.textContent = '';
 
-                // Validate required fields and age range
                 let allFilled = Object.values(formData).every(field => field);
                 const age = parseInt(formData.age);
                 if (isNaN(age) || age < 3 || age > 9) {
                     allFilled = false;
-                    errorMessageElement.textContent = 'Age must be between 3 and 9 years.';
+                    errorMessageElement.textContent = 'आयु 3 से 9 वर्ष के बीच होनी चाहिए।';
                 }
 
                 if (allFilled) {
-                    await storeFormDataInFirestore(formData, studentName); // Store data in Firestore
+                    await storeFormDataInFirestore(formData, studentName);
                     window.location.href = `social_hindi.html?studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(studentAge)}&studentDob=${encodeURIComponent(studentDob)}`;
                 }
             };
@@ -103,42 +102,19 @@
                 }
             });
         });
-
-        // Pre-fill the current date and validate the date of birth
-        window.onload = function() {
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('date').value = today;
-            document.getElementById('dob').setAttribute('max', today);
-
-            document.getElementById('dob').addEventListener('change', function() {
-                const dobValue = this.value;
-                if (dobValue) {
-                    const dob = new Date(dobValue);
-                    const today = new Date();
-                    let age = today.getFullYear() - dob.getFullYear();
-                    const monthDifference = today.getMonth() - dob.getMonth();
-                    if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < dob.getDate())) {
-                        age--;
-                    }
-                    document.getElementById('age').value = age;
-                }
-            });
-        };
     </script>
 </head>
 <body>
-
     <h2>भारतीय ऑटिज़्म आकलन पैमाना</h2>
-
-    <form id="autismForm" action="social_hindi.html" method="POST">
+    <form id="autismForm">
         <div class="question">
             <label for="name">बच्चे का नाम <span class="required">*</span></label>
-            <input type="text" id="name" name="name" class="form-control" required>
+            <input type="text" id="name" class="form-control" required>
         </div>
 
         <div class="question">
             <label for="gender">लिंग <span class="required">*</span></label>
-            <select id="gender" name="gender" class="form-select" required>
+            <select id="gender" class="form-select" required>
                 <option value="">लिंग चुनें</option>
                 <option value="male">पुरुष</option>
                 <option value="female">महिला</option>
@@ -148,25 +124,24 @@
 
         <div class="question">
             <label for="date">तारीख <span class="required">*</span></label>
-            <input type="date" id="date" name="date" class="form-control" required>
+            <input type="date" id="date" class="form-control" required>
         </div>
 
         <div class="question">
             <label for="dob">जन्म तिथि <span class="required">*</span></label>
-            <input type="date" id="dob" name="dob" class="form-control" required>
+            <input type="date" id="dob" class="form-control" required>
         </div>
 
         <div class="question">
             <label for="age">आयु <span class="required">*</span></label>
-            <input type="text" id="age" name="age" class="form-control" readonly>
+            <input type="text" id="age" class="form-control" readonly>
         </div>
-
 
         <div id="error-message" style="color: red; margin-top: 5px;"></div>
 
         <div class="question">
             <label for="examiner">परीक्षक <span class="required">*</span></label>
-            <input type="text" id="examiner" name="examiner" class="form-control" required>
+            <input type="text" id="examiner" class="form-control" required>
         </div>
 
         <div class="button-container">
@@ -177,78 +152,30 @@
 
     <script>
         window.onload = function() {
-
-            var today = new Date().toISOString().split('T')[0];
+            const today = new Date().toISOString().split('T')[0];
             document.getElementById('date').value = today;
-
-
             document.getElementById('dob').setAttribute('max', today);
         };
 
-
         document.getElementById('dob').addEventListener('change', function() {
-            var dobValue = this.value;
-
-
-            if (dobValue.length === 10) {
-                var dob = new Date(dobValue);
-                var today = new Date();
-                var age = today.getFullYear() - dob.getFullYear();
-                var monthDifference = today.getMonth() - dob.getMonth();
-                
-                if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < dob.getDate())) {
+            const dobValue = this.value;
+            if (dobValue) {
+                const dob = new Date(dobValue);
+                const today = new Date();
+                let age = today.getFullYear() - dob.getFullYear();
+                const monthDiff = today.getMonth() - dob.getMonth();
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
                     age--;
                 }
-
                 document.getElementById('age').value = age;
+                const errorMessage = document.getElementById('error-message');
                 if (age < 3 || age > 9) {
-                    document.getElementById('error-message').textContent = 'आयु 3 से 9 वर्ष के बीच होनी चाहिए।';
+                    errorMessage.textContent = 'आयु 3 से 9 वर्ष के बीच होनी चाहिए।';
                 } else {
-                    document.getElementById('error-message').textContent = '';
+                    errorMessage.textContent = '';
                 }
             }
         });
-
-
-        document.getElementById('autismForm').addEventListener('submit', function(event) {
-    let allFilled = true;
-    let age = parseInt(document.getElementById('age').value);
-
-    document.getElementById('error-message').textContent = '';
-
-    // Check if all required inputs are filled
-    this.querySelectorAll('input, select').forEach(function(input) {
-        if (!input.value) {
-            allFilled = false;
-        }
-    });
-
-    // Check if age is in valid range
-    if (isNaN(age) || age < 3 || age > 9) {
-        allFilled = false;
-        document.getElementById('error-message').textContent = 'आयु 3 से 9 वर्ष के बीच होनी चाहिए।';
-    }
-
-    if (allFilled) {
-        saveFormDataToLocalStorage(); // Save data locally
-        storeFormDataInFirestore({
-            name: document.getElementById('name').value,
-            gender: document.getElementById('gender').value,
-            date: document.getElementById('date').value,
-            dob: document.getElementById('dob').value,
-            age: document.getElementById('age').value,
-            examiner: document.getElementById('examiner').value,
-            timestamp: new Date()
-        });
-
-        // Navigate to the next page
-        window.location.href = "social_hindi.html";
-    } else {
-        // Prevent form submission if validation fails
-        event.preventDefault();
-    }
-});
-
-</script>
+    </script>
 </body>
 </html>
