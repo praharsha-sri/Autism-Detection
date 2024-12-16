@@ -183,10 +183,13 @@
 
             const scoresContainer = document.createElement('div');
             const totalScore = document.createElement('div');
+            const percentageScore=document.createElement('div');
             totalScore.className = 'total-score';
             totalScore.innerHTML = `
                 <span>Total Score</span>
                 <span>${report.totalScore}</span>
+                <span>Percentage</span>
+                <span>${report.percentageScore}%</span>
             `;
 
             const autismRange = document.createElement('div');
@@ -202,6 +205,7 @@
             card.appendChild(scoresContainer);
             card.appendChild(totalScore);
             card.appendChild(autismRange);
+            card.appendChild(percentageScore);
             card.appendChild(generateButton);
 
             return card;
@@ -283,7 +287,8 @@
     yPos += (Object.keys(reportData.scores).length * 10) + 20;
     doc.setFontSize(14);
     doc.text(`Total Score: ${reportData.totalScore}`, margin, yPos);
-    doc.text(`Autism Classification: ${reportData.autismRange}`, margin, yPos + 10);
+    doc.text(`Percentage: ${reportData.percentageScore}`, margin, yPos+10);
+    doc.text(`Autism Classification: ${reportData.autismRange}`, margin, yPos + 20);
 
     // Footer Section
     doc.setTextColor(150, 150, 150); // Gray text for footer
