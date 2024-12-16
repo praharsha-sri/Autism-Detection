@@ -76,6 +76,7 @@
             <tr><td>సామాజిక సంబంధాలు</td><td id="socialRelationship">0</td></tr>
             <tr><td>మాట్లాడటం & సంభాషణ</td><td id="speechLanguageCommunication">0</td></tr>
             <tr><th>మొత్తం స్కోర్</th><td id="totalScore">0</td></tr>
+            <tr><th>శాతం</th><td id="percentagescore">0%</td></tr>
         </table>
         <div class="classification" id="classification"></div>
         <div class="range">
@@ -165,7 +166,9 @@
                     }
                 }
 
+                const percentageScore = ((totalScore / 200) * 100).toFixed(2);
                 document.getElementById('totalScore').textContent = totalScore;
+                document.getElementById('percentagescore').textContent = `${percentageScore}%`;
                 const autismRange = classifyAutism(totalScore);
                 document.getElementById('autismRangeResult').textContent = autismRange;
 
@@ -180,6 +183,7 @@
                         studentAge:studentAge,
                         scores: scores,
                         totalScore: totalScore,
+                        percentageScore: percentageScore,
                         autismRange: autismRange,
                         submittedAt: new Date()
                     });
@@ -192,6 +196,7 @@
                         studentAge:studentAge,
                         scores: scores,
                         totalScore: totalScore,
+                        percentageScore: percentageScore,
                         autismRange: autismRange,
                         submittedAt: new Date()
                     });
@@ -204,6 +209,7 @@
                         studentAge:studentAge,
                         scores: scores,
                         totalScore: totalScore,
+                        percentageScore: percentageScore,
                         autismRange: autismRange,
                         submittedAt: new Date()
                     });
@@ -244,6 +250,7 @@
                     document.getElementById(id).textContent = '0';
                 });
                 document.getElementById('totalScore').textContent = '0';
+                document.getElementById('percentagescore').textContent = '0%';
                 document.getElementById('autismRangeResult').textContent = 'Not Available';
             }
         });
