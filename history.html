@@ -173,6 +173,8 @@ async function displaySubmissionsWithReport(userId) {
 
             const reportHTML = `
                 <h3><strong>Student Name: ${data.studentName || 'Unknown'}</strong> </h3>
+                <h3><strong>Student Age: ${data.studentAge || 'Unknown'}</strong> </h3>
+                <h3><strong>Student DOB: ${data.studentDob || 'Unknown'}</strong> </h3>
                 <h3><strong>Autism Range: ${data.autismRange}</strong></h3>
                 <p><strong>Total Score:</strong> ${data.totalScore}</p>
                 <p><strong>Submission Date:</strong> ${data.submittedAt.toDate().toLocaleString()}</p>
