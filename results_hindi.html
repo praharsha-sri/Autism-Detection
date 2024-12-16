@@ -87,12 +87,11 @@
     </div>
 
 
-    <!-- Firebase Scripts -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-
+        import { getFirestore, doc, getDoc, collection, addDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+    
         const firebaseConfig = {
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
             authDomain: "autism-evaluation-platform.firebaseapp.com",
@@ -102,11 +101,12 @@
             appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
             measurementId: "G-1TGEHTTJF4"
         };
-
+    
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-
+    
         const documentIds = [
             'behaviourPatterns',
             'cognitiveComponent',
@@ -115,7 +115,7 @@
             'socialRelationship',
             'speechLanguageCommunication'
         ];
-
+    
         function classifyAutism(totalScore) {
             if (totalScore <= 70) {
                 return "ऑटिज्म नहीं";
@@ -127,7 +127,7 @@
                 return "गंभीर ऑटिज्म";
             }
         }
-
+    
         async function fetchScoresAndStore(userId, studentName, studentAge, studentDob) {
             const studentCollectionName = studentName.replace(/\s+/g, "_").toLowerCase();
             try {
@@ -135,15 +135,15 @@
                 const scores = {};
                 const userDocRef = doc(db, 'users', userId);
                 const userDocSnap = await getDoc(userDocRef);
-
+    
                 if (!userDocSnap.exists()) {
                     console.log("No such user!");
                     return;
                 }
-
+    
                 const userData = userDocSnap.data();
                 const isTeacher = userData.role === 'teacher';
-
+    
                 for (const docId of documentIds) {
                     let docRef;
                     if (isTeacher) {
@@ -151,9 +151,9 @@
                     } else {
                         docRef = doc(db, 'users', userId, 'Questionnaire', docId);
                     }
-
+    
                     const docSnap = await getDoc(docRef);
-
+    
                     if (docSnap.exists()) {
                         const score = docSnap.data().score || 0;
                         totalScore += score;
@@ -164,78 +164,63 @@
                         document.getElementById(docId).textContent = '0';
                     }
                 }
-
+    
                 document.getElementById('totalScore').textContent = totalScore;
                 const autismRange = classifyAutism(totalScore);
                 document.getElementById('autismRangeResult').textContent = autismRange;
-
+    
                 // Store the results
+                const dataToStore = {
+                    userId,
+                    studentName,
+                    studentDob,
+                    studentAge,
+                    scores,
+                    totalScore,
+                    autismRange,
+                    submittedAt: new Date()
+                };
+    
                 if (isTeacher) {
-                    //store overall socre inside the collection of the user (student)
                     const overallScoreRef = doc(db, 'users', userId, studentCollectionName, 'overallscore');
-                    await setDoc(overallScoreRef, {
-                        userId: userId,
-                        studentName: studentName,
-                        studentDob:studentDob,
-                        studentAge:studentAge,
-                        scores: scores,
-                        totalScore: totalScore,
-                        autismRange: autismRange,
-                        submittedAt: new Date()
-                    });
-                    //store all the data again in the submissions collections, inside with unique id and all the other detials inside it
+                    await setDoc(overallScoreRef, dataToStore);
+    
                     const submissionsRef = collection(db, 'users', userId, 'submissions');
-                    await addDoc(submissionsRef, {
-                        userId: userId,
-                        studentName: studentName,
-                        studentDob:studentDob,
-                        studentAge:studentAge,
-                        scores: scores,
-                        totalScore: totalScore,
-                        autismRange: autismRange,
-                        submittedAt: new Date()
-                    });
+                    await addDoc(submissionsRef, dataToStore);
                 } else {
                     const submissionsRef = collection(db, 'users', userId, 'submissions');
-                    await addDoc(submissionsRef, {
-                        userId: userId,
-                        studentName: studentName,
-                        studentDob:studentDob,
-                        studentAge:studentAge,
-                        scores: scores,
-                        totalScore: totalScore,
-                        autismRange: autismRange,
-                        submittedAt: new Date()
-                    });
+                    await addDoc(submissionsRef, dataToStore);
                 }
             } catch (error) {
                 console.error("Error fetching or storing scores:", error);
             }
         }
-
+    
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 const userDocRef = doc(db, 'users', user.uid);
                 const userDocSnap = await getDoc(userDocRef);
-
+    
                 if (userDocSnap.exists()) {
                     const userData = userDocSnap.data();
                     const role = userData.role;
                     const homeButton = document.getElementById('homeButton');
-
+    
                     if (role === 'teacher') {
-                        homeButton.href = 'teacher_dashboard.html';
+                        homeButton.href = 'teacher_dashboard_hi.html';
                     } else if (role === 'parent') {
                         homeButton.href = 'parent_dashboard_hi.html';
                     } else {
                         console.error("Unknown role");
                     }
-
-                    const studentName = new URLSearchParams(window.location.search).get('studentName');
-                    const studentAge = new URLSearchParams(window.location.search).get('studentAge');
-                    const studentDob = new URLSearchParams(window.location.search).get('studentDob'); // Get student dob from URL
+    
+                    const params = new URLSearchParams(window.location.search);
+                    const studentName = params.get('studentName');
+                    const studentAge = params.get('studentAge');
+                    const studentDob = params.get('studentDob');
+                    
                     if (studentName) {
-                        fetchScoresAndStore(user.uid, studentName,studentAge,studentDob);
+                        fetchScoresAndStore(user.uid, studentName, studentAge, studentDob);
                     }
                 }
             } else {
@@ -247,7 +232,7 @@
                 document.getElementById('autismRangeResult').textContent = 'Not Available';
             }
         });
-
     </script>
+    
 </body>
 </html>
