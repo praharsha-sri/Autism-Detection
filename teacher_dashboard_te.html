@@ -8,63 +8,103 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link href="teacher_dashboard_style.css" rel="stylesheet">
 
-    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
-    
+
+        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
             authDomain: "autism-evaluation-platform.firebaseapp.com",
             projectId: "autism-evaluation-platform",
-            storageBucket: "autism-evaluation-platform.appspot.com",
+            storageBucket: "autism-evaluation-platform",
             messagingSenderId: "748226978662",
             appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
             measurementId: "G-1TGEHTTJF4"
         };
-    
+
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-    
-        onAuthStateChanged(auth, async (user) => {
-            if (!user) {
-                window.location.href = 'login.html';
-            } else {
-                try {
-                    const userDoc = await getDoc(doc(db, "users", user.uid));
-                    if (userDoc.exists()) {
-                        const userData = userDoc.data();
-                        const userName = userData.name || "వినియోగదారు";
-                        const userRole = userData.role;
-    
-                        if (userRole !== "teacher") {
-                            alert("అనుమతి తిరస్కరించబడింది: ఈ పేజీ చూడడానికి మీకు అనుమతి లేదు.");
+
+        // Utility functions
+        const showLoading = () => document.getElementById('loading-overlay').style.display = 'flex';
+        const hideLoading = () => document.getElementById('loading-overlay').style.display = 'none';
+
+        // Check if user has selected a language
+        function checkLanguageSelection() {
+            const selectedLanguage = localStorage.getItem('selectedLanguage');
+            return selectedLanguage ? true : false;
+        }
+
+        // Initialize dashboard with user role verification
+        async function initializeDashboard(user) {
+            showLoading();
+            try {
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    const role = userData.role;
+
+                    if (userRole !== "teacher") {
+                            // Redirect to index with a query parameter for access denied
+                            alert("Access Denied: You do not have permission to view this page.");
                             window.location.href = 'index.html';
                             return;
-                        } else {
-                            document.getElementById('navbar-user-name').textContent = `${userName} యొక్క డ్యాష్‌బోర్డ్`;
-                        }
-                    } else {
-                        console.error("వినియోగదారు లేదు");
-                    }
-                } catch (error) {
-                    console.error("వినియోగదారు డేటాను తీసుకురావడంలో లోపం:", error);
+                        } 
+                    const userName = userData.name || "User";
+                    document.getElementById('user-name').textContent = `${userName}'s Dashboard`;
+
+                    const selectedLanguage = localStorage.getItem('selectedLanguage');
+                    document.getElementById('language-switcher').value = selectedLanguage;
+                } else {
+                    console.error("User document not found");
+                    window.location.href = 'login.html';
                 }
+            } catch (error) {
+                console.error('Error initializing dashboard:', error);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Auth state observer
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                initializeDashboard(user);
+            } else {
+                window.location.href = 'login.html';
             }
         });
-    
-        document.addEventListener('DOMContentLoaded', function () {
-            document.getElementById('logout-btn').addEventListener('click', function() {
-                signOut(auth).then(() => {
-                    window.location.href = 'login.html';
-                }).catch((error) => {
-                    console.error('లాగ్ అవుట్ లోపం:', error);
-                });
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('language-switcher').addEventListener('change', function() {
+                const newLanguage = this.value;
+                localStorage.setItem('selectedLanguage', newLanguage);
+                window.location.href = `teacher_dashboard_${newLanguage}.html`;
             });
-    
+
+            document.getElementById('logout-btn').addEventListener('click', async () => {
+                try {
+                    await signOut(auth);
+                    localStorage.removeItem('selectedLanguage');
+                    window.location.href = 'login.html';
+                } catch (error) {
+                    console.error('Error signing out:', error);
+                }
+            });
         });
+
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+
+        function updateOnlineStatus() {
+            const offlineIndicator = document.getElementById('offline-indicator');
+            offlineIndicator.style.display = navigator.onLine ? 'none' : 'block';
+        }
     </script>
     
 </head>
@@ -77,6 +117,21 @@
             <button id="logout-btn" class="btn btn-danger">లాగ్ అవుట్</button>
         </div>
     </nav>
+    <!-- Navigation bar -->
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#" id="user-name">Dashboard</a>
+            <div class="d-flex align-items-center">
+                <select id="language-switcher" class="form-select me-2">
+                    <option value="en">English</option>
+                    <option value="hi">हिन्दी</option>
+                    <option value="te">తెలుగు</option>
+                </select>
+                <button id="logout-btn" class="btn btn-danger">Logout</button>
+            </div>
+        </div>
+    </nav>
+
 
     <div class="container mt-4">
         <div class="row g-4">
