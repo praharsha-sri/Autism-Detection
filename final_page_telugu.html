@@ -61,7 +61,16 @@
     </div>
 
     <script>
-        function combineScoresAndRedirect() {
+        async function getUserType() {
+            // Simulated function to fetch user type
+            // Replace this with your Firebase code to fetch the actual user type.
+            return new Promise((resolve) => {
+                // Example: Replace 'teacher' with 'parent' to test the other condition.
+                resolve('teacher'); // Options: 'teacher', 'parent'
+            });
+        }
+
+        async function combineScoresAndRedirect() {
             const subdomains = [
                 "socialrelationshipandreciprocity",
                 "emotionalresponsiveness",
@@ -77,11 +86,25 @@
                 url += `${subdomain}=${score}&`;
             });
 
+            const userType = await getUserType();
+
+            if (userType === 'teacher') {
+                // Simulate teacher-specific parameters
+                const studentName = new URLSearchParams(window.location.search).get('studentName'); // Get student name from URL
+                const studentAge = new URLSearchParams(window.location.search).get('studentAge'); // Get student age from URL
+                const studentDob = new URLSearchParams(window.location.search).get('studentDob'); // Get student dob from URL
+                const studentCollectionName = studentName.replace(/\s+/g, "_").toLowerCase();
+                url += `studentName=${encodeURIComponent(studentCollectionName)}&studentAge=${encodeURIComponent(studentAge)}&studentDob=${encodeURIComponent(studentDob)}`;
+            } else {
+                // Remove trailing '&' if present
+                url = url.slice(0, -1);
+            }
+
             // Clear localStorage after getting all scores
             localStorage.clear();
 
             // Redirect to results page
-            window.location.href = url.slice(0, -1); // Remove the trailing '&'
+            window.location.href = url;
         }
     </script>
 </body>

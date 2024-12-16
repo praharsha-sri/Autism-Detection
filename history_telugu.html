@@ -153,7 +153,6 @@
 
                     const submissionCard = document.createElement('div');
                     submissionCard.classList.add('submission-card');
-
                     const scores = data.scores;
                     const chartLabels = Object.keys(scores).sort().map(translateToTelugu); // Translate labels
                     const chartData = Object.keys(scores).sort().map(key => scores[key]); // Match data
