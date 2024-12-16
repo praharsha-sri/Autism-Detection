@@ -247,8 +247,13 @@
 
         <br>
         <div class="button-container">
-            <button class="prev-btn" type="button" onclick="window.location.href='emotional.html?studentName=' + encodeURIComponent(new URLSearchParams(window.location.search).get('studentName'))">Previous</button>
-            <button type="submit">Next</button>
+            <button class="prev-btn" type="button" onclick="
+            const params = new URLSearchParams(window.location.search);
+            const studentName = encodeURIComponent(params.get('studentName'));
+            const studentAge = encodeURIComponent(params.get('studentAge'));
+            const studentDob = encodeURIComponent(params.get('studentDob'));
+            window.location.href = `emotional.html?studentName=${studentName}&studentAge=${studentAge}&studentDob=${studentDob}`;
+        ">Previous</button>            <button type="submit">Next</button>
         </div>
     </form>
 

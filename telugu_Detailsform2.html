@@ -104,29 +104,7 @@
                 }
             });
         });
-
-        // Pre-fill the current date and validate the date of birth
-        window.onload = function() {
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('date').value = today;
-            document.getElementById('dob').setAttribute('max', today);
-
-            document.getElementById('dob').addEventListener('change', function() {
-                const dobValue = this.value;
-                if (dobValue) {
-                    const dob = new Date(dobValue);
-                    const today = new Date();
-                    let age = today.getFullYear() - dob.getFullYear();
-                    const monthDifference = today.getMonth() - dob.getMonth();
-                    if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < dob.getDate())) {
-                        age--;
-                    }
-                    document.getElementById('age').value = age;
-                }
-            });
-        };
-    </script>
-
+        </script>
 </head>
 <body>
 

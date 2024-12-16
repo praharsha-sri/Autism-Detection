@@ -9,7 +9,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 
         // Firebase configuration
@@ -92,25 +92,58 @@ const scoreValues = {
 
         async function storeQuestionnaireDataInFirebase(data) {
             const user = auth.currentUser;
-            const collectionName = 'Questionnaire';
+    const collectionName = new URLSearchParams(window.location.search).get('collectionName') || 'Questionnaire';
+    const studentAge =new URLSearchParams(window.location.search).get('studentAge'); // Get student age from URL
+    const studentName = new URLSearchParams(window.location.search).get('studentName'); // Get student name from URL
+    const studentDob = new URLSearchParams(window.location.search).get('studentDob'); // Get student dob from URL
+    // Ensure studentName is available
+    if (!studentName) {
+        console.error("Student name is missing.");
+        alert("Student name is missing. Please go back and fill in the details.");
+        return;
+    }
 
-            if (user) {
-                try {
-                    const docRef = doc(db, "users", user.uid, collectionName, "speechLanguageCommunication");
-                    await setDoc(docRef, {
-                        timestamp: new Date(),
-                        domain: 'speechLanguageCommunication',
-                        ...data
-                    });
-                    console.log("Data stored successfully!");
-                    window.location.href = 'behaviour_hindi.html?collectionName=' + encodeURIComponent(collectionName);
-                } catch (error) {
-                    console.error("Error storing data: ", error);
-                }
-            } else {
-                console.error("User not signed in.");
+    if (user) {
+        try {
+            // Convert student name to a valid Firestore path format
+            const studentCollectionName = studentName.replace(/\s+/g, "_").toLowerCase(); 
+
+            // Retrieve the user's role from Firestore
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (!userDoc.exists()) {
+                console.error("User document does not exist.");
+                return;
             }
+
+            const userData = userDoc.data();
+            const role = userData.role; // Assuming 'role' field is present in the user's Firestore document
+
+            let docRef;
+
+            // Store data for teacher role in the student's collection
+            if (role === 'teacher') {
+                docRef = doc(db, "users", user.uid, studentCollectionName, "speechLanguageCommunication");
+            } else {
+                // Reference to the parent's questionnaire collection (if needed)
+                docRef = doc(db, "users", user.uid, "Questionnaire", "speechLanguageCommunication");
+            }
+
+            // Store the questionnaire data in Firestore
+            await setDoc(docRef, {
+                timestamp: new Date(),
+                domain: 'speechLanguageCommunication',
+                ...data
+            });
+
+            console.log("Data stored successfully!");
+            window.location.href = `behaviour_hindi.html?collectionName=${encodeURIComponent(collectionName)}&studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(studentAge)}&studentDob=${encodeURIComponent(studentDob)}`;
+        } catch (error) {
+            console.error("Error storing data: ", error);
         }
+    } else {
+        console.error("User not signed in.");
+    }
+}
 
         function saveFormDataToLocalStorage() {
             const data = calculateScore();
@@ -211,7 +244,13 @@ const scoreValues = {
 
         <br>
         <div class="button-container">
-            <button type="button" class="prev-btn" onclick="window.location.href='emotional_hindi.html'">पिछला(Previous)</button>
+            <button class="prev-btn" type="button" onclick="
+    const params = new URLSearchParams(window.location.search);
+    const studentName = encodeURIComponent(params.get('studentName'));
+    const studentAge = encodeURIComponent(params.get('studentAge'));
+    const studentDob = encodeURIComponent(params.get('studentDob'));
+    window.location.href = `emotional_hindi.html?studentName=${studentName}&studentAge=${studentAge}&studentDob=${studentDob}`;
+">पिछला(Previous)</button>
             <button type="submit">अगला(Next)</button>
         </div>
     </form>
