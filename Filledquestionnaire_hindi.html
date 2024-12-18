@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teachers Filled Questionnaires</title>
+    <title>शिक्षकों द्वारा भरी गई प्रश्नावली</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore-compat.js"></script>
@@ -13,15 +13,15 @@
 </head>
 <body>
     <!-- Home Button -->
-    <a href="teacher_dashboard_en.html" class="btn btn-primary home-button">Home</a>
+    <a href="teacher_dashboard_hi.html" class="btn btn-primary home-button">होम</a>
 
     <div class="container-fluid mt-4">
         <!-- Page Title -->
         <br>
-        <h1 class="text-center my-4">Teachers Filled Questionnaires</h1>
+        <h1 class="text-center my-4">शिक्षकों द्वारा भरी गई प्रश्नावली</h1>
         <!-- Search Input -->
         <div class="search-container">
-            <input type="text" id="searchInput" placeholder="Search by student name..." class="form-control">
+            <input type="text" id="searchInput" placeholder="छात्र का नाम खोजें..." class="form-control">
             <i class="search-icon">🔍</i>
         </div>
 
@@ -39,7 +39,7 @@
     </div>
 
     <script>
-        // Firebase configuration remains the same as in the previous version
+        // Firebase configuration remains unchanged
         const firebaseConfig = {
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
             authDomain: "autism-evaluation-platform.firebaseapp.com",
@@ -69,7 +69,7 @@
                 const submissionsSnap = await submissionsRef.orderBy('submittedAt', 'desc').get();
 
                 if (submissionsSnap.empty) {
-                    studentButtonsContainer.innerHTML = '<p class="text-center text-danger">No submissions found.</p>';
+                    studentButtonsContainer.innerHTML = '<p class="text-center text-danger">कोई प्रविष्टियाँ नहीं मिलीं।</p>';
                     return;
                 }
 
@@ -88,9 +88,9 @@
                     const buttonHTML = `
                         <button id="${buttonId}" class="btn" 
                                 onclick="showStudentModal(${index})">
-                            <strong>${data.studentName || 'Unknown'}</strong>
-                            <small>DOB: ${data.studentDob || 'Unknown'}</small>
-                            <small>Age: ${data.studentAge || 'Unknown'}</small>
+                            <strong>${data.studentName || 'अज्ञात'}</strong>
+                            <small>जन्म तिथि: ${data.studentDob || 'अज्ञात'}</small>
+                            <small>आयु: ${data.studentAge || 'अज्ञात'}</small>
                         </button>
                     `;
                     studentButtonsContainer.insertAdjacentHTML('beforeend', buttonHTML);
@@ -113,7 +113,7 @@
                 console.error('Error fetching submissions:', err);
                 studentButtonsContainer.innerHTML = `
                     <p class="text-center text-danger">
-                        Error loading submissions. Please refresh the page.
+                        प्रविष्टियाँ लोड करने में त्रुटि। कृपया पेज को रिफ्रेश करें।
                     </p>
                 `;
             }
@@ -125,26 +125,52 @@
             const studentModal = document.getElementById('studentModal');
             const studentModalContent = document.getElementById('studentModalContent');
             const data = window.submissions[index];
+            
+            const autismRangeTranslations = {
+                "No Autism": "ऑटिज्म नहीं",
+                "Mild Autism": "हल्का ऑटिज्म",
+                "Moderate Autism": "मध्यम ऑटिज्म",
+                "Severe Autism": "गंभीर ऑटिज्म",
+                "ऑटिज्म नहीं": "ऑटिज्म नहीं",
+                "हल्का ऑटिज्म": "हल्का ऑटिज्म",
+                "मध्यम ऑटिज्म": "मध्यम ऑटिज्म",
+                "गंभीर ऑटिज्म": "गंभीर ऑटिज्म",
+                "ఆటిజం లేదు": "ऑटिज्म नहीं",
+    "స్వల్ప ఆటిజం": "हल्का ऑटिज्म",
+    "మధ్యస్థ ఆటిజం": "मध्यम ऑटिज्म",
+    "తీవ్ర ఆటిజం": "गंभीर ऑटिज्म"
+            };
+
+            const scoreKeyTranslationsHindi = {
+                "cognitiveComponent": "संज्ञानात्मक भाग",
+                "emotionalResponsiveness": "भावनात्मक प्रतिक्रिया",
+                "sensoryAspects": "संवेदी पहलू",
+                "speechLanguageCommunication": "भाषा और बातचीत",
+                "socialRelationship": "सामाजिक संबंध",
+                "behaviourPatterns": "व्यवहार पैटर्न",
+                "Unknown": "अज्ञात" // Default for unexpected keys
+            };
 
             // Populate modal content
             studentModalContent.innerHTML = `
-                <h2 class="text-primary mb-4">${data.studentName || 'Unknown'}</h2>
+                <h2 class="text-primary mb-4">${data.studentName || 'अज्ञात'}</h2>
                 <div class="row">
                     <div class="col-md-6">
-                        <p><strong>Age:</strong> ${data.studentAge || 'Unknown'}</p>
-                        <p><strong>Date of Birth:</strong> ${data.studentDob || 'Unknown'}</p>
-                        <p><strong>Submission Date:</strong> ${data.submittedAt.toDate().toLocaleString()}</p>
+                        <p><strong>आयु:</strong> ${data.studentAge || 'अज्ञात'}</p>
+                        <p><strong>जन्म तिथि:</strong> ${data.studentDob || 'अज्ञात'}</p>
+                        <p><strong>समर्पण तिथि:</strong> ${data.submittedAt.toDate().toLocaleString()}</p>
                     </div>
                     <div class="col-md-6">
-                        <p><strong>Total Score:</strong> ${data.totalScore}</p>
-                        <p><strong>Autism Range:</strong> ${data.autismRange}</p>
+                        <p><strong>कुल स्कोर:</strong> ${data.totalScore}</p>
+                        <p><strong>ऑटिज्म रेंज:</strong> ${autismRangeTranslations[data.autismRange]}</p>
                     </div>
                 </div>
-                <h4 class="mt-4 text-primary">Scores Breakdown</h4>
+
+                <h4 class="mt-4 text-primary">स्कोर विवरण</h4>
                 <ul class="list-group">
                     ${Object.keys(data.scores).map(key => `
                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                            ${key}
+                            ${scoreKeyTranslationsHindi[key] || key}
                             <span class="badge bg-primary rounded-pill">${data.scores[key]}</span>
                         </li>
                     `).join('')}
