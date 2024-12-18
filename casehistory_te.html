@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="te">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>కేస్ హిస్టరీ - ఆటిజం మూల్యాంకన వేదిక</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .nav-tabs .nav-link.active {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .iframe-container {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            overflow: hidden;
+            height: 600px;
+            /* Adjust as necessary */
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .navbar {
+            padding: 10px 20px;
+        }
+
+        .logo {
+            height: 70px;
+        }
+
+        .home-btn {
+            position: absolute;
+            left: 20px;
+        }
+
+        .case-history-title {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- నావిగేషన్ బార్ హోమ్ బటన్ మరియు లోగోతో -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <button class="home-btn btn btn-outline-primary"
+            onclick="window.location.href='parent_dashboard_te.html'">హోమ్</button>
+        <div class="mx-auto">
+            <img src="Ignitio logo.jpg" alt="ఇగ్నిటో లోగో" class="logo">
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- భాష ఎంపిక -->
+        <div id="google_translate_element" class="text-end mb-3"></div>
+
+        <!-- కేస్ హిస్టరీ శీర్షిక -->
+        <h1 class="case-history-title">కేస్ హిస్టరీ</h1>
+        <br>
+
+        <!-- నావిగేషన్ టాబ్లు -->
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('identification_telugu.html')"
+                    href="javascript:void(0)">గుర్తింపు</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('parental_telugu.html')" href="javascript:void(0)">తల్లిదండ్రుల చరిత్ర</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('prenatal_telugu.html')" href="javascript:void(0)">గర్భకాల చరిత్ర</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('perinatal_telugu.html')" href="javascript:void(0)">ప్రసవ సమయ చరిత్ర</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('postnatal_telugu.html')" href="javascript:void(0)">ప్రసవానంతర చరిత్ర</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('medicalhistory_telugu.html')" href="javascript:void(0)">వైద్య చరిత్ర</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('educationalhistory_telugu.html')" href="javascript:void(0)">విద్యా చరిత్ర</a>
+            </li>
+            <br><br>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('familyhistory_telugu.html')" href="javascript:void(0)">కుటుంబ చరిత్ర</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('playhistory_telugu.html')" href="javascript:void(0)">పాటల చరిత్ర</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('behavioralcognitive_telugu.html')"
+                    href="javascript:void(0)">ప్రవర్తనా చరిత్ర</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('selfhelp_telugu.html')" href="javascript:void(0)">స్వీయ సహాయ చరిత్ర</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('recommendations_telugu.html')"
+                    href="javascript:void(0)">సిఫారసులు</a>
+            </li>
+        </ul>
+
+        <!-- కంటెంట్ కోసం ఇఫ్రేమ్ -->
+        <div class="iframe-container">
+            <iframe id="content-frame" src="identification_telugu.html"></iframe>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        function loadPage(page) {
+            document.getElementById('content-frame').src = page; // Update iframe source to the clicked page
+            const links = document.querySelectorAll('.nav-link');
+            links.forEach(link => link.classList.remove('active')); // Remove active class from all links
+            event.target.classList.add('active'); // Add active class to the clicked link
+        }
+    </script>
+</body>
+
+</html>
