@@ -51,9 +51,16 @@
         }
     </style>
     <script>
-        function loadPage(url) {
+        // Function to load page in iframe and update active tab
+        function loadPage(url, linkElement) {
+            // Change iframe source
             const iframe = document.getElementById('content-frame');
             iframe.src = url;
+
+            // Update the active tab
+            const links = document.querySelectorAll('.nav-link');
+            links.forEach(link => link.classList.remove('active')); // Remove active class from all links
+            linkElement.classList.add('active'); // Add active class to the clicked link
         }
     </script>
 </head>
@@ -76,44 +83,41 @@
         <!-- नेविगेशन टैब्स -->
         <ul class="nav nav-tabs" role="tablist">
             <li class="nav-item">
-                <a class="nav-link active" onclick="loadPage('identification_hindi.html')" href="javascript:void(0)">पहचान</a>
+                <a class="nav-link active" onclick="loadPage('identification_hindi.html', this)" href="javascript:void(0)">पहचान</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" onclick="loadPage('parental_hindi.html')" href="javascript:void(0)">अभिभावक इतिहास</a>
+                <a class="nav-link" onclick="loadPage('parental_hindi.html', this)" href="javascript:void(0)">अभिभावक इतिहास</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" onclick="loadPage('prenatal_hindi.html')" href="javascript:void(0)">गर्भपूर्व इतिहास</a>
+                <a class="nav-link" onclick="loadPage('prenatal_hindi.html', this)" href="javascript:void(0)">गर्भपूर्व इतिहास</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" onclick="loadPage('perinatal_hindi.html')" href="javascript:void(0)">प्रसवकालीन इतिहास</a>
+                <a class="nav-link" onclick="loadPage('perinatal_hindi.html', this)" href="javascript:void(0)">प्रसवकालीन इतिहास</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" onclick="loadPage('postnatal_hindi.html')" href="javascript:void(0)">प्रसवोत्तर इतिहास</a>
+                <a class="nav-link" onclick="loadPage('postnatal_hindi.html', this)" href="javascript:void(0)">प्रसवोत्तर इतिहास</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" onclick="loadPage('medicalhistory_hindi.html')" href="javascript:void(0)">चिकित्सा इतिहास</a>
+                <a class="nav-link" onclick="loadPage('medicalhistory_hindi.html', this)" href="javascript:void(0)">चिकित्सा इतिहास</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" onclick="loadPage('educationalhistory_hindi.html')" href="javascript:void(0)">शैक्षणिक
-                    इतिहास</a>
+                <a class="nav-link" onclick="loadPage('educationalhistory_hindi.html', this)" href="javascript:void(0)">शैक्षणिक इतिहास</a>
             </li>
             <br><br>
             <li class="nav-item">
-                <a class="nav-link" onclick="loadPage('familyhistory_hindi.html')" href="javascript:void(0)">परिवार
-                    इतिहास</a>
+                <a class="nav-link" onclick="loadPage('familyhistory_hindi.html', this)" href="javascript:void(0)">परिवार इतिहास</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" onclick="loadPage('playhistory_hindi.html')" href="javascript:void(0)">खेल इतिहास</a>
+                <a class="nav-link" onclick="loadPage('playhistory_hindi.html', this)" href="javascript:void(0)">खेल इतिहास</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" onclick="loadPage('behavioralcognitive_hindi.html')" href="javascript:void(0)">व्यवहारिक
-                    इतिहास</a>
+                <a class="nav-link" onclick="loadPage('behavioralcognitive_hindi.html', this)" href="javascript:void(0)">व्यवहारिक इतिहास</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" onclick="loadPage('selfhelp_hindi.html')" href="javascript:void(0)">स्व-सहायता इतिहास</a>
+                <a class="nav-link" onclick="loadPage('selfhelp_hindi.html', this)" href="javascript:void(0)">स्व-सहायता इतिहास</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" onclick="loadPage('recommendations_hindi.html')" href="javascript:void(0)">सिफारिशें</a>
+                <a class="nav-link" onclick="loadPage('recommendations_hindi.html', this)" href="javascript:void(0)">सिफारिशें</a>
             </li>
         </ul>
 
