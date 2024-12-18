@@ -68,6 +68,10 @@
                                 <th>Total Score</th>
                                 <th id="total-score">0</th>
                             </tr>
+                            <tr>
+                                <th>Percentage</th>
+                                <th id="percentage">0%</th>
+                            </tr>
                         </tfoot>
                     </table>
                 </div>
@@ -192,6 +196,7 @@
                             const classificationEl = document.getElementById('autism-classification');
                             classificationEl.textContent = classification;
                             classificationEl.className = `badge text-white ${getClassificationBadgeClass(classification)}`;
+                            document.getElementById('percentage').textContent = (totalScore/200)*100+'%';
                         }
                     })
                     .catch(error => {
