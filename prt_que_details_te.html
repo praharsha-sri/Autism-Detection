@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="te">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>విద్యార్థి ఆటిజం మదింపు వివరాలు</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Arial', sans-serif;
+        }
+        .student-header {
+            background-color: #3498db;
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+        }
+        .student-details-card {
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        .domain-table {
+            background-color: white;
+        }
+        .domain-table th {
+            background-color: #2980b9;
+            color: white;
+        }
+        .classification-badge {
+            font-size: 1.2em;
+            padding: 10px;
+            margin-top: 15px;
+        }
+        .badge-no-autism { background-color: #2ecc71; }
+        .badge-mild-autism { background-color: #f39c12; }
+        .badge-moderate-autism { background-color: #e74c3c; }
+        .badge-severe-autism { background-color: #9b59b6; }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="card student-details-card">
+            <div class="student-header text-center">
+                <h2 id="student-name">విద్యార్థి పేరు</h2>
+                <div id="basic-details">
+                    <p id="student-gender">లింగం: </p>
+                    <p id="student-dob">పుట్టిన తేదీ: </p>
+                    <p id="examiner-details">పరీక్షించేవారి పేరు: </p>
+                </div>
+            </div>
+            
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped domain-table">
+                        <thead>
+                            <tr>
+                                <th>డొమైన్</th>
+                                <th>స్కోర్</th>
+                            </tr>
+                        </thead>
+                        <tbody id="domain-scores-body">
+                            <!-- Domains will be populated dynamically -->
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th>మొత్తం స్కోర్</th>
+                                <th id="total-score">0</th>
+                            </tr>
+                            <tr>
+                                <th>శాతం</th>
+                                <th id="percentage">0%</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div class="text-center">
+                    <h3>ఆటిజం వర్గీకరణ</h3>
+                    <div id="autism-classification" class="badge classification-badge"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+            authDomain: "autism-evaluation-platform.firebaseapp.com",
+            projectId: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform.firebasestorage.app",
+            messagingSenderId: "748226978662",
+            appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+            measurementId: "G-1TGEHTTJF4"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Domain Names Mapping
+        const domainNames = {
+            socialRelationship: "సామాజిక సంబంధాలు",
+            emotionalResponsiveness: "భావోద్వేగ స్పందన",
+            speechLanguageCommunication: "మాట్లాడటం & సంభాషణ",
+            behaviourPatterns: "ప్రవర్తన విధానాలు",
+            sensoryAspects: "సంవేదన అంశాలు",
+            cognitiveComponent: "జ్ఞాన భాగం"
+        };
+
+        // Autism Classification Function
+        function classifyAutism(totalScore) {
+            if (totalScore <= 70) {
+                return "ఆటిజం లేదు";
+            } else if (totalScore <= 106) {
+                return "స్వల్ప ఆటిజం";
+            } else if (totalScore <= 153) {
+                return "మధ్యస్థ ఆటిజం";
+            } else {
+                return "తీవ్ర ఆటిజం";
+            }
+        }
+
+        // Function to get classification badge class
+        function getClassificationBadgeClass(classification) {
+            const classMap = {
+                "ఆటిజం లేదు": "badge-no-autism",
+                "స్వల్ప ఆటిజం": "badge-mild-autism",
+                "మధ్యస్థ ఆటిజం": "badge-moderate-autism",
+                "తీవ్ర ఆటిజం": "badge-severe-autism"
+            };
+            return classMap[classification] || "";
+        }
+
+        // Fetch Student Details
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get student ID from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const studentId = urlParams.get('id');
+
+            if (!studentId) {
+                alert('విద్యార్థి ID ఇవ్వబడలేదు');
+                return;
+            }
+
+            // Fetch student details
+            const detailsRef = db.collection('users').doc(studentId).collection('Questionnaire').doc('details');
+            const domainRefs = [
+                'socialRelationship', 
+                'emotionalResponsiveness', 
+                'speechLanguageCommunication', 
+                'behaviourPatterns', 
+                'sensoryAspects', 
+                'cognitiveComponent'
+            ];
+
+            // Populate basic details
+            detailsRef.get().then(doc => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    document.getElementById('student-name').textContent = data.name || 'తెలియదు';
+                    document.getElementById('student-gender').textContent = `లింగం: ${data.gender || 'తెలియదు'}`;
+                    document.getElementById('student-dob').textContent = `పుట్టిన తేదీ: ${data.dob || 'తెలియదు'}`;
+                    document.getElementById('examiner-details').textContent = `పరీక్షించేవారి పేరు: ${data.examiner || 'తెలియదు'}`;
+                }
+            });
+
+            // Fetch domain scores
+            const domainScoresBody = document.getElementById('domain-scores-body');
+            let totalScore = 0;
+
+            domainRefs.forEach(domain => {
+                db.collection('users').doc(studentId).collection('Questionnaire').doc(domain).get()
+                    .then(doc => {
+                        if (doc.exists) {
+                            const score = doc.data().score || 0;
+                            totalScore += score;
+
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${domainNames[domain]}</td>
+                                <td>${score}</td>
+                            `;
+                            domainScoresBody.appendChild(row);
+
+                            // Update total score and classification
+                            document.getElementById('total-score').textContent = totalScore;
+                            const classification = classifyAutism(totalScore);
+                            const classificationEl = document.getElementById('autism-classification');
+                            classificationEl.textContent = classification;
+                            classificationEl.className = `badge text-white ${getClassificationBadgeClass(classification)}`;
+                            document.getElementById('percentage').textContent = (totalScore/200)*100+'%';
+                        }
+                    })
+                    .catch(error => {
+                        console.error(`Error fetching ${domain} data:`, error);
+                    });
+            });
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
