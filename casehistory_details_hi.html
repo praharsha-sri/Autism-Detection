@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comprehensive Case History</title>
+    <title>व्यापक केस इतिहास</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -67,14 +67,14 @@
     <div class="container case-history-container">
         <div class="row mb-4">
             <div class="col-12 text-center">
-                <h1 class="display-6">Comprehensive Case History</h1>
+                <h1 class="display-6">व्यापक केस इतिहास</h1>
             </div>
         </div>
 
         <div class="row mb-4">
             <div class="col-12 text-center">
                 <button id="download-pdf" class="btn btn-primary">
-                    <i class="fas fa-download"></i> Download PDF
+                    <i class="fas fa-download"></i> PDF डाउनलोड करें
                 </button>
             </div>
         </div>
@@ -112,48 +112,48 @@
         // Mapping of database field names to form labels with specific order
         const fieldMappings = {
             identification: {
-                name: 'Name',
-                dob: 'Date of Birth', 
-                age: 'Age',
-                gender: 'Gender',
-                informant: 'Informant (Mother/ Father/Guardian with name)',
-                parentOccupation: 'Parent\'s Occupation',
-                referral: 'Source of Referral',
-                communication: 'Child Mode of Communication',
-                complaints: 'Presenting Chief Complaints'
+                name: 'नाम',
+                dob: 'जन्म तिथि', 
+                age: 'उम्र',
+                gender: 'लिंग',
+                informant: 'सूचना देने वाला (माँ/पिता/अभिभावक का नाम)',
+                parentOccupation: 'माता-पिता का व्यवसाय',
+                referral: 'संदर्भ स्रोत',
+                communication: 'बच्चे की संचार विधि',
+                complaints: 'प्रस्तुत प्रमुख शिकायतें'
             },
             treatment: {
-                illnessInjuries: 'Illness/Injuries',
-                convulsions: 'Convulsions',
-                earAches: 'Ear Aches/Discharge',
-                anyOtherMedical: 'Any Other Medical Details'
+                illnessInjuries: 'बीमारी/चोट',
+                convulsions: 'दौरे',
+                earAches: 'कान में दर्द/स्राव',
+                anyOtherMedical: 'अन्य चिकित्सा विवरण'
             },
             educational: {
-                schoolAge: 'Age of Beginning of School',
-                peerTeacherRelationship: 'Relationship between Peers and Teachers',
-                schoolIssues: 'School Phobia/Non-Attendance/Truancy/Reading or Writing Difficulties',
-                anyOtherEducational: 'Any Other Educational Details'
+                schoolAge: 'स्कूल की शुरुआत की उम्र',
+                peerTeacherRelationship: 'सहपाठियों और शिक्षकों के साथ संबंध',
+                schoolIssues: 'स्कूल की फोबिया/गैर-उपस्थिति/अवगति/पढ़ाई या लिखाई में कठिनाइयाँ',
+                anyOtherEducational: 'अन्य शैक्षिक विवरण'
             },
             playhistory: {
-                motordev: 'Motor Development',
-                speechdev: 'Speech & Language Development',
-                sensorydev: 'Sensory Development',
-                socialdev: 'Social Development',
-                playinghistory: 'Play History Details'
+                motordev: 'मोटर विकास',
+                speechdev: 'भाषण और भाषा विकास',
+                sensorydev: 'संवेदनात्मक विकास',
+                socialdev: 'सामाजिक विकास',
+                playinghistory: 'खेल इतिहास विवरण'
             },
             behavior: {
-                behave: 'Behavior in Infancy and Toddler',
-                hearing: 'Hearing',
-                homebehaviour: 'Home Behaviour',
-                socialbehaviour: 'Social Behaviour',
-                differentbeh: 'Differential Behaviors',
-                vision: 'Vision',
-                speech: 'Speech',
-                orientation: 'Orientation (Time/Place/Person)'
+                behave: 'शिशु और छोटे बच्चों में व्यवहार',
+                hearing: 'सुनाई',
+                homebehaviour: 'घर में व्यवहार',
+                socialbehaviour: 'सामाजिक व्यवहार',
+                differentbeh: 'विभिन्न व्यवहार',
+                vision: 'दृष्टि',
+                speech: 'भाषण',
+                orientation: 'दिशा (समय/स्थान/व्यक्ति)'
             },
             previousDiagnosis: {
-                prevtherapy: 'Previous Diagnosis & Therapy Details',
-                recommend: 'Recommendation'
+                prevtherapy: 'पिछला निदान और उपचार विवरण',
+                recommend: 'सिफारिश'
             }
         };
 
@@ -182,10 +182,10 @@
         if (value !== undefined && value !== '') {
             const detailCard = document.createElement('div');
             detailCard.className = 'detail-card col-md-6';
-            detailCard.innerHTML = `
+            detailCard.innerHTML = ` 
                 <div class="row">
                     <div class="col-6 detail-label">${label}</div>
-                    <div class="col-6 detail-value">${value || 'Not Provided'}</div>
+                    <div class="col-6 detail-value">${value || 'प्रदान नहीं किया गया'}</div>
                 </div>
             `;
             detailContainer.appendChild(detailCard);
@@ -204,18 +204,18 @@
             const contentContainer = document.getElementById('case-history-content');
 
             if (!parentId) {
-                alert('No parent ID provided');
+                alert('कोई पैरेंट आईडी प्रदान नहीं की गई है');
                 return;
             }
 
             // Sections to fetch in specific order
             const sections = [
-                { name: 'Identification Data', doc: 'identification', mappings: fieldMappings.identification },
-                { name: 'Treatment and Medical History', doc: 'treatment', mappings: fieldMappings.treatment },
-                { name: 'Educational History', doc: 'educational', mappings: fieldMappings.educational },
-                { name: 'Play History', doc: 'playhistory', mappings: fieldMappings.playhistory },
-                { name: 'Behavioral History', doc: 'behavior', mappings: fieldMappings.behavior },
-                { name: 'Previous Diagnosis', doc: 'previousDiagnosis', mappings: fieldMappings.previousDiagnosis }
+                { name: 'पहचान डेटा', doc: 'identification', mappings: fieldMappings.identification },
+                { name: 'उपचार और चिकित्सा इतिहास', doc: 'treatment', mappings: fieldMappings.treatment },
+                { name: 'शैक्षिक इतिहास', doc: 'educational', mappings: fieldMappings.educational },
+                { name: 'खेल इतिहास', doc: 'playhistory', mappings: fieldMappings.playhistory },
+                { name: 'व्यवहारिक इतिहास', doc: 'behavior', mappings: fieldMappings.behavior },
+                { name: 'पिछला निदान', doc: 'previousDiagnosis', mappings: fieldMappings.previousDiagnosis }
             ];
 
             // Fetch all sections
@@ -242,8 +242,6 @@
         // PDF Download Function
         function downloadPDF() {
             const element = document.querySelector('.case-history-container'); // The container to convert into PDF
-            
-            // Options for html2pdf
             const opt = {
                 margin: 9,
                 filename: 'Case_History.pdf',
@@ -259,24 +257,12 @@
         // Attach event listener to the button
         document.getElementById('download-pdf').addEventListener('click', downloadPDF);
 
-
-    // Add additional script to load jsPDF
-    const jsPDFScript = document.createElement('script');
-    jsPDFScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-    document.head.appendChild(jsPDFScript);
-
-        // Add PDF Download Event Listener
-        document.addEventListener('DOMContentLoaded', () => {
-            const downloadBtn = document.getElementById('download-pdf');
-            downloadBtn.addEventListener('click', downloadPDF);
-        });
-
         // Authentication and Fetch
         firebase.auth().onAuthStateChanged((user) => {
             if (user) {
                 fetchCaseHistory();
             } else {
-                alert('Please log in');
+                alert('कृपया लॉग इन करें');
                 window.location.href = 'login.html';
             }
         });

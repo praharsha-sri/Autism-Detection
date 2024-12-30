@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="te">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Case History Forms</title>
+    <title>విద్యార్థి కేస్ చరిత్ర ఫారములు</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="parent_questionnaire.css" rel="stylesheet">
 </head>
@@ -15,11 +15,11 @@
             <div class="col-12 teacher-details-section mb-4">
                 <div class="card">
                     <div class="card-body">
-                        <h2 class="card-title">Teacher Details</h2>
+                        <h2 class="card-title">గురువులు వివరాలు</h2>
                         <div id="teacher-details">
-                            <p id="teacher-name">Name: </p>
-                            <p id="teacher-email">Email: </p>
-                            <p id="teacher-organisation">Organisation: </p>
+                            <p id="teacher-name">పేరు: </p>
+                            <p id="teacher-email">ఇమెయిల్: </p>
+                            <p id="teacher-organisation">సంస్థ: </p>
                         </div>
                     </div>
                 </div>
@@ -32,14 +32,14 @@
                         <!-- Search Bar -->
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <h3>Student Case History Forms</h3>
+                                <h3>విద్యార్థి కేస్ చరిత్ర ఫారములు</h3>
                             </div>
                             <div class="col-md-6 text-end">
                                 <input 
                                     type="text" 
                                     id="search-input" 
                                     class="form-control" 
-                                    placeholder="Search students or parents..."
+                                    placeholder="విద్యార్థి లేదా తల్లి తండ్రి కోసం శోధించండి..."
                                 >
                             </div>
                         </div>
@@ -82,7 +82,7 @@
 
                 fetchStudents(user);
             } else {
-                alert('Please log in');
+                alert('దయచేసి లాగిన్ అవ్వండి');
             }
         });
         function fetchTeacherDetails(user) {
@@ -92,17 +92,17 @@
                         const teacherData = doc.data();
                         
                         document.getElementById('teacher-name').textContent = 
-                            `Name: ${teacherData.name || 'Not provided'}`;
+                            `పేరు: ${teacherData.name || 'చెప్పబడలేదు'}`;
                         document.getElementById('teacher-email').textContent = 
-                            `Email: ${user.email || 'Not provided'}`;
+                            `ఇమెయిల్: ${user.email || 'చెప్పబడలేదు'}`;
                         document.getElementById('teacher-organisation').textContent = 
-                            `Organisation: ${teacherData.organization || 'Not provided'}`;
+                            `సంస్థ: ${teacherData.organization || 'చెప్పబడలేదు'}`;
 
                         sessionStorage.setItem('teacherOrganisation', teacherData.organization);
                     }
                 })
                 .catch(error => {
-                    console.error('Error fetching teacher details:', error);
+                    console.error('గురువుల వివరాలు పొందడంలో లోపం:', error);
                 });
         }
 
@@ -143,27 +143,27 @@
                                 const studentItem = document.createElement('div');
                                 studentItem.classList.add('list-group-item', 'list-group-item-action');
                                 
-                                // Show both original organization name and student details
+
                                 studentItem.innerHTML = `
                                     <div class="d-flex w-100 justify-content-between">
                                         <div>
-                                            <h5 class="mb-1">Student Name: ${detailsData.name || 'N/A'}</h5>
-                                            <small class="text-muted">Parent Name: ${parentData.name || 'N/A'}</small>
+                                            <h5 class="mb-1">విద్యార్థి పేరు: ${detailsData.name || 'N/A'}</h5>
+                                            <small class="text-muted">తల్లి తండ్రి పేరు: ${parentData.name || 'N/A'}</small>
                                             <br>
-                                            <small class="text-muted">Organization: ${parentData.organization}</small>
+                                            <small class="text-muted">సంస్థ: ${parentData.organization}</small>
                                         </div>
                                     </div>
                                 `;
 
                                 studentItem.addEventListener('click', () => {
-                                    window.location.href = `casehistory_details.html?id=${doc.id}`;
+                                    window.location.href = `casehistory_details_te.html?id=${doc.id}`;
                                 });
 
                                 studentList.appendChild(studentItem);
                             }
                         })
                         .catch(error => {
-                            console.error('Error fetching details document:', error);
+                            console.error('వివరాల డాక్యుమెంట్ పొందడంలో లోపం:', error);
                         });
                 }
             });
@@ -172,15 +172,15 @@
             if (!hasMatches) {
                 const noMatchesMsg = document.createElement('div');
                 noMatchesMsg.classList.add('alert', 'alert-info', 'mt-3');
-                noMatchesMsg.textContent = 'No students found for your organization.';
+                noMatchesMsg.textContent = 'మీ సంస్థకు సంబంధించిన విద్యార్థులు లేవు.';
                 studentList.appendChild(noMatchesMsg);
             }
         })
         .catch(error => {
-            console.error('Error fetching students:', error);
+            console.error('విద్యార్థులను పొందడంలో లోపం:', error);
             const errorMsg = document.createElement('div');
             errorMsg.classList.add('alert', 'alert-danger', 'mt-3');
-            errorMsg.textContent = 'Error loading students. Please try again.';
+            errorMsg.textContent = 'విద్యార్థులను లోడ్ చేయడంలో లోపం. దయచేసి మళ్లీ ప్రయత్నించండి.';
             studentList.appendChild(errorMsg);
         });
 }
@@ -192,18 +192,18 @@ function fetchTeacherDetails(user) {
                 const teacherData = doc.data();
                 
                 document.getElementById('teacher-name').textContent = 
-                    `Name: ${teacherData.name || 'Not provided'}`;
+                    `పేరు: ${teacherData.name || 'చెప్పబడలేదు'}`;
                 document.getElementById('teacher-email').textContent = 
-                    `Email: ${user.email || 'Not provided'}`;
+                    `ఇమెయిల్: ${user.email || 'చెప్పబడలేదు'}`;
                 document.getElementById('teacher-organisation').textContent = 
-                    `Organisation: ${teacherData.organization || 'Not provided'}`;
+                    `సంస్థ: ${teacherData.organization || 'చెప్పబడలేదు'}`;
 
                 // Store the original organization name
-                sessionStorage.setItem('teacherOrganisation', teacherData.organization || '');
+                sessionStorage.setItem('teacherOrganisation', teacherData.organization || '' );
             }
         })
         .catch(error => {
-            console.error('Error fetching teacher details:', error);
+            console.error('గురువుల వివరాలు పొందడంలో లోపం:', error);
         });
 }
 
