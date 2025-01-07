@@ -41,6 +41,16 @@
         <div id="reports-container" class="reports-grid"></div>
     </div>
 
+    <div id="languageModal" class="modal" onclick="if(event.target==this)document.getElementById('languageModal').style.display='none'">
+        <div class="modal-content">
+            <span class="close-modal" onclick="document.getElementById('languageModal').style.display='none'">&times;</span>
+            <h2>భాషను ఎంచుకోండి</h2>
+            <button class="language-button" onclick="handleLanguageSelection('hindi')">हिंदी</button>
+            <button class="language-button" onclick="handleLanguageSelection('english')">English</button>
+            <button class="language-button" onclick="handleLanguageSelection('telugu')">తెలుగు</button>
+        </div>
+    </div>
+
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
@@ -237,7 +247,7 @@
             generateButton.innerHTML = `
                 PDF తయారు చేయండి
             `;
-            generateButton.onclick = () => generatePDF(report);
+            generateButton.onclick = () => showLanguageModal(report);
 
             card.appendChild(header);
             card.appendChild(scoresContainer);
@@ -247,6 +257,32 @@
 
             return card;
         }
+
+
+        function showLanguageModal(reportData) {
+            const modal = document.getElementById('languageModal');
+            modal.dataset.reportData = JSON.stringify(reportData);
+            modal.style.display = 'block';
+        }
+
+        function handleLanguageSelection(language) {
+            const modal = document.getElementById('languageModal');
+            const reportData = JSON.parse(modal.dataset.reportData);
+            modal.style.display = 'none';
+
+            switch(language) {
+                case 'telugu':
+                    generatePDF();
+                    break;
+                case 'english':
+                    window.location.href = 'reports_page.html?data=' + encodeURIComponent(JSON.stringify(reportData));
+                    break;
+                case 'hindi':
+                    window.location.href = 'reports_page_hi.html?data=' + encodeURIComponent(JSON.stringify(reportData));
+                    break;
+            }
+        }
+
         function generatePDF() {
     const { jsPDF } = window.jspdf;
 
@@ -289,6 +325,22 @@ document.querySelector('#generate-pdf').addEventListener('click', generatePDF);
             const date = new Date(dateString);
             return date.toLocaleDateString('te-IN', { year: 'numeric', month: 'long', day: 'numeric' });
         }
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                fetchReports(); // Load reports immediately when user is authenticated
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+
+        // Also call fetchReports when the page loads if user is already authenticated
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = auth.currentUser;
+            if (user) {
+                fetchReports();
+            }
+        });
     </script>
 </body>
 </html>
