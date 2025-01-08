@@ -8,6 +8,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link href="filledquestionnaire.css" rel="stylesheet">
 </head>
@@ -16,30 +17,24 @@
     <a href="teacher_dashboard_en.html" class="btn btn-primary home-button">Home</a>
 
     <div class="container-fluid mt-4">
-        <!-- Page Title -->
         <br>
         <h1 class="text-center my-4">Teachers Filled Questionnaires</h1>
-        <!-- Search Input -->
         <div class="search-container">
             <input type="text" id="searchInput" placeholder="Search by student name..." class="form-control">
             <i class="search-icon">🔍</i>
         </div>
-
-        <!-- Student Buttons Container -->
+        <br>
         <div id="studentButtonsContainer" class="student-buttons text-center"></div>
-
-        <!-- Modal Backdrop -->
         <div id="modalBackdrop" class="modal-backdrop"></div>
 
-        <!-- Student Modal -->
         <div id="studentModal" class="student-modal">
             <button class="btn-close-modal" onclick="closeModal()">&times;</button>
             <div id="studentModalContent" class="p-4"></div>
+            <button id="downloadSnapshot" class="btn btn-primary mt-3" onclick="downloadSnapshot()">Download</button>
         </div>
     </div>
 
     <script>
-        // Firebase configuration remains the same as in the previous version
         const firebaseConfig = {
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
             authDomain: "autism-evaluation-platform.firebaseapp.com",
@@ -50,21 +45,15 @@
             measurementId: "G-1TGEHTTJF4"
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        // Function to display submissions as buttons and modal
         async function displaySubmissions(userId) {
             const studentButtonsContainer = document.getElementById('studentButtonsContainer');
-            const modalBackdrop = document.getElementById('modalBackdrop');
-            const studentModal = document.getElementById('studentModal');
-            const studentModalContent = document.getElementById('studentModalContent');
             const searchInput = document.getElementById('searchInput');
 
             try {
-                // Fetch submissions
                 const submissionsRef = db.collection('users').doc(userId).collection('submissions');
                 const submissionsSnap = await submissionsRef.orderBy('submittedAt', 'desc').get();
 
@@ -80,11 +69,8 @@
                     submissions.push({...data, id: doc.id});
                 });
 
-                // Create buttons and modal content for each student
                 submissions.forEach((data, index) => {
                     const buttonId = `student-btn-${index}`;
-                    
-                    // Create student button
                     const buttonHTML = `
                         <button id="${buttonId}" class="btn" 
                                 onclick="showStudentModal(${index})">
@@ -96,18 +82,15 @@
                     studentButtonsContainer.insertAdjacentHTML('beforeend', buttonHTML);
                 });
 
-                // Search functionality
                 searchInput.addEventListener('input', function() {
                     const searchTerm = this.value.toLowerCase();
                     const buttons = document.querySelectorAll('.student-buttons .btn');
-                    
                     buttons.forEach(button => {
                         const studentName = button.querySelector('strong').textContent.toLowerCase();
                         button.style.display = studentName.includes(searchTerm) ? 'flex' : 'none';
                     });
                 });
 
-                // Store submissions in a global variable for modal access
                 window.submissions = submissions;
             } catch (err) {
                 console.error('Error fetching submissions:', err);
@@ -119,14 +102,12 @@
             }
         }
 
-        // Function to show student modal
         function showStudentModal(index) {
             const modalBackdrop = document.getElementById('modalBackdrop');
             const studentModal = document.getElementById('studentModal');
             const studentModalContent = document.getElementById('studentModalContent');
             const data = window.submissions[index];
 
-            // Populate modal content
             studentModalContent.innerHTML = `
                 <h2 class="text-primary mb-4">${data.studentName || 'Unknown'}</h2>
                 <div class="row">
@@ -152,28 +133,34 @@
                 </ul>
             `;
 
-            // Show modal and backdrop
             modalBackdrop.classList.add('show');
             studentModal.classList.add('show');
         }
 
-        // Function to close modal
         function closeModal() {
             const modalBackdrop = document.getElementById('modalBackdrop');
             const studentModal = document.getElementById('studentModal');
-
             modalBackdrop.classList.remove('show');
             studentModal.classList.remove('show');
         }
 
-        // Close modal when clicking outside
+        async function downloadSnapshot() {
+    const studentModalContent = document.getElementById('studentModalContent');
+    const data = window.submissions.find(submission => 
+        submission.studentName === studentModalContent.querySelector('h2').textContent.trim()
+    );
+    const studentName = data ? data.studentName : 'student';
+    const canvas = await html2canvas(studentModalContent);
+    const link = document.createElement('a');
+    link.download = `${studentName}-details.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+}
+
         document.getElementById('modalBackdrop').addEventListener('click', function(event) {
-            if (event.target === this) {
-                closeModal();
-            }
+            if (event.target === this) closeModal();
         });
 
-        // Auth state listener
         auth.onAuthStateChanged(user => {
             if (user) {
                 displaySubmissions(user.uid);
