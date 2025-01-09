@@ -10,6 +10,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link href="filledquestionnaire.css" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
 </head>
 <body>
     <!-- Home Button -->
@@ -31,10 +34,10 @@
         <!-- Modal Backdrop -->
         <div id="modalBackdrop" class="modal-backdrop"></div>
 
-        <!-- Student Modal -->
         <div id="studentModal" class="student-modal">
             <button class="btn-close-modal" onclick="closeModal()">&times;</button>
             <div id="studentModalContent" class="p-4"></div>
+            <button id="downloadSnapshot" class="btn btn-primary mt-3" onclick="downloadSnapshot()">డౌన్‌లోడ్</button>
         </div>
     </div>
 
@@ -181,6 +184,19 @@ const scoreKeyTranslationsTelugu = {
             modalBackdrop.classList.add('show');
             studentModal.classList.add('show');
         }
+
+        async function downloadSnapshot() {
+    const studentModalContent = document.getElementById('studentModalContent');
+    const data = window.submissions.find(submission => 
+        submission.studentName === studentModalContent.querySelector('h2').textContent.trim()
+    );
+    const studentName = data ? data.studentName : 'student';
+    const canvas = await html2canvas(studentModalContent);
+    const link = document.createElement('a');
+    link.download = `${studentName}-వివరాలు.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+}
 
         // Function to close modal
         function closeModal() {
