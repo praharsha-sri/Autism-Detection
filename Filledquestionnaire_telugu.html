@@ -21,7 +21,9 @@
     <div class="container-fluid mt-4">
         <!-- Page Title -->
         <br>
-        <h1 class="text-center my-4">గురువులు నింపిన ప్రశ్నావళి</h1>
+        <h1 id="pageTitle" class="text-center my-4">నింపిన ప్రశ్నావళి</h1>
+
+        <!--<h1 class="text-center my-4">గురువులు నింపిన ప్రశ్నావళి</h1>-->
         <!-- Search Input -->
         <div class="search-container">
             <input type="text" id="searchInput" placeholder="విద్యార్థి పేరుతో శోధించండి..." class="form-control">
@@ -57,7 +59,20 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
-
+        //display username
+        async function getUserName(userId) {
+            try {
+                const userDoc = await db.collection('users').doc(userId).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    return userData.name || userData.displayName || 'User';
+                }
+                return 'User';
+            } catch (error) {
+                console.error('Error fetching user name:', error);
+                return 'User';
+            }
+        }
         // Function to display submissions as buttons and modal
         async function displaySubmissions(userId) {
             const studentButtonsContainer = document.getElementById('studentButtonsContainer');
@@ -65,6 +80,9 @@
             const studentModal = document.getElementById('studentModal');
             const studentModalContent = document.getElementById('studentModalContent');
             const searchInput = document.getElementById('searchInput');
+             // Get and set user name in title
+             const userName = await getUserName(userId);
+            pageTitle.textContent = `${userName} నింపిన ప్రశ్నావళి`;
 
             try {
                 // Fetch submissions
