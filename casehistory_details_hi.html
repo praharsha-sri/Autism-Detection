@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>व्यापक केस इतिहास</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .case-history-container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+            padding: 40px;
+            margin-top: 30px;
+        }
+        .section-header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .section-header h3 {
+            margin: 0;
+            font-weight: 600;
+        }
+        .detail-card {
+            background-color: #f8f9fa;
+            border-left: 4px solid #3498db;
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .detail-value {
+            color: #34495e;
+        }
+        .no-data {
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        #download-pdf {
+            margin-bottom: 20px;
+        }
+        @media print {
+            .case-history-container {
+                box-shadow: none;
+                margin-top: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container case-history-container">
+        <div class="row mb-4">
+            <div class="col-12 text-center">
+                <h1 class="display-6">व्यापक केस इतिहास</h1>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-12 text-center">
+                <button id="download-pdf" class="btn btn-primary">
+                    <i class="fas fa-download"></i> PDF डाउनलोड करें
+                </button>
+            </div>
+        </div>
+
+        <div id="case-history-content"></div>
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
+    <!-- html2pdf Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <!-- Font Awesome for download icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+            authDomain: "autism-evaluation-platform.firebaseapp.com",
+            projectId: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform.firebasestorage.app",
+            messagingSenderId: "748226978662",
+            appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+            measurementId: "G-1TGEHTTJF4"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Mapping of database field names to form labels with specific order
+        const fieldMappings = {
+            identification: {
+                name: 'नाम',
+                dob: 'जन्म तिथि', 
+                age: 'उम्र',
+                gender: 'लिंग',
+                informant: 'सूचना देने वाला (माँ/पिता/अभिभावक का नाम)',
+                parentOccupation: 'माता-पिता का व्यवसाय',
+                referral: 'संदर्भ स्रोत',
+                communication: 'बच्चे की संचार विधि',
+                complaints: 'प्रस्तुत प्रमुख शिकायतें'
+            },
+            treatment: {
+                illnessInjuries: 'बीमारी/चोट',
+                convulsions: 'दौरे',
+                earAches: 'कान में दर्द/स्राव',
+                anyOtherMedical: 'अन्य चिकित्सा विवरण'
+            },
+            educational: {
+                schoolAge: 'स्कूल की शुरुआत की उम्र',
+                peerTeacherRelationship: 'सहपाठियों और शिक्षकों के साथ संबंध',
+                schoolIssues: 'स्कूल की फोबिया/गैर-उपस्थिति/अवगति/पढ़ाई या लिखाई में कठिनाइयाँ',
+                anyOtherEducational: 'अन्य शैक्षिक विवरण'
+            },
+            playhistory: {
+                motordev: 'मोटर विकास',
+                speechdev: 'भाषण और भाषा विकास',
+                sensorydev: 'संवेदनात्मक विकास',
+                socialdev: 'सामाजिक विकास',
+                playinghistory: 'खेल इतिहास विवरण'
+            },
+            behavior: {
+                behave: 'शिशु और छोटे बच्चों में व्यवहार',
+                hearing: 'सुनाई',
+                homebehaviour: 'घर में व्यवहार',
+                socialbehaviour: 'सामाजिक व्यवहार',
+                differentbeh: 'विभिन्न व्यवहार',
+                vision: 'दृष्टि',
+                speech: 'भाषण',
+                orientation: 'दिशा (समय/स्थान/व्यक्ति)'
+            },
+            previousDiagnosis: {
+                prevtherapy: 'पिछला निदान और उपचार विवरण',
+                recommend: 'सिफारिश'
+            }
+        };
+
+        function createSection(title, data, mappings) {
+    if (!data || Object.keys(data).length === 0) return null;
+
+    delete data.timestamp; // Remove unnecessary fields
+
+    const sectionDiv = document.createElement('div');
+    sectionDiv.className = 'mb-4 row';
+
+    // Section header
+    const headerDiv = document.createElement('div');
+    headerDiv.className = 'section-header col-12';
+    headerDiv.innerHTML = `<h3>${title}</h3>`;
+    sectionDiv.appendChild(headerDiv);
+
+    // Create detail cards in two columns
+    const detailContainer = document.createElement('div');
+    detailContainer.className = 'row g-3';
+
+    Object.keys(mappings).forEach(key => {
+        const label = mappings[key];
+        const value = data[key];
+
+        if (value !== undefined && value !== '') {
+            const detailCard = document.createElement('div');
+            detailCard.className = 'detail-card col-md-6';
+            detailCard.innerHTML = ` 
+                <div class="row">
+                    <div class="col-6 detail-label">${label}</div>
+                    <div class="col-6 detail-value">${value || 'प्रदान नहीं किया गया'}</div>
+                </div>
+            `;
+            detailContainer.appendChild(detailCard);
+        }
+    });
+
+    sectionDiv.appendChild(detailContainer);
+    return sectionDiv;
+}
+
+
+        // Fetch case history details
+        function fetchCaseHistory() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const parentId = urlParams.get('id');
+            const contentContainer = document.getElementById('case-history-content');
+
+            if (!parentId) {
+                alert('कोई पैरेंट आईडी प्रदान नहीं की गई है');
+                return;
+            }
+
+            // Sections to fetch in specific order
+            const sections = [
+                { name: 'पहचान डेटा', doc: 'identification', mappings: fieldMappings.identification },
+                { name: 'उपचार और चिकित्सा इतिहास', doc: 'treatment', mappings: fieldMappings.treatment },
+                { name: 'शैक्षिक इतिहास', doc: 'educational', mappings: fieldMappings.educational },
+                { name: 'खेल इतिहास', doc: 'playhistory', mappings: fieldMappings.playhistory },
+                { name: 'व्यवहारिक इतिहास', doc: 'behavior', mappings: fieldMappings.behavior },
+                { name: 'पिछला निदान', doc: 'previousDiagnosis', mappings: fieldMappings.previousDiagnosis }
+            ];
+
+            // Fetch all sections
+            sections.forEach(section => {
+                db.collection('users')
+                  .doc(parentId)
+                  .collection('casehistory')
+                  .doc(section.doc)
+                  .get()
+                  .then(doc => {
+                      if (doc.exists) {
+                          const sectionElement = createSection(section.name, doc.data(), section.mappings);
+                          if (sectionElement) {
+                              contentContainer.appendChild(sectionElement);
+                          }
+                      }
+                  })
+                  .catch(error => {
+                      console.error(`Error fetching ${section.name}:`, error);
+                  });
+            });
+        }
+
+        // PDF Download Function
+        function downloadPDF() {
+            const element = document.querySelector('.case-history-container'); // The container to convert into PDF
+            const opt = {
+                margin: 9,
+                filename: 'Case_History.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 1.5 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            // Use html2pdf to generate and download the PDF
+            html2pdf().set(opt).from(element).save();
+        }
+
+        // Attach event listener to the button
+        document.getElementById('download-pdf').addEventListener('click', downloadPDF);
+
+        // Authentication and Fetch
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                fetchCaseHistory();
+            } else {
+                alert('कृपया लॉग इन करें');
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

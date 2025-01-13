@@ -53,7 +53,7 @@
             <div class="col-lg-4 col-md-6">
                 <div class="card shadow-lg">
                     <div class="card-body">
-                        <a href="home_page_parent.html" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-decoration-none">
+                        <a href="casehistory_hi.html" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-decoration-none">
                             <span class="fas fa-file-alt fa-2x mb-3"></span>
                             <h5>मामले का विवरण फॉर्म</h5>
                         </a>
@@ -77,7 +77,7 @@
             <div class="col-lg-4 col-md-6">
                 <div class="card shadow-lg">
                     <div class="card-body">
-                        <a href="reports_page.html" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-decoration-none">
+                        <a href="reports_page_hi.html" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-decoration-none">
                             <span class="fas fa-chart-bar fa-2x mb-3"></span>
                             <h5>रिपोर्ट</h5>
                         </a>
@@ -109,7 +109,7 @@
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
             authDomain: "autism-evaluation-platform.firebaseapp.com",
             projectId: "autism-evaluation-platform",
-            storageBucket: "autism-evaluation-platform.appspot.com",
+            storageBucket: "autism-evaluation-platform",
             messagingSenderId: "748226978662",
             appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
             measurementId: "G-1TGEHTTJF4"
@@ -130,35 +130,30 @@
             return selectedLanguage ? true : false;
         }
 
-        // Initialize dashboard with language handling
+        // Initialize dashboard with user role verification
         async function initializeDashboard(user) {
             showLoading();
             try {
-                // Check language selection first
-                if (!checkLanguageSelection()) {
-                    window.location.href = 'select_language.html';
-                    return;
-                }
-
-                const selectedLanguage = localStorage.getItem('selectedLanguage');
-                
-                // Check if we're on the correct language page
-                const currentUrl = window.location.pathname;
-                const expectedUrl = `/parent_dashboard_${selectedLanguage}.html`;
-                
-                if (!currentUrl.includes(expectedUrl)) {
-                    window.location.href = `parent_dashboard_${selectedLanguage}.html`;
-                    return;
-                }
-
-                // Set language in selector
-                document.getElementById('language-switcher').value = selectedLanguage;
-
-                // Fetch user data
                 const userDoc = await getDoc(doc(db, "users", user.uid));
                 if (userDoc.exists()) {
-                    const userName = userDoc.data().name || "User";
+                    const userData = userDoc.data();
+                    const role = userData.role;
+
+                    // Redirect if not parent
+                    if (role !== "parent") {
+                        alert("Access restricted to parents only.");
+                        window.location.href = 'index.html';
+                        return;
+                    }
+
+                    const userName = userData.name || "User";
                     document.getElementById('user-name').textContent = `${userName}'s डैशबोर्ड`;
+
+                    const selectedLanguage = localStorage.getItem('selectedLanguage');
+                    document.getElementById('language-switcher').value = selectedLanguage;
+                } else {
+                    console.error("User document not found");
+                    window.location.href = 'login.html';
                 }
             } catch (error) {
                 console.error('Error initializing dashboard:', error);
@@ -178,18 +173,16 @@
 
         // Event Listeners
         document.addEventListener('DOMContentLoaded', () => {
-            // Language switcher
             document.getElementById('language-switcher').addEventListener('change', function() {
                 const newLanguage = this.value;
                 localStorage.setItem('selectedLanguage', newLanguage);
                 window.location.href = `parent_dashboard_${newLanguage}.html`;
             });
 
-            // Logout button
             document.getElementById('logout-btn').addEventListener('click', async () => {
                 try {
                     await signOut(auth);
-                    localStorage.removeItem('selectedLanguage'); // Clear language preference on logout
+                    localStorage.removeItem('selectedLanguage');
                     window.location.href = 'login.html';
                 } catch (error) {
                     console.error('Error signing out:', error);
@@ -197,18 +190,13 @@
             });
         });
 
-        // Handle offline/online status
-        function updateOnlineStatus() {
-            const offlineIndicator = document.getElementById('offline-indicator');
-            if (navigator.onLine) {
-                offlineIndicator.style.display = 'none';
-            } else {
-                offlineIndicator.style.display = 'block';
-            }
-        }
-
         window.addEventListener('online', updateOnlineStatus);
         window.addEventListener('offline', updateOnlineStatus);
+
+        function updateOnlineStatus() {
+            const offlineIndicator = document.getElementById('offline-indicator');
+            offlineIndicator.style.display = navigator.onLine ? 'none' : 'block';
+        }
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>

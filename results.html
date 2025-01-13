@@ -76,6 +76,7 @@
             <tr><td>Social Relationship</td><td id="socialRelationship">0</td></tr>
             <tr><td>Speech Language Communication</td><td id="speechLanguageCommunication">0</td></tr>
             <tr><th>Total Score</th><td id="totalScore">0</td></tr>
+            <tr><th>Overall Percentage</th><td id="percentagescore">0%</td></tr>
         </table>
         <div class="classification" id="classification"></div>
         <div class="range">
@@ -83,15 +84,14 @@
             <div id="autismRangeResult"></div>
         </div>
         <!-- Home Page Button -->
-        <a href="parent_dashboard_en.html" class="home-btn">Home</a>
+        <a href="#" class="home-btn" id="homeButton">Home</a>
     </div>
 
-    <!-- Firebase Scripts -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-
+        import { getFirestore, doc, getDoc, collection, addDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        
         const firebaseConfig = {
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
             authDomain: "autism-evaluation-platform.firebaseapp.com",
@@ -127,15 +127,32 @@
             }
         }
 
-        async function fetchScoresAndStore(userId) {
+        async function fetchScoresAndStore(userId, studentName, studentAge, studentDob) {
+            const studentCollectionName = studentName.replace(/\s+/g, "_").toLowerCase();
             try {
                 let totalScore = 0;
                 const scores = {};
+                const userDocRef = doc(db, 'users', userId);
+                const userDocSnap = await getDoc(userDocRef);
+
+                if (!userDocSnap.exists()) {
+                    console.log("No such user!");
+                    return;
+                }
+
+                const userData = userDocSnap.data();
+                const isTeacher = userData.role === 'teacher';
 
                 for (const docId of documentIds) {
-                    const docRef = doc(db, 'users', userId, 'Questionnaire', docId);
+                    let docRef;
+                    if (isTeacher) {
+                        docRef = doc(db, 'users', userId, studentCollectionName, docId);
+                    } else {
+                        docRef = doc(db, 'users', userId, 'Questionnaire', docId);
+                    }
+
                     const docSnap = await getDoc(docRef);
-                    
+
                     if (docSnap.exists()) {
                         const score = docSnap.data().score || 0;
                         totalScore += score;
@@ -147,36 +164,89 @@
                     }
                 }
 
+                const percentageScore = ((totalScore / 200) * 100).toFixed(2);
                 document.getElementById('totalScore').textContent = totalScore;
-
+                document.getElementById('percentagescore').textContent = `${percentageScore}%`;
                 const autismRange = classifyAutism(totalScore);
                 document.getElementById('autismRangeResult').textContent = autismRange;
 
-                // Store results in Firestore
-                const submissionsRef = collection(db,'users', userId, 'submissions');
-                await addDoc(submissionsRef, {
-                    userId: userId,
-                    scores: scores,
-                    totalScore: totalScore,
-                    autismRange: autismRange,
-                    submittedAt: new Date()
-                });
-
-                console.log("Submission stored successfully.");
+                // Store the results
+                if (isTeacher) {
+                    const overallScoreRef = doc(db, 'users', userId, studentCollectionName, 'overallscore');
+                    await setDoc(overallScoreRef, {
+                        userId: userId,
+                        studentName: studentName,
+                        studentDob: studentDob,
+                        studentAge: studentAge,
+                        scores: scores,
+                        totalScore: totalScore,
+                        percentageScore: percentageScore,
+                        autismRange: autismRange,
+                        submittedAt: new Date()
+                    });
+                    const submissionsRef = collection(db, 'users', userId, 'submissions');
+                    await addDoc(submissionsRef, {
+                        userId: userId,
+                        studentName: studentName,
+                        studentDob: studentDob,
+                        studentAge: studentAge,
+                        scores: scores,
+                        totalScore: totalScore,
+                        percentageScore: percentageScore,
+                        autismRange: autismRange,
+                        submittedAt: new Date()
+                    });
+                } else {
+                    const submissionsRef = collection(db, 'users', userId, 'submissions');
+                    await addDoc(submissionsRef, {
+                        userId: userId,
+                        studentName: studentName,
+                        studentDob: studentDob,
+                        studentAge: studentAge,
+                        scores: scores,
+                        totalScore: totalScore,
+                        percentageScore: percentageScore,
+                        autismRange: autismRange,
+                        submittedAt: new Date()
+                    });
+                }
             } catch (error) {
                 console.error("Error fetching or storing scores:", error);
             }
         }
 
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
-                fetchScoresAndStore(user.uid);
+                const userDocRef = doc(db, 'users', user.uid);
+                const userDocSnap = await getDoc(userDocRef);
+
+                if (userDocSnap.exists()) {
+                    const userData = userDocSnap.data();
+                    const role = userData.role;
+                    const homeButton = document.getElementById('homeButton');
+
+                    if (role === 'teacher') {
+                        homeButton.href = 'teacher_dashboard_en.html';
+                    } else if (role === 'parent') {
+                        homeButton.href = 'parent_dashboard_en.html';
+                    } else {
+                        console.error("Unknown role");
+                    }
+
+                    const studentName = new URLSearchParams(window.location.search).get('studentName');
+                    const studentAge = new URLSearchParams(window.location.search).get('studentAge');
+                    const studentDob = new URLSearchParams(window.location.search).get('studentDob');
+                    if (studentName) {
+                        fetchScoresAndStore(user.uid, studentName, studentAge, studentDob);
+                    }
+                }
             } else {
                 console.log("No user logged in");
                 documentIds.forEach(id => {
                     document.getElementById(id).textContent = '0';
                 });
                 document.getElementById('totalScore').textContent = '0';
+                document.getElementById('percentagescore').textContent = '0%';
                 document.getElementById('autismRangeResult').textContent = 'Not Available';
             }
         });

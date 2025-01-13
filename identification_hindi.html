@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>केस इतिहास - ऑटिज्म मूल्यांकन प्लेटफॉर्म</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="case-history.css" rel="stylesheet">
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+            authDomain: "autism-evaluation-platform.firebaseapp.com",
+            projectId: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform.appspot.com",
+            messagingSenderId: "748226978662",
+            appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+            measurementId: "G-1TGEHTTJF4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFormData(); // Load saved form data if present
+
+            const form = document.querySelector('form');
+            form.addEventListener('submit', handleFormSubmit);
+
+            document.querySelectorAll('input, select, textarea').forEach(input => {
+                input.addEventListener('input', saveFormData); // Save data on input change
+            });
+        });
+
+        // Save form data to localStorage
+        function saveFormData() {
+            const formData = {
+                date: document.getElementById('date').value,
+                name: document.getElementById('name').value,
+                age: document.getElementById('age').value,
+                gender: document.getElementById('gender').value,
+                dob: document.getElementById('dob').value,
+                informant: document.getElementById('informant').value,
+                parentOccupation: document.getElementById('parent-occupation').value,
+                referral: document.getElementById('referral').value,
+                communication: document.getElementById('communication').value,
+                complaints: document.getElementById('complaints').value
+            };
+            localStorage.setItem('caseHistoryFormData', JSON.stringify(formData));
+        }
+
+        // Load form data from localStorage
+        function loadFormData() {
+            const savedData = JSON.parse(localStorage.getItem('caseHistoryFormData'));
+            if (savedData) {
+                document.getElementById('date').value = savedData.date || '';
+                document.getElementById('name').value = savedData.name || '';
+                document.getElementById('age').value = savedData.age || '';
+                document.getElementById('gender').value = savedData.gender || '';
+                document.getElementById('dob').value = savedData.dob || '';
+                document.getElementById('informant').value = savedData.informant || '';
+                document.getElementById('parent-occupation').value = savedData.parentOccupation || '';
+                document.getElementById('referral').value = savedData.referral || '';
+                document.getElementById('communication').value = savedData.communication || '';
+                document.getElementById('complaints').value = savedData.complaints || '';
+            }
+        }
+
+        // Handle form submission
+        async function handleFormSubmit(event) {
+            event.preventDefault(); // Prevent form from reloading the page
+
+            const user = auth.currentUser;
+            if (!user) {
+                alert('Please sign in to submit the form.');
+                return;
+            }
+
+            // Collect form data
+            const formData = {
+                date: document.getElementById('date').value,
+                name: document.getElementById('name').value,
+                age: document.getElementById('age').value,
+                gender: document.getElementById('gender').value,
+                dob: document.getElementById('dob').value,
+                informant: document.getElementById('informant').value,
+                parentOccupation: document.getElementById('parent-occupation').value,
+                referral: document.getElementById('referral').value,
+                communication: document.getElementById('communication').value,
+                complaints: document.getElementById('complaints').value,
+                timestamp: new Date()
+            };
+
+            try {
+                // Store form data in Firestore
+                const docRef = doc(db, "users", user.uid, "casehistory", "identification");
+                await setDoc(docRef, formData);
+
+                console.log("Form data successfully stored in Firebase.");
+               // alert('Data submitted successfully.');
+
+                // Navigate to the next page
+                window.location.href = 'parental_hindi.html';
+            } catch (error) {
+                console.error("Error storing form data in Firebase:", error);
+                alert('Failed to submit data. Please try again.');
+            }
+        }
+    </script>
+    
+    
+</head>
+<body>
+    <div class="container mt-5">
+        <form>
+
+            <fieldset class="mb-4">
+                <h2>पहचान डेटा</h2>
+                <div class="mb-3">
+                    <label for="date" class="form-label">तारीख</label>
+                    <input type="date" id="date" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="name" class="form-label">नाम</label>
+                    <input type="text" id="name" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="age" class="form-label">आयु</label>
+                    <input type="number" id="age" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="gender" class="form-label">लिंग</label>
+                    <select id="gender" class="form-select" required>
+                        <option value="" disabled selected>लिंग चुनें</option>
+                        <option value="पुरुष">पुरुष</option>
+                        <option value="महिला">महिला</option>
+                        <option value="अन्य">अन्य</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="dob" class="form-label">जन्म तिथि</label>
+                    <input type="date" id="dob" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="informant" class="form-label">सूचना देने वाला</label>
+                    <input type="text" id="informant" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="parent-occupation" class="form-label">अभिभावक का व्यवसाय</label>
+                    <input type="text" id="parent-occupation" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="referral" class="form-label">रेफरल</label>
+                    <input type="text" id="referral" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="communication" class="form-label">संचार</label>
+                    <select id="communication" class="form-select" required>
+                        <option value="" disabled selected>संचार चुनें</option>
+                        <option value="मौखिक">मौखिक</option>
+                        <option value="अमौखिक">अमौखिक</option>
+                        <option value="अलग-अलग रोना">अलग-अलग रोना</option>
+                    </select>
+                </div>
+                
+            </fieldset>
+
+
+            <fieldset class="mb-4">
+                <legend>मुख्य शिकायतें</legend>
+                <div class="mb-3">
+                    <textarea id="complaints" class="form-control" rows="5" required></textarea>
+                </div>
+            </fieldset>
+
+            <div class="text-end">
+                <button type="submit" class="btn btn-primary">आगे बढ़ें</button>
+            </div>
+        </form>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="te">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>గురువులు నింపిన ప్రశ్నావళి</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="filledquestionnaire.css" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+</head>
+<body>
+    <!-- Home Button -->
+    <a href="teacher_dashboard_te.html" class="btn btn-primary home-button">హోమ్</a>
+
+    <div class="container-fluid mt-4">
+        <!-- Page Title -->
+        <br>
+        <h1 id="pageTitle" class="text-center my-4">నింపిన ప్రశ్నావళి</h1>
+
+        <!--<h1 class="text-center my-4">గురువులు నింపిన ప్రశ్నావళి</h1>-->
+        <!-- Search Input -->
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="విద్యార్థి పేరుతో శోధించండి..." class="form-control">
+            <i class="search-icon">🔍</i>
+        </div>
+
+        <!-- Student Buttons Container -->
+        <div id="studentButtonsContainer" class="student-buttons text-center"></div>
+
+        <!-- Modal Backdrop -->
+        <div id="modalBackdrop" class="modal-backdrop"></div>
+
+        <div id="studentModal" class="student-modal">
+            <button class="btn-close-modal" onclick="closeModal()">&times;</button>
+            <div id="studentModalContent" class="p-4"></div>
+            <button id="downloadSnapshot" class="btn btn-primary mt-3" onclick="downloadSnapshot()">డౌన్‌లోడ్</button>
+        </div>
+    </div>
+
+    <script>
+        // Firebase configuration remains unchanged
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+            authDomain: "autism-evaluation-platform.firebaseapp.com",
+            projectId: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform",
+            messagingSenderId: "748226978662",
+            appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+            measurementId: "G-1TGEHTTJF4"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        //display username
+        async function getUserName(userId) {
+            try {
+                const userDoc = await db.collection('users').doc(userId).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    return userData.name || userData.displayName || 'User';
+                }
+                return 'User';
+            } catch (error) {
+                console.error('Error fetching user name:', error);
+                return 'User';
+            }
+        }
+        // Function to display submissions as buttons and modal
+        async function displaySubmissions(userId) {
+            const studentButtonsContainer = document.getElementById('studentButtonsContainer');
+            const modalBackdrop = document.getElementById('modalBackdrop');
+            const studentModal = document.getElementById('studentModal');
+            const studentModalContent = document.getElementById('studentModalContent');
+            const searchInput = document.getElementById('searchInput');
+             // Get and set user name in title
+             const userName = await getUserName(userId);
+            pageTitle.textContent = `${userName} నింపిన ప్రశ్నావళి`;
+
+            try {
+                // Fetch submissions
+                const submissionsRef = db.collection('users').doc(userId).collection('submissions');
+                const submissionsSnap = await submissionsRef.orderBy('submittedAt', 'desc').get();
+
+                if (submissionsSnap.empty) {
+                    studentButtonsContainer.innerHTML = '<p class="text-center text-danger">పురోగతులు లేవు.</p>';
+                    return;
+                }
+
+                const submissions = [];
+                submissionsSnap.forEach(doc => {
+                    const data = doc.data();
+                    if (!data.scores || Object.keys(data.scores).length === 0) return;
+                    submissions.push({...data, id: doc.id});
+                });
+
+                // Create buttons and modal content for each student
+                submissions.forEach((data, index) => {
+                    const buttonId = `student-btn-${index}`;
+                    
+                    // Create student button
+                    const buttonHTML = `
+                        <button id="${buttonId}" class="btn" 
+                                onclick="showStudentModal(${index})">
+                            <strong>${data.studentName || 'తెలియదు'}</strong>
+                            <small>పుట్టిన తేదీ: ${data.studentDob || 'తెలియదు'}</small>
+                            <small>వయస్సు: ${data.studentAge || 'తెలియదు'}</small>
+                        </button>
+                    `;
+                    studentButtonsContainer.insertAdjacentHTML('beforeend', buttonHTML);
+                });
+
+                // Search functionality
+                searchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    const buttons = document.querySelectorAll('.student-buttons .btn');
+                    
+                    buttons.forEach(button => {
+                        const studentName = button.querySelector('strong').textContent.toLowerCase();
+                        button.style.display = studentName.includes(searchTerm) ? 'flex' : 'none';
+                    });
+                });
+
+                // Store submissions in a global variable for modal access
+                window.submissions = submissions;
+            } catch (err) {
+                console.error('Error fetching submissions:', err);
+                studentButtonsContainer.innerHTML = `
+                    <p class="text-center text-danger">
+                        పురోగతులను లోడ్ చేయడంలో లోపం. దయచేసి పేజీని రిఫ్రెష్ చేయండి.
+                    </p>
+                `;
+            }
+        }
+
+        // Function to show student modal
+        function showStudentModal(index) {
+            const modalBackdrop = document.getElementById('modalBackdrop');
+            const studentModal = document.getElementById('studentModal');
+            const studentModalContent = document.getElementById('studentModalContent');
+            const data = window.submissions[index];
+            
+            const autismRangeTranslations = {
+    "No Autism": "ఆటిజం లేదు",
+    "Mild Autism": "స్వల్ప ఆటిజం",
+    "Moderate Autism": "మధ్యస్థ ఆటిజం",
+    "Severe Autism": "తీవ్ర ఆటిజం",
+    "ఆటిజం లేదు": "ఆటిజం లేదు",
+    "స్వల్ప ఆటిజం": "స్వల్ప ఆటిజం",
+    "మధ్యస్థ ఆటిజం": "మధ్యస్థ ఆటిజం",
+    "తీవ్ర ఆటిజం": "తీవ్ర ఆటిజం",
+    "ऑटिज्म नहीं": "ఆటిజం లేదు",
+    "हल्का ऑटिज्म": "స్వల్ప ఆటిజం",
+    "मध्यम ऑटिज्म": "మధ్యస్థ ఆటిజం",
+    "गंभीर ऑटिज्म": "తీవ్ర ఆటిజం"
+};
+const scoreKeyTranslationsTelugu = {
+    "cognitiveComponent": "జ్ఞాన భాగం",
+    "emotionalResponsiveness": "భావ_ప్రక్రియలు",
+    "sensoryAspects": "సంవేదన సంబంధిత అంశాలు",
+    "speechLanguageCommunication": "భాష-మాటలు",
+    "socialRelationship": "సామాజిక సంబంధాలు",
+    "behaviourPatterns": "ప్రవర్తనా విధానాలు",
+    "Unknown": "తెలియదు" // Default for unexpected keys
+};
+
+
+            // Populate modal content
+            studentModalContent.innerHTML = `
+                <h2 class="text-primary mb-4">${data.studentName || 'తెలియదు'}</h2>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>వయస్సు:</strong> ${data.studentAge || 'తెలియదు'}</p>
+                        <p><strong>పుట్టిన తేదీ:</strong> ${data.studentDob || 'తెలియదు'}</p>
+                        <p><strong>సమర్పించిన తేదీ:</strong> ${data.submittedAt.toDate().toLocaleString()}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>మొత్తం స్కోరు:</strong> ${data.totalScore}</p>
+                        <p><strong>శాతం:</strong> ${data.percentageScore}%</p>
+                        <p><strong>ఆటిజం పరిధి:</strong> ${autismRangeTranslations[data.autismRange]}</p>
+                    </div>
+                </div>
+                <h4 class="mt-4 text-primary">స్కోర్ల వివరాలు</h4>
+                <ul class="list-group">
+                     ${Object.keys(data.scores).map(key => `
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                ${scoreKeyTranslationsTelugu[key] || key}
+                <span class="badge bg-primary rounded-pill">${data.scores[key]}</span>
+            </li>
+        `).join('')}
+                </ul>
+            `;
+
+            // Show modal and backdrop
+            modalBackdrop.classList.add('show');
+            studentModal.classList.add('show');
+        }
+
+        async function downloadSnapshot() {
+    const studentModalContent = document.getElementById('studentModalContent');
+    const data = window.submissions.find(submission => 
+        submission.studentName === studentModalContent.querySelector('h2').textContent.trim()
+    );
+    const studentName = data ? data.studentName : 'student';
+    const canvas = await html2canvas(studentModalContent);
+    const link = document.createElement('a');
+    link.download = `${studentName}-వివరాలు.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+}
+
+        // Function to close modal
+        function closeModal() {
+            const modalBackdrop = document.getElementById('modalBackdrop');
+            const studentModal = document.getElementById('studentModal');
+
+            modalBackdrop.classList.remove('show');
+            studentModal.classList.remove('show');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('modalBackdrop').addEventListener('click', function(event) {
+            if (event.target === this) {
+                closeModal();
+            }
+        });
+
+        // Auth state listener
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                displaySubmissions(user.uid);
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
+</body>
+</html>

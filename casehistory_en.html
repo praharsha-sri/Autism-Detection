@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Case History - Autism Evaluation Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .nav-tabs .nav-link.active {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .iframe-container {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            overflow: hidden;
+            height: 600px;
+            /* Adjust as necessary */
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .navbar {
+            padding: 10px 20px;
+        }
+
+        .logo {
+            height: 70px;
+        }
+
+        .home-btn {
+            position: absolute;
+            left: 20px;
+        }
+
+        .case-history-title {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+    </style>
+    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <script>
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'en,hi,te',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+            }, 'google_translate_element');
+        }
+
+        function loadPage(url) {
+            const iframe = document.getElementById('content-frame');
+            iframe.src = url;
+        }
+    </script>
+</head>
+
+<body>
+    <!-- Navigation bar with Home button and logo -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <button class="home-btn btn btn-outline-primary"
+            onclick="window.location.href='parent_dashboard_en.html'">Home</button>
+        <div class="mx-auto">
+            <img src="Ignitio logo.jpg" alt="Ignito Logo" class="logo">
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Language selector -->
+        <div id="google_translate_element" class="text-end mb-3"></div>
+
+        <!-- Case History Title -->
+        <h1 class="case-history-title">Case History</h1>
+        <br>
+
+        <!-- Navigation Tabs -->
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('identification.html')"
+                    href="javascript:void(0)">Identification</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('parental.html')" href="javascript:void(0)">Parental History</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('prenatal.html')" href="javascript:void(0)">Prenatal History</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('perinatal.html')" href="javascript:void(0)">Perinatal History</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('postnatal.html')" href="javascript:void(0)">Postnatal History</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('medicalhistory.html')" href="javascript:void(0)">Medical
+                    History</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('educationalhistory.html')" href="javascript:void(0)">Educational
+                    History</a>
+            </li>
+            <br><br>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('familyhistory.html')" href="javascript:void(0)">Family
+                    History</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('playhistory.html')" href="javascript:void(0)">Play History</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('behavioralcognitive.html')" href="javascript:void(0)">Behavioural
+                    History</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('selfhelp.html')" href="javascript:void(0)">Self-Help History</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('recommendations.html')"
+                    href="javascript:void(0)">Recommendations</a>
+            </li>
+        </ul>
+
+        <!-- Iframe for content -->
+        <div class="iframe-container">
+            <iframe id="content-frame" src="identification.html"></iframe>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

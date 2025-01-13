@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="questionnaire_style.css">
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 
         // Firebase configuration
@@ -28,12 +28,28 @@
         const auth = getAuth(app);
 
         // Save form data to Firestore
-        async function storeFormDataInFirestore(data) {
+        async function storeFormDataInFirestore(data, studentName) {
             const user = auth.currentUser;
             if (user) {
                 try {
-                    const docRef = doc(db, "users", user.uid, "Questionnaire", "details");
-                    await setDoc(docRef, data, { merge: true });  // Merges data instead of overwriting
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (!userDoc.exists()) {
+                        console.error("User document does not exist.");
+                        return;
+                    }
+
+                    const userData = userDoc.data();
+                    const role = userData.role;
+
+                    let docRef;
+                    if (role === 'teacher') {
+                        const studentCollectionName = studentName.replace(/\s+/g, "_").toLowerCase();
+                        docRef = doc(db, "users", user.uid, studentCollectionName, "details");
+                    } else {
+                        docRef = doc(db, "users", user.uid, "Questionnaire", "details");
+                    }
+
+                    await setDoc(docRef, data);
                     console.log("Data stored successfully!");
                 } catch (error) {
                     console.error("Error storing data: ", error);
@@ -43,75 +59,39 @@
             }
         }
 
-        // Save form data to localStorage
-        function saveFormDataToLocalStorage() {
-            const formData = {
-                name: document.getElementById('name').value,
-                gender: document.getElementById('gender').value,
-                date: document.getElementById('date').value,
-                dob: document.getElementById('dob').value,
-                age: document.getElementById('age').value,
-                examiner: document.getElementById('examiner').value
-            };
-            localStorage.setItem('autismFormData', JSON.stringify(formData));
-        }
-
-        // Load form data from localStorage
-        function loadFormDataFromLocalStorage() {
-            const savedData = JSON.parse(localStorage.getItem('autismFormData'));
-            if (savedData) {
-                document.getElementById('name').value = savedData.name;
-                document.getElementById('gender').value = savedData.gender;
-                document.getElementById('date').value = savedData.date;
-                document.getElementById('dob').value = savedData.dob;
-                document.getElementById('age').value = savedData.age;
-                document.getElementById('examiner').value = savedData.examiner;
-            }
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
-            loadFormDataFromLocalStorage(); // Load data on page load
-
             const form = document.getElementById('autismForm');
+
             form.onsubmit = async (e) => {
-                e.preventDefault(); // Prevent default form submission
-                
-                // Validate the form data
-                let allFilled = true;
-                let age = parseInt(document.getElementById('age').value);
+                e.preventDefault();
+
+                const studentName = document.getElementById('name').value;
+                const studentAge = document.getElementById('age').value;
+                const studentDob = document.getElementById('dob').value;
+
+                const formData = {
+                    name: studentName,
+                    gender: document.getElementById('gender').value,
+                    date: document.getElementById('date').value,
+                    dob: studentDob,
+                    age: studentAge,
+                    examiner: document.getElementById('examiner').value,
+                    timestamp: new Date()
+                };
+
                 const errorMessageElement = document.getElementById('error-message');
                 errorMessageElement.textContent = '';
 
-                // Check if all required inputs are filled
-                form.querySelectorAll('input, select').forEach(function(input) {
-                    if (!input.value) {
-                        allFilled = false;
-                    }
-                });
-
-                // Check if age is in valid range
+                let allFilled = Object.values(formData).every(field => field);
+                const age = parseInt(formData.age);
                 if (isNaN(age) || age < 3 || age > 9) {
                     allFilled = false;
                     errorMessageElement.textContent = 'आयु 3 से 9 वर्ष के बीच होनी चाहिए।';
                 }
 
                 if (allFilled) {
-                    saveFormDataToLocalStorage(); // Save data locally
-
-                    // Store in Firestore
-                    const formData = {
-                        name: document.getElementById('name').value,
-                        gender: document.getElementById('gender').value,
-                        date: document.getElementById('date').value,
-                        dob: document.getElementById('dob').value,
-                        age: document.getElementById('age').value,
-                        examiner: document.getElementById('examiner').value,
-                        timestamp: new Date()
-                    };
-                    await storeFormDataInFirestore(formData);
-
-                    // Navigate to the next page
-                    window.location.href = "social_hindi.html";
+                    await storeFormDataInFirestore(formData, studentName);
+                    window.location.href = `social_hindi.html?studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(studentAge)}&studentDob=${encodeURIComponent(studentDob)}`;
                 }
             };
 
@@ -122,21 +102,19 @@
                 }
             });
         });
-        </script>
+    </script>
 </head>
 <body>
-
     <h2>भारतीय ऑटिज़्म आकलन पैमाना</h2>
-
-    <form id="autismForm" action="social_hindi.html" method="POST">
+    <form id="autismForm">
         <div class="question">
             <label for="name">बच्चे का नाम <span class="required">*</span></label>
-            <input type="text" id="name" name="name" class="form-control" required>
+            <input type="text" id="name" class="form-control" required>
         </div>
 
         <div class="question">
             <label for="gender">लिंग <span class="required">*</span></label>
-            <select id="gender" name="gender" class="form-select" required>
+            <select id="gender" class="form-select" required>
                 <option value="">लिंग चुनें</option>
                 <option value="male">पुरुष</option>
                 <option value="female">महिला</option>
@@ -146,25 +124,24 @@
 
         <div class="question">
             <label for="date">तारीख <span class="required">*</span></label>
-            <input type="date" id="date" name="date" class="form-control" required>
+            <input type="date" id="date" class="form-control" required>
         </div>
 
         <div class="question">
             <label for="dob">जन्म तिथि <span class="required">*</span></label>
-            <input type="date" id="dob" name="dob" class="form-control" required>
+            <input type="date" id="dob" class="form-control" required>
         </div>
 
         <div class="question">
             <label for="age">आयु <span class="required">*</span></label>
-            <input type="text" id="age" name="age" class="form-control" readonly>
+            <input type="text" id="age" class="form-control" readonly>
         </div>
-
 
         <div id="error-message" style="color: red; margin-top: 5px;"></div>
 
         <div class="question">
             <label for="examiner">परीक्षक <span class="required">*</span></label>
-            <input type="text" id="examiner" name="examiner" class="form-control" required>
+            <input type="text" id="examiner" class="form-control" required>
         </div>
 
         <div class="button-container">
@@ -175,78 +152,30 @@
 
     <script>
         window.onload = function() {
-
-            var today = new Date().toISOString().split('T')[0];
+            const today = new Date().toISOString().split('T')[0];
             document.getElementById('date').value = today;
-
-
             document.getElementById('dob').setAttribute('max', today);
         };
 
-
         document.getElementById('dob').addEventListener('change', function() {
-            var dobValue = this.value;
-
-
-            if (dobValue.length === 10) {
-                var dob = new Date(dobValue);
-                var today = new Date();
-                var age = today.getFullYear() - dob.getFullYear();
-                var monthDifference = today.getMonth() - dob.getMonth();
-                
-                if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < dob.getDate())) {
+            const dobValue = this.value;
+            if (dobValue) {
+                const dob = new Date(dobValue);
+                const today = new Date();
+                let age = today.getFullYear() - dob.getFullYear();
+                const monthDiff = today.getMonth() - dob.getMonth();
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
                     age--;
                 }
-
                 document.getElementById('age').value = age;
+                const errorMessage = document.getElementById('error-message');
                 if (age < 3 || age > 9) {
-                    document.getElementById('error-message').textContent = 'आयु 3 से 9 वर्ष के बीच होनी चाहिए।';
+                    errorMessage.textContent = 'आयु 3 से 9 वर्ष के बीच होनी चाहिए।';
                 } else {
-                    document.getElementById('error-message').textContent = '';
+                    errorMessage.textContent = '';
                 }
             }
         });
-
-
-        document.getElementById('autismForm').addEventListener('submit', function(event) {
-    let allFilled = true;
-    let age = parseInt(document.getElementById('age').value);
-
-    document.getElementById('error-message').textContent = '';
-
-    // Check if all required inputs are filled
-    this.querySelectorAll('input, select').forEach(function(input) {
-        if (!input.value) {
-            allFilled = false;
-        }
-    });
-
-    // Check if age is in valid range
-    if (isNaN(age) || age < 3 || age > 9) {
-        allFilled = false;
-        document.getElementById('error-message').textContent = 'आयु 3 से 9 वर्ष के बीच होनी चाहिए।';
-    }
-
-    if (allFilled) {
-        saveFormDataToLocalStorage(); // Save data locally
-        storeFormDataInFirestore({
-            name: document.getElementById('name').value,
-            gender: document.getElementById('gender').value,
-            date: document.getElementById('date').value,
-            dob: document.getElementById('dob').value,
-            age: document.getElementById('age').value,
-            examiner: document.getElementById('examiner').value,
-            timestamp: new Date()
-        });
-
-        // Navigate to the next page
-        window.location.href = "social_hindi.html";
-    } else {
-        // Prevent form submission if validation fails
-        event.preventDefault();
-    }
-});
-
-</script>
+    </script>
 </body>
 </html>

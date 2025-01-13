@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>प्रसव इतिहास</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+            authDomain: "autism-evaluation-platform.firebaseapp.com",
+            projectId: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform.appspot.com",
+            messagingSenderId: "748226978662",
+            appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+            measurementId: "G-1TGEHTTJF4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFormData(); // Load saved data
+
+            const form = document.querySelector('form');
+            form.addEventListener('submit', handleFormSubmit);
+
+            document.querySelectorAll('input, select, textarea').forEach(input => {
+                input.addEventListener('input', saveFormData); // Save changes on input
+            });
+        });
+
+        // Save form data to localStorage
+        function saveFormData() {
+            const existingData = JSON.parse(localStorage.getItem('caseHistoryFormData')) || {};
+
+            const updatedData = {
+                ...existingData, // Keep previous data
+                deliveryNature: document.querySelector('input[name="deliveryNature"]:checked')?.value,
+                premature: document.querySelector('input[name="premature"]:checked')?.value,
+                prolongedLabor: document.getElementById('prolongedLabor').value,
+                birthCry: document.querySelector('input[name="birthCry"]:checked')?.value,
+                birthWeight: document.getElementById('birthWeight').value,
+                complicationDuringBirth: document.getElementById('complicationDuringBirth').value
+            };
+
+            localStorage.setItem('caseHistoryFormData', JSON.stringify(updatedData));
+        }
+
+        // Load saved data from localStorage
+        function loadFormData() {
+            const savedData = JSON.parse(localStorage.getItem('caseHistoryFormData'));
+            if (savedData) {
+                // Load radio button values correctly
+                if (savedData.deliveryNature) {
+                    document.querySelector(`input[name="deliveryNature"][value="${savedData.deliveryNature}"]`).checked = true;
+                }
+                if (savedData.premature) {
+                    document.querySelector(`input[name="premature"][value="${savedData.premature}"]`).checked = true;
+                }
+                if (savedData.birthCry) {
+                    document.querySelector(`input[name="birthCry"][value="${savedData.birthCry}"]`).checked = true;
+                }
+
+                document.getElementById('prolongedLabor').value = savedData.prolongedLabor || '';
+                document.getElementById('birthWeight').value = savedData.birthWeight || '';
+                document.getElementById('complicationDuringBirth').value = savedData.complicationDuringBirth || '';
+            }
+        }
+
+        // Handle form submission
+        async function handleFormSubmit(event) {
+            event.preventDefault(); // Prevent page reload
+
+            const user = auth.currentUser;
+            if (!user) {
+                alert('Please sign in to submit the form.');
+                return;
+            }
+
+            const savedData = JSON.parse(localStorage.getItem('caseHistoryFormData')) || {};
+            const formData = {
+                deliveryNature: savedData.deliveryNature,
+                premature: savedData.premature,
+                birthCry: savedData.birthCry,
+                prolongedLabor: savedData.prolongedLabor,
+                birthWeight: savedData.birthWeight,
+                complicationDuringBirth: savedData.complicationDuringBirth,
+                timestamp: new Date()
+            };
+
+            try {
+                const docRef = doc(db, "users", user.uid, "casehistory", "perinatal");
+                await setDoc(docRef, formData);
+
+                console.log("Perinatal history data successfully stored in Firebase.");
+                //alert('Perinatal history submitted successfully.');
+
+                // Navigate to the next page
+                window.location.href = 'postnatal_hindi.html';
+            } catch (error) {
+                console.error("Error storing perinatal history data in Firebase:", error);
+                alert('Failed to submit data. Please try again.');
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>प्रसव इतिहास</h2>
+        <form>
+            <div class="mb-3">
+                <label class="form-label">प्रवाह की प्रकृति</label><br>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="deliveryNature" value="फोरसेप्स" required>
+                    <label class="form-check-label">फोरसेप्स</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="deliveryNature" value="सक्शन" required>
+                    <label class="form-check-label">सक्शन</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="deliveryNature" value="LSCS" required>
+                    <label class="form-check-label">LSCS</label>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">क्या वह प्रेमेच्र था?</label><br>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="premature" value="प्रेमेच्र" required>
+                    <label class="form-check-label">प्रेमेच्र</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="premature" value="FTND" required>
+                    <label class="form-check-label">FTND</label>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="prolongedLabor" class="form-label">क्या प्रसवीर्ध में कोई कठिन हुआ?</label>
+                <input type="text" class="form-control" id="prolongedLabor">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">जन्म की आवाज</label><br>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="birthCry" value="P/A" required>
+                    <label class="form-check-label">P/A</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="birthCry" value="जोर" required>
+                    <label class="form-check-label">जोर</label>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="birthWeight" class="form-label">जन्म की वजन (kg)</label>
+                <input type="number" class="form-control" id="birthWeight" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="complicationDuringBirth" class="form-label">कोई जटिल की समस्या हुई?</label>
+                <textarea class="form-control" id="complicationDuringBirth" rows="3"></textarea>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a href="prenatal_hindi.html" class="btn btn-secondary">पिछला</a>
+                <button type="submit" class="btn btn-primary">अगला</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

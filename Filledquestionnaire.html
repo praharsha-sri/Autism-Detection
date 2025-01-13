@@ -3,123 +3,190 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teacher's Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    <link href="teacher_dashboard_style.css" rel="stylesheet">
+    <title>User Filled Questionnaires</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="filledquestionnaire.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Home Button -->
+    <a href="teacher_dashboard_en.html" class="btn btn-primary home-button">Home</a>
 
-    <!-- Firebase SDK -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, collection, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+    <div class="container-fluid mt-4">
+        <br>
+        <h1 id="pageTitle" class="text-center my-4">Filled Questionnaires</h1>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search by student name..." class="form-control">
+            <i class="search-icon">🔍</i>
+        </div>
+        <br>
+        <div id="studentButtonsContainer" class="student-buttons text-center"></div>
+        <div id="modalBackdrop" class="modal-backdrop"></div>
 
-        // Firebase configuration
+        <div id="studentModal" class="student-modal">
+            <button class="btn-close-modal" onclick="closeModal()">&times;</button>
+            <div id="studentModalContent" class="p-4"></div>
+            <button id="downloadSnapshot" class="btn btn-primary mt-3" onclick="downloadSnapshot()">Download</button>
+        </div>
+    </div>
+
+    <script>
         const firebaseConfig = {
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
             authDomain: "autism-evaluation-platform.firebaseapp.com",
             projectId: "autism-evaluation-platform",
-            storageBucket: "autism-evaluation-platform.appspot.com",
+            storageBucket: "autism-evaluation-platform",
             messagingSenderId: "748226978662",
             appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
             measurementId: "G-1TGEHTTJF4"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
 
-        // Check Authentication and Role
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                const userDoc = await getDoc(doc(db, "users", user.uid));
-                if (userDoc.exists() && userDoc.data().role === "teacher") {
-                    const userName = userDoc.data().name || "Teacher";
-                    document.getElementById('navbar-user-name').textContent = `${userName}'s Dashboard`;
-                    loadStudents(user.uid); // Load students for the teacher
-                } else {
-                    alert("Access restricted to teachers only.");
-                    signOut(auth);
+        async function getUserName(userId) {
+            try {
+                const userDoc = await db.collection('users').doc(userId).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    return userData.name || userData.displayName || 'User';
                 }
+                return 'User';
+            } catch (error) {
+                console.error('Error fetching user name:', error);
+                return 'User';
+            }
+        }
+
+        async function displaySubmissions(userId) {
+            const studentButtonsContainer = document.getElementById('studentButtonsContainer');
+            const searchInput = document.getElementById('searchInput');
+            const pageTitle = document.getElementById('pageTitle');
+
+            // Get and set user name in title
+            const userName = await getUserName(userId);
+            pageTitle.textContent = `${userName}'s Filled Questionnaires`;
+
+            try {
+                const submissionsRef = db.collection('users').doc(userId).collection('submissions');
+                const submissionsSnap = await submissionsRef.orderBy('submittedAt', 'desc').get();
+
+                if (submissionsSnap.empty) {
+                    studentButtonsContainer.innerHTML = '<p class="text-center text-danger">No submissions found.</p>';
+                    return;
+                }
+
+                const submissions = [];
+                submissionsSnap.forEach(doc => {
+                    const data = doc.data();
+                    if (!data.scores || Object.keys(data.scores).length === 0) return;
+                    submissions.push({...data, id: doc.id});
+                });
+
+                submissions.forEach((data, index) => {
+                    const buttonId = `student-btn-${index}`;
+                    const buttonHTML = `
+                        <button id="${buttonId}" class="btn" 
+                                onclick="showStudentModal(${index})">
+                            <strong>${data.studentName || 'Unknown'}</strong>
+                            <small>DOB: ${data.studentDob || 'Unknown'}</small>
+                            <small>Age: ${data.studentAge || 'Unknown'}</small>
+                        </button>
+                    `;
+                    studentButtonsContainer.insertAdjacentHTML('beforeend', buttonHTML);
+                });
+
+                searchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    const buttons = document.querySelectorAll('.student-buttons .btn');
+                    buttons.forEach(button => {
+                        const studentName = button.querySelector('strong').textContent.toLowerCase();
+                        button.style.display = studentName.includes(searchTerm) ? 'flex' : 'none';
+                    });
+                });
+
+                window.submissions = submissions;
+            } catch (err) {
+                console.error('Error fetching submissions:', err);
+                studentButtonsContainer.innerHTML = `
+                    <p class="text-center text-danger">
+                        Error loading submissions. Please refresh the page.
+                    </p>
+                `;
+            }
+        }
+
+        function showStudentModal(index) {
+            const modalBackdrop = document.getElementById('modalBackdrop');
+            const studentModal = document.getElementById('studentModal');
+            const studentModalContent = document.getElementById('studentModalContent');
+            const data = window.submissions[index];
+
+            studentModalContent.innerHTML = `
+                <h2 class="text-primary mb-4">${data.studentName || 'Unknown'}</h2>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Age:</strong> ${data.studentAge || 'Unknown'}</p>
+                        <p><strong>Date of Birth:</strong> ${data.studentDob || 'Unknown'}</p>
+                        <p><strong>Submission Date:</strong> ${data.submittedAt.toDate().toLocaleString()}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Total Score:</strong> ${data.totalScore}</p>
+                        <p><strong>Percentage:</strong> ${data.percentageScore}%</p>
+                        <p><strong>Autism Range:</strong> ${data.autismRange}</p>
+                    </div>
+                </div>
+                <h4 class="mt-4 text-primary">Scores Breakdown</h4>
+                <ul class="list-group">
+                    ${Object.keys(data.scores).map(key => `
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            ${key}
+                            <span class="badge bg-primary rounded-pill">${data.scores[key]}</span>
+                        </li>
+                    `).join('')}
+                </ul>
+            `;
+
+            modalBackdrop.classList.add('show');
+            studentModal.classList.add('show');
+        }
+
+        function closeModal() {
+            const modalBackdrop = document.getElementById('modalBackdrop');
+            const studentModal = document.getElementById('studentModal');
+            modalBackdrop.classList.remove('show');
+            studentModal.classList.remove('show');
+        }
+
+        async function downloadSnapshot() {
+            const studentModalContent = document.getElementById('studentModalContent');
+            const data = window.submissions.find(submission => 
+                submission.studentName === studentModalContent.querySelector('h2').textContent.trim()
+            );
+            const studentName = data ? data.studentName : 'student';
+            const canvas = await html2canvas(studentModalContent);
+            const link = document.createElement('a');
+            link.download = `${studentName}-details.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        document.getElementById('modalBackdrop').addEventListener('click', function(event) {
+            if (event.target === this) closeModal();
+        });
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                displaySubmissions(user.uid);
             } else {
                 window.location.href = 'login.html';
             }
         });
-
-        // Add Student
-        async function addStudent(teacherId) {
-            const studentName = prompt("Enter the student's name:");
-            if (studentName) {
-                const timestamp = Date.now();
-                const studentId = `${studentName}_${timestamp}`;
-
-                const studentDocRef = doc(collection(db, `teachers/${teacherId}/students`), studentId);
-                await setDoc(studentDocRef, {
-                    name: studentName,
-                    createdAt: new Date(),
-                });
-
-                alert(`Student "${studentName}" added successfully!`);
-                document.getElementById('student-container').innerHTML = ''; // Clear the container
-                loadStudents(teacherId); // Reload students
-            }
-        }
-
-        // Load Students
-        async function loadStudents(teacherId) {
-            const studentsSnapshot = await getDocs(collection(db, `teachers/${teacherId}/students`));
-            const studentContainer = document.getElementById("student-container");
-            studentContainer.innerHTML = ''; // Clear previous entries
-
-            studentsSnapshot.forEach((doc) => {
-                const student = doc.data();
-                const studentCard = `
-                    <div class="col-lg-4 col-md-6">
-                        <div class="card h-100 text-center shadow-lg">
-                            <div class="card-body">
-                                <h5>${student.name}</h5>
-                                <p>Added on: ${new Date(student.createdAt.seconds * 1000).toLocaleDateString()}</p>
-                            </div>
-                        </div>
-                    </div>`;
-                studentContainer.innerHTML += studentCard;
-            });
-        }
-
-        // Logout Functionality
-        document.addEventListener('DOMContentLoaded', function () {
-            document.getElementById('logout-btn').addEventListener('click', function () {
-                signOut(auth).then(() => {
-                    window.location.href = 'login.html';
-                }).catch((error) => {
-                    console.error('Error signing out:', error);
-                });
-            });
-
-            document.getElementById('add-student-btn').addEventListener('click', function () {
-                const teacherId = auth.currentUser?.uid;
-                if (teacherId) {
-                    addStudent(teacherId);
-                }
-            });
-        });
     </script>
-</head>
-<body class="d-flex flex-column bg-light-blue">
-
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#" id="navbar-user-name">Teacher's Dashboard</a>
-            <button id="logout-btn" class="btn btn-danger">Logout</button>
-        </div>
-    </nav>
-
-    <div class="container mt-4">
-        <button id="add-student-btn" class="btn btn-primary mb-3">Add Student</button>
-        <div id="student-container" class="row g-4"></div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

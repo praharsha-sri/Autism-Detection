@@ -9,7 +9,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc,getDoc} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 
         // Firebase configuration
@@ -32,18 +32,27 @@
         async function storeFormDataInFirestore(data, studentName) {
             const user = auth.currentUser;
             if (user) {
-                const role = 'teacher'; // Simulate role-checking. Replace with actual role-check logic.
                 try {
-                    let docRef;
+                    // Retrieve the user's role from Firestore
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (!userDoc.exists()) {
+                console.error("User document does not exist.");
+                return;
+            }
+
+            const userData = userDoc.data();
+            const role = userData.role; // Assuming 'role' field is present in the user's Firestore document
+
+            let docRef;
                     if (role === 'teacher') {
-                     const questionnaireId = studentName.replace(/\s+/g, "_").toLowerCase();
-                    docRef = doc(db, "users", user.uid, "Students Questionnaires", questionnaireId, "details");
-                    }
-                    else {
+                        const studentCollectionName = studentName.replace(/\s+/g, "_").toLowerCase();
+                        // Reference to the 'details' document inside the student's collection
+                        docRef = doc(db, "users", user.uid, studentCollectionName, "details");
+                    } else {
                         docRef = doc(db, "users", user.uid, "Questionnaire", "details");
                     }
 
-                    await setDoc(docRef, data, { merge: true });
+                    await setDoc(docRef, data); // Store data in the 'details' document
                     console.log("Data stored successfully!");
                 } catch (error) {
                     console.error("Error storing data: ", error);
@@ -53,81 +62,69 @@
             }
         }
 
-        // Save form data to localStorage
-        function saveFormDataToLocalStorage() {
-            const formData = {
-                name: document.getElementById('name').value,
-                gender: document.getElementById('gender').value,
-                date: document.getElementById('date').value,
-                dob: document.getElementById('dob').value,
-                age: document.getElementById('age').value,
-                examiner: document.getElementById('examiner').value
-            };
-            localStorage.setItem('autismFormData', JSON.stringify(formData));
-        }
-
-        // Load form data from localStorage
-        function loadFormDataFromLocalStorage() {
-            const savedData = JSON.parse(localStorage.getItem('autismFormData'));
-            if (savedData) {
-                document.getElementById('name').value = savedData.name;
-                document.getElementById('gender').value = savedData.gender;
-                document.getElementById('date').value = savedData.date;
-                document.getElementById('dob').value = savedData.dob;
-                document.getElementById('age').value = savedData.age;
-                document.getElementById('examiner').value = savedData.examiner;
-            }
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
-            loadFormDataFromLocalStorage(); // Load data on page load
-
             const form = document.getElementById('autismForm');
-            form.onsubmit = async (e) => {
-                e.preventDefault();
 
-                let allFilled = true;
-                let age = parseInt(document.getElementById('age').value);
+            form.onsubmit = async (e) => {
+                e.preventDefault(); // Prevent default form submission
+                const studentAge = document.getElementById('age').value; // Age
+                const studentName = document.getElementById('name').value; // Student name
+                const studentDob = document.getElementById('dob').value; // Student name
+                const formData = {
+                    name: studentName,
+                    gender: document.getElementById('gender').value,
+                    date: document.getElementById('date').value,
+                    dob: document.getElementById('dob').value,
+                    age: document.getElementById('age').value,
+                    examiner: document.getElementById('examiner').value,
+                    timestamp: new Date()
+                };
+
                 const errorMessageElement = document.getElementById('error-message');
                 errorMessageElement.textContent = '';
 
-                form.querySelectorAll('input, select').forEach(function(input) {
-                    if (!input.value) {
-                        allFilled = false;
-                    }
-                });
-
+                // Validate required fields and age range
+                let allFilled = Object.values(formData).every(field => field);
+                const age = parseInt(formData.age);
                 if (isNaN(age) || age < 3 || age > 9) {
                     allFilled = false;
                     errorMessageElement.textContent = 'Age must be between 3 and 9 years.';
                 }
 
                 if (allFilled) {
-                    saveFormDataToLocalStorage();
-
-                    const studentName = document.getElementById('name').value;
-                    const formData = {
-                        name: studentName,
-                        gender: document.getElementById('gender').value,
-                        date: document.getElementById('date').value,
-                        dob: document.getElementById('dob').value,
-                        age: document.getElementById('age').value,
-                        examiner: document.getElementById('examiner').value,
-                        timestamp: new Date()
-                    };
-
-                    await storeFormDataInFirestore(formData, studentName);
-
-                    window.location.href = "social.html";
+                    await storeFormDataInFirestore(formData, studentName); // Store data in Firestore
+                    window.location.href = `social.html?studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(studentAge)}&studentDob=${encodeURIComponent(studentDob)}`;
                 }
             };
 
+            // Firebase auth state listener
             onAuthStateChanged(auth, (user) => {
                 if (!user) {
                     console.error("User not signed in.");
                 }
             });
         });
+
+        // Pre-fill the current date and validate the date of birth
+        window.onload = function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').value = today;
+            document.getElementById('dob').setAttribute('max', today);
+
+            document.getElementById('dob').addEventListener('change', function() {
+                const dobValue = this.value;
+                if (dobValue) {
+                    const dob = new Date(dobValue);
+                    const today = new Date();
+                    let age = today.getFullYear() - dob.getFullYear();
+                    const monthDifference = today.getMonth() - dob.getMonth();
+                    if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < dob.getDate())) {
+                        age--;
+                    }
+                    document.getElementById('age').value = age;
+                }
+            });
+        };
     </script>
 </head>
 <body>
@@ -176,37 +173,5 @@
             <button type="submit">Next</button>
         </div>
     </form>
-
-    <script>
-        window.onload = function () {
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('date').value = today;
-            document.getElementById('dob').setAttribute('max', today);
-        };
-
-        document.getElementById('dob').addEventListener('change', function () {
-            const dobValue = this.value;
-            const errorMessageElement = document.getElementById('error-message');
-
-            if (dobValue.length === 10) {
-                const dob = new Date(dobValue);
-                const today = new Date();
-                let age = today.getFullYear() - dob.getFullYear();
-                const monthDifference = today.getMonth() - dob.getMonth();
-
-                if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < dob.getDate())) {
-                    age--;
-                }
-
-                document.getElementById('age').value = age;
-
-                if (age < 3 || age > 9) {
-                    errorMessageElement.textContent = 'Age must be between 3 and 9 years.';
-                } else {
-                    errorMessageElement.textContent = '';
-                }
-            }
-        });
-    </script>
 </body>
 </html>

@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>मूल्यांकन रिपोर्ट्स</title>
+    <!-- Firebase स्क्रिप्ट -->
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth-compat.js"></script>
+    <!-- jsPDF लिंक -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- CSS लिंक -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    
+    <link rel="stylesheet" href="report.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1 class="title">मूल्यांकन रिपोर्ट्स</h1>
+                <p class="subtitle">अपनी मूल्यांकन रिपोर्ट्स देखें और प्रबंधित करें</p>
+            </div>
+            <button class="refresh-button" onclick="fetchReports()">रिपोर्ट्स रिफ्रेश करें</button>
+        </div>
+
+        <div class="user-info">
+            <h2>उपयोगकर्ता जानकारी</h2>
+            <div id="user-details" class="user-details"></div>
+        </div>
+
+        <div class="user-info">
+            <h2>बच्चे की जानकारी</h2>
+            <div id="child-details" class="user-details"></div>
+        </div>
+
+        <div id="error-message" class="error-message"></div>
+        <div id="loading" class="loading">रिपोर्ट्स लोड हो रही हैं...</div>
+        <div id="reports-container" class="reports-grid"></div>
+    </div>
+
+    <div id="languageModal" class="modal" onclick="if(event.target==this)document.getElementById('languageModal').style.display='none'">
+        <div class="modal-content">
+            <span class="close-modal" onclick="document.getElementById('languageModal').style.display='none'">&times;</span>
+            <h2>भाषा चुनें</h2>
+            <button class="language-button" onclick="handleLanguageSelection('hindi')">हिंदी</button>
+            <button class="language-button" onclick="handleLanguageSelection('english')">English</button>
+            <button class="language-button" onclick="handleLanguageSelection('telugu')">తెలుగు</button>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+            authDomain: "autism-evaluation-platform.firebaseapp.com",
+            projectId: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform.appspot.com",
+            messagingSenderId: "748226978662",
+            appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+            measurementId: "G-1TGEHTTJF4"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        const domainNames = {
+            socialRelationship: "सामाजिक संबंध और पारस्परिकता",
+            emotionalResponsiveness: "भावनात्मक उत्तरदायित्व",
+            speechLanguageCommunication: "भाषण, भाषा और संवाद",
+            behaviourPatterns: "व्यवहार पैटर्न",
+            sensoryAspects: "संवेदी पहलू",
+            cognitiveComponent: "संज्ञानात्मक पहलू"
+        };
+
+        function classifyAutism(totalScore) {
+            if (totalScore <= 70) {
+                return "कोई ऑटिज़्म नहीं";
+            } else if (totalScore <= 106) {
+                return "हल्का ऑटिज़्म";
+            } else if (totalScore <= 153) {
+                return "मध्यम ऑटिज़्म";
+            } else {
+                return "गंभीर ऑटिज़्म";
+            }
+        }
+
+        function displayUserInfo(user) {
+            const userDetailsDiv = document.getElementById('user-details');
+
+            db.collection('users').doc(user.uid).get()
+                .then(doc => {
+                    const firestoreData = doc.exists ? doc.data() : {};
+                    const userData = {
+                        'नाम': firestoreData.name || user.displayName || 'उपलब्ध नहीं',
+                        'ईमेल': user.email || 'उपलब्ध नहीं',
+                        'भूमिका': firestoreData.role || 'उपलब्ध नहीं'
+                    };
+
+                    userDetailsDiv.innerHTML = Object.entries(userData)
+                        .map(([label, value]) => `
+                            <div class="info-item">
+                                <span class="info-label">${label}</span>
+                                <span class="info-value">${value}</span>
+                            </div>
+                        `).join('');
+                })
+                .catch(error => {
+                    console.error('उपयोगकर्ता जानकारी प्राप्त करने में त्रुटि:', error);
+                    userDetailsDiv.innerHTML = `
+                        <div class="info-item">
+                            <span class="info-label">ईमेल</span>
+                            <span class="info-value">${user.email || 'उपलब्ध नहीं'}</span>
+                        </div>`;
+                });
+        }
+
+        function displayChildInfo(user) {
+            const childDetailsDiv = document.getElementById('child-details');
+
+            db.collection('users').doc(user.uid).collection('Questionnaire').doc('details').get().then(doc => {
+                if (doc.exists) {
+                    const childData = doc.data();
+                    const info = {
+                        'नाम': childData.name || 'उपलब्ध नहीं',
+                        'आयु': childData.age || 'उपलब्ध नहीं',
+                        'जन्म तिथि': childData.dob ? formatDate(childData.dob) : 'उपलब्ध नहीं'
+                    };
+
+                    childDetailsDiv.innerHTML = Object.entries(info)
+                        .map(([label, value]) => `
+                            <div class="info-item">
+                                <span class="info-label">${label}</span>
+                                <span class="info-value">${value}</span>
+                            </div>
+                        `).join('');
+                } else {
+                    childDetailsDiv.innerHTML = '<p>बच्चे की जानकारी उपलब्ध नहीं है</p>';
+                }
+            })
+            .catch(error => {
+                console.error('बच्चे की जानकारी प्राप्त करने में त्रुटि:', error);
+                childDetailsDiv.innerHTML = '<p>बच्चे की जानकारी लोड करने में त्रुटि</p>';
+            });
+        }
+
+        async function fetchReports() {
+            const loading = document.getElementById('loading');
+            const errorMessage = document.getElementById('error-message');
+            const reportsContainer = document.getElementById('reports-container');
+
+            loading.style.display = 'block';
+            errorMessage.style.display = 'none';
+            reportsContainer.innerHTML = '';
+
+            try {
+                const user = auth.currentUser;
+                if (!user) {
+                    throw new Error('कोई लॉग इन उपयोगकर्ता नहीं है');
+                }
+
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                const userData = userDoc.exists ? userDoc.data() : {};
+                const userName = userData.name || user.displayName || 'उपलब्ध नहीं';
+
+                displayUserInfo(user);
+                displayChildInfo(user);
+
+                const domains = Object.keys(domainNames);
+                const scores = {};
+                let totalScore = 0;
+
+                for (const domain of domains) {
+                    const docRef = db.collection('users').doc(user.uid)
+                                   .collection('Questionnaire').doc(domain);
+                    const docSnap = await docRef.get();
+
+                    if (docSnap.exists) {
+                        const score = docSnap.data().score || 0;
+                        scores[domain] = score;
+                        totalScore += score;
+                    } else {
+                        scores[domain] = 'N/A';
+                    }
+                }
+
+                const reportData = {
+                    id: 'current_assessment',
+                    scores,
+                    totalScore,
+                    autismRange: classifyAutism(totalScore),
+                    timestamp: new Date(),
+                    userData: {
+                        name: userName,
+                        email: user.email || 'उपलब्ध नहीं',
+                        uid: user.uid
+                    }
+                };
+
+                reportsContainer.appendChild(createReportCard(reportData));
+            } catch (error) {
+                console.error('त्रुटि:', error);
+                errorMessage.style.display = 'block';
+                errorMessage.textContent = 'रिपोर्ट्स लोड करने में त्रुटि। कृपया पुनः प्रयास करें।';
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function createReportCard(report) {
+            const card = document.createElement('div');
+            card.className = 'report-card';
+
+            const header = document.createElement('div');
+            header.className = 'report-header';
+            header.innerHTML = `
+                <div class="report-title">मूल्यांकन रिपोर्ट</div>
+                <div class="report-date">${report.timestamp.toLocaleDateString()}</div>
+            `;
+
+            const scoresContainer = document.createElement('div');
+            Object.entries(report.scores).forEach(([domain, score]) => {
+                const scoreItem = document.createElement('div');
+                scoreItem.className = 'score-item';
+                scoreItem.innerHTML = `
+                    <span class="score-label">${domainNames[domain]}</span>
+                    <span class="score-value">${score}</span>
+                `;
+                scoresContainer.appendChild(scoreItem);
+            });
+
+            const totalScore = document.createElement('div');
+            totalScore.className = 'total-score';
+            totalScore.innerHTML = `
+                <span>कुल स्कोर</span>
+                <span>${report.totalScore}</span>
+            `;
+
+            const autismRange = document.createElement('div');
+            autismRange.className = 'autism-range';
+            autismRange.innerHTML = `ऑटिज़्म रेंज: ${report.autismRange}`;
+
+            const generateButton = document.createElement('button');
+            generateButton.className = 'generate-button';
+            generateButton.innerHTML = `PDF बनाएं`;
+            generateButton.onclick = () => showLanguageModal(report);
+
+            card.appendChild(header);
+            card.appendChild(scoresContainer);
+            card.appendChild(totalScore);
+            card.appendChild(autismRange);
+            card.appendChild(generateButton);
+
+            return card;
+        }
+
+        function showLanguageModal(reportData) {
+            const modal = document.getElementById('languageModal');
+            modal.dataset.reportData = JSON.stringify(reportData);
+            modal.style.display = 'block';
+        }
+
+        function handleLanguageSelection(language) {
+            const modal = document.getElementById('languageModal');
+            const reportData = JSON.parse(modal.dataset.reportData);
+            modal.style.display = 'none';
+
+            switch(language) {
+                case 'hindi':
+                    generatePDF();
+                    break;
+                case 'english':
+                    window.location.href = 'reports_page.html?data=' + encodeURIComponent(JSON.stringify(reportData));
+                    break;
+                case 'telugu':
+                    window.location.href = 'reports_page_te.html?data=' + encodeURIComponent(JSON.stringify(reportData));
+                    break;
+            }
+        }
+
+        function generatePDF() {
+    const { jsPDF } = window.jspdf;
+
+    // Capture the entire page
+    html2canvas(document.body, { scale: 2 }).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4'
+        });
+
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const imgWidth = pageWidth;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        let position = 0;
+
+        // Add image to PDF and handle multiple pages
+        if (imgHeight > pageHeight) {
+            while (position < canvas.height) {
+                pdf.addImage(imgData, 'PNG', 0, position ? 0 : 0, imgWidth, imgHeight);
+                position += pageHeight;
+                if (position < canvas.height) pdf.addPage();
+            }
+        } else {
+            pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+        }
+
+        // Save PDF
+        pdf.save('Report.pdf');
+    });
+}
+
+// Attach to a button or call directly
+document.querySelector('#generate-pdf').addEventListener('click', generatePDF);
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('hi-IN', { year: 'numeric', month: 'long', day: 'numeric' });
+        
+        }
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                fetchReports(); // Load reports immediately when user is authenticated
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+
+        // Also call fetchReports when the page loads if user is already authenticated
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = auth.currentUser;
+            if (user) {
+                fetchReports();
+            }
+        });
+        
+    </script>
+</body>
+</html>

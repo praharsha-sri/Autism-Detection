@@ -1,0 +1,188 @@
+/* General Styling */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #6ec7ad8a;
+    color: #333;
+    padding-top: 20px;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Heading */
+h1 {
+    font-size: 2.5rem;
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #cb1a1a;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.text-primary {
+    --bs-text-opacity: 1;
+    color: #7a00e5 !important;
+}
+
+/* Cards Container */
+.cards-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    margin: 20px auto;
+    padding: 0 10px;
+    max-width: 1200px;
+}
+
+/* Submission Card Styling */
+.submission-card {
+    background-color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+    flex: 1 1 calc(33.333% - 20px);
+    max-width: calc(33.333% - 20px);
+    text-align: center;
+}
+
+.submission-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    background-color: #f0f8ff;
+    cursor: pointer;
+}
+
+.submission-card h3 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #e74c3c;
+    margin-bottom: 0.5rem;
+}
+
+.submission-card p {
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #2c3e50;
+    text-align: justify;
+}
+
+.submission-card ul {
+    padding-left: 0;
+    list-style: none;
+}
+
+.submission-card ul li {
+    font-size: 0.95rem;
+    color: #555;
+    margin-bottom: 0.5rem;
+}
+
+/* Loading Animation */
+#loading {
+    text-align: center;
+    color: #3498db;
+    font-style: italic;
+    font-size: 1.2rem;
+    margin-top: 20px;
+    animation: fadeIn 1.5s infinite;
+}
+
+/* Error Message */
+.error {
+    color: #e74c3c;
+    text-align: center;
+    margin: 20px auto;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+/* Home Button */
+.home-button {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.home-button a {
+    text-decoration: none;
+    background-color: #3498db;
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.home-button a:hover {
+    background-color: #1d6fa5;
+    transform: scale(1.05);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    0%, 100% {
+        opacity: 0.6;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .submission-card {
+        flex: 1 1 calc(50% - 20px);
+        max-width: calc(50% - 20px);
+    }
+    
+    .submission-card h3 {
+        font-size: 1.25rem;
+    }
+
+    .submission-card p {
+        font-size: 0.9rem;
+    }
+
+    #loading {
+        font-size: 1rem;
+    }
+
+    .home-button a {
+        font-size: 0.9rem;
+        padding: 8px 12px;
+    }
+}
+
+@media (max-width: 576px) {
+    h1 {
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+    }
+
+    .submission-card {
+        flex: 1 1 100%;
+        max-width: 100%;
+    }
+
+    .submission-card h3 {
+        font-size: 1.1rem;
+    }
+
+    .submission-card p {
+        font-size: 0.85rem;
+    }
+
+    .home-button a {
+        font-size: 0.85rem;
+        padding: 5px 10px;
+    }
+}

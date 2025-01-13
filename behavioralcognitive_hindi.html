@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>व्यवहारिक इतिहास</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <script type="module">
+        // Import Firebase libraries
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+            authDomain: "autism-evaluation-platform.firebaseapp.com",
+            projectId: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform.appspot.com",
+            messagingSenderId: "748226978662",
+            appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+            measurementId: "G-1TGEHTTJF4"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFormData();  // Load saved data on page load
+            const form = document.getElementById('higherfunction');
+            form.addEventListener('submit', handleFormSubmit);
+             // Save data on input change
+             document.querySelectorAll('input, textarea').forEach(input => {
+                input.addEventListener('input', saveFormData);
+            });
+        });
+
+        // Save form data to localStorage
+        function saveFormData() {
+            const data = {
+                behave: document.getElementById('behave').value,
+                homebehaviour: document.getElementById('homebehaviour').value,
+                socialbehaviour: document.getElementById('socialbehaviour').value,
+                differentbeh: document.getElementById('differentbeh').value,
+                vision: document.getElementById('vision').value,
+                hearing: document.getElementById('hearing').value,
+                speech: document.getElementById('speech').value,
+                orientation: document.getElementById('orientation').value
+            };
+            localStorage.setItem('behaviouralFormData', JSON.stringify(data));
+        }
+
+        // Load saved data from localStorage
+        function loadFormData() {
+            const savedData = JSON.parse(localStorage.getItem('behaviouralFormData'));
+            if (savedData) {
+                document.getElementById('behave').value = savedData.behave || '';
+                document.getElementById('homebehaviour').value = savedData.homebehaviour || '';
+                document.getElementById('socialbehaviour').value = savedData.socialbehaviour || '';
+                document.getElementById('differentbeh').value = savedData.differentbeh || '';
+                document.getElementById('vision').value = savedData.vision || '';
+                document.getElementById('hearing').value = savedData.hearing || '';
+                document.getElementById('speech').value = savedData.speech || '';
+                document.getElementById('orientation').value = savedData.orientation || '';
+            }
+        }
+
+
+        async function handleFormSubmit(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const user = auth.currentUser; // Get current user
+            if (!user) {
+                alert('कृपया फॉर्म सबमिट करने से पहले साइन इन करें।');
+                return;
+            }
+
+            const formData = JSON.parse(localStorage.getItem('behaviouralFormData')) || {};
+            formData.timestamp = new Date();  // Add timestamp
+            try {
+                // Store data in Firestore under users/{userId}/casehistory/behavior
+                const docRef = doc(db, "users", user.uid, "casehistory", "behavior");
+                await setDoc(docRef, formData);
+
+                console.log("व्यवहारिक और उच्च कार्यात्मक डेटा सफलतापूर्वक Firebase में संग्रहीत किया गया।");
+                //alert('व्यवहारिक और उच्च कार्यात्मक इतिहास सफलतापूर्वक सबमिट किया गया।');
+
+                // Redirect to the next page after submission
+                window.location.href = 'selfhelp_hindi.html'; // Change to your desired page
+            } catch (error) {
+                console.error("व्यवहारिक और उच्च कार्यात्मक डेटा Firebase में संग्रहीत करने में त्रुटि:", error);
+                alert('डेटा सबमिट करने में विफल। कृपया फिर से प्रयास करें।');
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>व्यवहारिक इतिहास</h2>
+        <form id="behaviouralhistory">
+            <div class="mb-3">
+                <label for="behave" class="form-label">शिशु और बाल अवस्था में व्यवहार</label>
+                <textarea class="form-control" id="behave" rows="1" placeholder=""></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="homebehaviour" class="form-label">घर का व्यवहार</label>
+                <textarea class="form-control" id="homebehaviour" rows="1" placeholder=""></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="socialbehaviour" class="form-label">सामाजिक व्यवहार</label>
+                <textarea class="form-control" id="socialbehaviour" rows="1" placeholder=""></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="differentbeh" class="form-label">विभिन्न व्यवहार</label>
+                <textarea class="form-control" id="differentbeh" rows="1" placeholder=""></textarea>
+            </div>
+        </form>
+        
+        <br>
+        <h2>उच्च कार्य</h2>
+        <form id="higherfunction">
+            <div class="mb-3">
+                <label for="vision" class="form-label">दृष्टि</label>
+                <textarea class="form-control" id="vision" rows="1" placeholder=""></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="hearing" class="form-label">सुनाई देना</label>
+                <textarea class="form-control" id="hearing" rows="1" placeholder=""></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="speech" class="form-label">वाक्</label>
+                <textarea class="form-control" id="speech" rows="1" placeholder=""></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="orientation" class="form-label">अवधारणा</label>
+                <textarea class="form-control" id="orientation" rows="1" placeholder="विवरण (समय/स्थान/व्यक्ति) के रूप में दर्ज करें"></textarea>
+            </div>
+
+            <!-- Navigation buttons -->
+            <div class="d-flex justify-content-between">
+                <a href="playhistory_hindi.html" class="btn btn-secondary">पिछला</a>
+                <button type="submit" class="btn btn-primary">अगला</button>
+            </div>
+        </form>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+
+</body>
+</html>

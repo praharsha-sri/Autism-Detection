@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="hi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>केस इतिहास - ऑटिज्म मूल्यांकन प्लेटफॉर्म</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .nav-tabs .nav-link.active {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .iframe-container {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            overflow: hidden;
+            height: 600px;
+            /* आवश्यकतानुसार समायोजित करें */
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .navbar {
+            padding: 10px 20px;
+        }
+
+        .logo {
+            height: 70px;
+        }
+
+        .home-btn {
+            position: absolute;
+            left: 20px;
+        }
+
+        .case-history-title {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+    </style>
+    <script>
+        // Function to load page in iframe and update active tab
+        function loadPage(url, linkElement) {
+            // Change iframe source
+            const iframe = document.getElementById('content-frame');
+            iframe.src = url;
+
+            // Update the active tab
+            const links = document.querySelectorAll('.nav-link');
+            links.forEach(link => link.classList.remove('active')); // Remove active class from all links
+            linkElement.classList.add('active'); // Add active class to the clicked link
+        }
+    </script>
+</head>
+
+<body>
+    <!-- नेविगेशन बार जिसमें होम बटन और लोगो शामिल है -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <button class="home-btn btn btn-outline-primary"
+            onclick="window.location.href='parent_dashboard_hi.html'">होम</button>
+        <div class="mx-auto">
+            <img src="Ignitio logo.jpg" alt="Ignito लोगो" class="logo">
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- केस इतिहास शीर्षक -->
+        <h1 class="case-history-title">केस इतिहास</h1>
+        <br>
+
+        <!-- नेविगेशन टैब्स -->
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" onclick="loadPage('identification_hindi.html', this)" href="javascript:void(0)">पहचान</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('parental_hindi.html', this)" href="javascript:void(0)">अभिभावक इतिहास</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('prenatal_hindi.html', this)" href="javascript:void(0)">गर्भपूर्व इतिहास</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('perinatal_hindi.html', this)" href="javascript:void(0)">प्रसवकालीन इतिहास</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('postnatal_hindi.html', this)" href="javascript:void(0)">प्रसवोत्तर इतिहास</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('medicalhistory_hindi.html', this)" href="javascript:void(0)">चिकित्सा इतिहास</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('educationalhistory_hindi.html', this)" href="javascript:void(0)">शैक्षणिक इतिहास</a>
+            </li>
+            <br><br>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('familyhistory_hindi.html', this)" href="javascript:void(0)">परिवार इतिहास</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('playhistory_hindi.html', this)" href="javascript:void(0)">खेल इतिहास</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('behavioralcognitive_hindi.html', this)" href="javascript:void(0)">व्यवहारिक इतिहास</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('selfhelp_hindi.html', this)" href="javascript:void(0)">स्व-सहायता इतिहास</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="loadPage('recommendations_hindi.html', this)" href="javascript:void(0)">सिफारिशें</a>
+            </li>
+        </ul>
+
+        <!-- सामग्री के लिए Iframe -->
+        <div class="iframe-container">
+            <iframe id="content-frame" src="identification_hindi.html"></iframe>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

@@ -159,9 +159,13 @@
                     const chartData = Object.keys(scores).sort().map(key => scores[key]); // Match data
 
                     const reportHTML = `
-                        <h3>सबमिशन तिथि: ${data.submittedAt.toDate().toLocaleString()}</h3>
-                        <p><strong>कुल स्कोर:</strong> ${data.totalScore}</p>
-                        <p><strong>ऑटिज़्म रेंज:</strong> ${data.autismRange}</p>
+                    <h3><strong>नाम: ${data.studentName || 'Unknown'}</strong> </h3>
+                    <h3><strong>आयु: ${data.studentAge || 'Unknown'}</strong> </h3>
+                    <h3><strong>जन्म तिथि: ${data.studentDob || 'Unknown'}</strong> </h3>
+                    <h3><strong>ऑटिज़्म रेंज: ${data.autismRange}</strong></h3>
+                    <p><strong>कुल स्कोर: </strong> ${data.totalScore}</p>
+                    <p><strong>प्रतिशत: </strong> ${data.percentageScore||0}%</p>
+                    <p><strong>सबमिशन तिथि: </strong> ${data.submittedAt.toDate().toLocaleString()}</p>
                     `;
 
                     const canvas = document.createElement('canvas');
