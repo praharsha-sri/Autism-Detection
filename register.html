@@ -10,9 +10,9 @@
     <!-- Firebase SDK -->
     <script type="module">
         // Import Firebase app and services
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDocs, collection, query, where } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { getFirestore, setDoc, doc, getDocs, collection, query, where } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
     
         const firebaseConfig = {
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
@@ -27,9 +27,36 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-    
+
+        function isValidAadhaar(aadhaar) {
+            const cleanAadhaar = aadhaar.replace(/\s/g, '');
+            
+            if (!/^\d{12}$/.test(cleanAadhaar)) {
+                alert("Aadhaar number must contain exactly 12 digits.");
+                return false;
+            }
+            
+            if (cleanAadhaar.startsWith('0') || cleanAadhaar.startsWith('1')) {
+                alert("Aadhaar number cannot start with 0 or 1.");
+                return false;
+            }
+            
+            if (/[a-zA-Z!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(aadhaar)) {
+                alert("Aadhaar number cannot contain alphabets or special characters.");
+                return false;
+            }
+
+            if (aadhaar !== cleanAadhaar && !/^\d{4}\s?\d{4}\s?\d{4}$/.test(aadhaar)) {
+                alert("If using spaces, they should only appear after every 4 digits.");
+                return false;
+            }
+            
+            return true;
+        }
+
         // Registration Functionality
         document.addEventListener('DOMContentLoaded', function () {
+            
             document.getElementById('registerForm').addEventListener('submit', async function (event) {
                 event.preventDefault();
     
@@ -38,8 +65,19 @@
                 const organization = document.getElementById('organization').value;
                 const email = document.getElementById('contact').value;
                 const phone = document.getElementById('phone').value;
+                const aadhaar = document.getElementById('aadhaar').value;
                 const password = document.getElementById('password').value;
-    
+                const confirmPassword = document.getElementById('confirm-password').value;
+
+                if (password !== confirmPassword) {
+                    alert("Passwords do not match.");
+                    return;
+                }
+
+                if (role === "parent" && !isValidAadhaar(aadhaar)) {
+                    return;
+                }
+
                 // Validate phone number
                 if (!/^\d{10}$/.test(phone)) {
                     alert("Please enter a valid 10-digit phone number.");
@@ -47,50 +85,93 @@
                 }
 
                 try {
-                    // Check if phone number already exists in Firestore
-                    const phoneQuerySnapshot = await getDocs(query(collection(db, "users"), where("phone", "==", "+91" + phone)));
-                    if (!phoneQuerySnapshot.empty) {
-                        alert("Phone number already exists. Please log in.");
+                    const cleanAadhaar = aadhaar.replace(/\s/g, '');
+            
+                    const aadhaarQuerySnapshot = await getDocs(query(collection(db, "users"), where("aadhaar", "==", cleanAadhaar)));
+                    if (role === "parent" && !aadhaarQuerySnapshot.empty) {
+                        alert("Aadhaar number already registered. Please log in.");
                         return;
                     }
     
-                    // Register user with email and password
                     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                    const user = userCredential.user;
-    
-                    // Add user info to Firestore
-                    await setDoc(doc(db, "users", user.uid), {
-                        role: role,
-                        name: name,
-                        organization: organization,
-                        email: email,
-                        phone: "+91" + phone // Store the phone number with +91 prefix
-                    });
-    
-                    alert("Registration successful!");
-                    window.location.href = 'login.html'; // Redirect to login page
-                } catch (error) {
-                    alert("Error: " + error.message);
+                const user = userCredential.user;
+                const roleRef = role === "parent" ? "parents" : "teachers"; // Create separate collections for roles
+                
+                // Check if the email already exists for the same role
+                const userQuerySnapshot = await getDocs(query(collection(db, roleRef), where("email", "==", email)));
+                if (!userQuerySnapshot.empty) {
+                    alert("An account with this email already exists in the selected role.");
+                    return;
+                }
+
+                // Store user info in Firestore under the role-specific collection
+                await setDoc(doc(db, roleRef, user.uid), {
+                    role: role,
+                    name: name,
+                    organization: organization,
+                    email: email,
+                    phone: "+91" + phone,
+                    aadhaar: role === "parent" ? cleanAadhaar : null
+                });
+
+                alert("Registration successful!");
+                window.location.href = 'login.html'; // Redirect to login page
+
+            } catch (error) {
+                alert("Error: " + error.message);
+            }
+        });
+
+            const aadhaarInput = document.getElementById('aadhaar');
+            const validationMessage = document.getElementById('aadhaar-validation');
+            aadhaarInput.addEventListener('input', function (e) {
+                let value = e.target.value.replace(/\s/g, ''); // Remove existing spaces
+                if (value.length > 0) {
+                    value = value.match(new RegExp('.{1,4}', 'g')).join(' '); // Add spaces every 4 digits
+                }
+                e.target.value = value; // Set the formatted value
+            });
+
+            // Validate Aadhaar only on blur (when the input loses focus)
+            aadhaarInput.addEventListener('blur', function () {
+                const cleanAadhaar = aadhaarInput.value.replace(/\s/g, ''); // Remove spaces for validation
+                if (document.getElementById('role').value === 'parent') {
+                    if (!isValidAadhaar(cleanAadhaar)) {
+                        validationMessage.style.color = 'red';
+                        validationMessage.textContent = 'Invalid Aadhaar number format.';
+                    } else {
+                        validationMessage.style.color = 'green';
+                        validationMessage.textContent = 'Aadhaar number is valid.';
+                    }
                 }
             });
-    
-            // Login Functionality
-            document.getElementById('loginForm').addEventListener('submit', async function (event) {
-                event.preventDefault();
-    
-                const email = document.getElementById('login-email').value;
-                const password = document.getElementById('login-password').value;
-    
-                try {
-                    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                    const user = userCredential.user;
-    
-                    alert("Login successful!");
-                    window.location.href = 'dashboard.html';
-                } catch (error) {
-                    alert("Error: " + error.message);
+
+            // Clear validation message if Aadhaar field is empty
+            aadhaarInput.addEventListener('input', function () {
+                if (aadhaarInput.value.trim() === '') {
+                    validationMessage.textContent = '';
                 }
             });
+
+            // Toggle Aadhaar input visibility based on role
+            document.getElementById('role').addEventListener('change', function () {
+                const role = this.value;
+                const aadhaarField = document.getElementById('aadhaar');
+                const aadhaarContainer = document.getElementById('aadhaar-container');
+
+                if (role === "parent") {
+                    aadhaarContainer.style.display = 'block';
+                    aadhaarField.required = true;
+                } else {
+                    aadhaarContainer.style.display = 'none';
+                    aadhaarField.required = false;
+                }
+            });
+
+            // Initial check to hide Aadhaar field if "Teacher" is selected
+            if (document.getElementById('role').value !== 'parent') {
+                document.getElementById('aadhaar-container').style.display = 'none';
+            }
         });
     </script>
 </head>
@@ -140,6 +221,12 @@
                             <span class="input-group-text">+91</span>
                             <input type="text" class="form-control" id="phone" placeholder="Enter 10 digit number" required>
                         </div>
+                    </div>
+                    <div class="mb-3" id="aadhaar-container">
+                        <label for="aadhaar" class="form-label">Aadhaar Number</label>
+                        <input type="text" class="form-control" id="aadhaar" placeholder="XXXX XXXX XXXX" maxlength="14">
+                        <small class="text-muted">Enter 12 digits. Spaces will be added automatically after every 4 digits.</small>
+                        <div id="aadhaar-validation" class="form-text"></div>
                     </div>
                     <div class="mb-3">
                         <label for="password" class="form-label">Password</label>
