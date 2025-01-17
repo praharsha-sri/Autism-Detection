@@ -53,6 +53,26 @@
             
             return true;
         }
+        
+
+        document.addEventListener('DOMContentLoaded', function () {
+    const phoneInput = document.getElementById('phone');
+    phoneInput.addEventListener('input', function(e) {
+        const cursorPosition = this.selectionStart;
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length > 10) {
+            value = value.slice(0, 10);
+            this.classList.add('shake');
+            setTimeout(() => this.classList.remove('shake'), 500);
+        }
+        this.value = value;
+        if (cursorPosition < value.length) {
+            this.setSelectionRange(cursorPosition, cursorPosition);
+        }
+    });
+    phoneInput.setAttribute('maxlength', '10');
+});
+
 
         // Registration Functionality
         document.addEventListener('DOMContentLoaded', function () {
@@ -77,12 +97,19 @@
                 if (role === "parent" && !isValidAadhaar(aadhaar)) {
                     return;
                 }
+                
+                if (phone.length !== 10) {
+            alert("Please enter exactly 10 digits for the phone number.");
+            return;
+        }
 
                 // Validate phone number
                 if (!/^\d{10}$/.test(phone)) {
                     alert("Please enter a valid 10-digit phone number.");
                     return;
                 }
+                
+                
 
                 try {
                     const cleanAadhaar = aadhaar.replace(/\s/g, '');
@@ -95,17 +122,16 @@
     
                     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
-                const roleRef = role === "parent" ? "parents" : "teachers"; // Create separate collections for roles
                 
                 // Check if the email already exists for the same role
-                const userQuerySnapshot = await getDocs(query(collection(db, roleRef), where("email", "==", email)));
+                const userQuerySnapshot = await getDocs(query(collection(db, "users"), where("email", "==", email)));
                 if (!userQuerySnapshot.empty) {
                     alert("An account with this email already exists in the selected role.");
                     return;
                 }
 
                 // Store user info in Firestore under the role-specific collection
-                await setDoc(doc(db, roleRef, user.uid), {
+                await setDoc(doc(db, "users", user.uid), {
                     role: role,
                     name: name,
                     organization: organization,
