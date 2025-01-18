@@ -261,6 +261,7 @@
                 }
             }
 
+            
             auth.onAuthStateChanged(async user => {
                 if (user) {
                     await displaySubmissionsWithReport(user.uid);

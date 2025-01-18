@@ -231,8 +231,6 @@
             const chartData = chartLabels.map((_, index) => scores[Object.keys(scores).sort()[index]]);
             const maxScores = chartLabels.map((_, index) => domainLimits[Object.keys(scores).sort()[index]]?.max || 40);
             const minScores = chartLabels.map((_, index) => domainLimits[Object.keys(scores).sort()[index]]?.min || 0);
-
-            
                     const reportHTML = `
 
                     <h3><strong>పేరు: ${data.studentName || 'Unknown'}</strong> </h3>
