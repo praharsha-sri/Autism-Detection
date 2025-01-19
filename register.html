@@ -341,6 +341,7 @@ document.addEventListener('click', function(e) {
                                 email: email,
                                 userId: user.uid,
                                 childrenCount: children.length,
+                                childrenName:children.map(child=> child.name),
                                 childrenAadhaar: children.map(child => child.aadhaar)
                             });
                         }
