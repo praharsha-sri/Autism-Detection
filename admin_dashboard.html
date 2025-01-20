@@ -28,6 +28,12 @@
             border-left: none;
             border-right: none;
         }
+        .child-details {
+            padding-left: 20px;
+            margin-top: 5px;
+            font-size: 0.9em;
+            color: #666;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -122,7 +128,6 @@
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
         import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
             authDomain: "autism-evaluation-platform.firebaseapp.com",
@@ -175,18 +180,47 @@
                 elements.childrenCount.textContent = totalChildren;
                 elements.teacherCount.textContent = teachers.length;
 
-                // Display parents
-                const parentsHTML = parents.map(parent => `
+                // Display parents with their children
+                const parentsHTML = parents.map(parent => {
+                    // Create a list of children for this parent
+                    const childrenNames = parent.childrenName || [];
+                    const childrenAadhaar = parent.childrenAadhaar || [];
+                    const childrenDetails = childrenNames.map((name, index) => {
+                        return `<div class="child-details">
+                            - ${name} (Aadhaar: ${childrenAadhaar[index] || 'N/A'})
+                        </div>`;
+                    }).join('');
+
+                    return `
+                        <div class="list-group-item">
+                            <h6 class="mb-1">${parent.name || 'No Name'}</h6>
+                            <small class="text-muted">Email: ${parent.email || 'No Email'}</small>
+                            <div class="mt-2">
+                                <small class="text-muted">Children:</small>
+                                ${childrenDetails}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                elements.parentsList.innerHTML = parentsHTML || '<div class="list-group-item">No parents found</div>';
+
+                // Display all children in organization
+                let allChildren = [];
+                parents.forEach(parent => {
+                    const names = parent.childrenName || [];
+                    const aadhaarNumbers = parent.childrenAadhaar || [];
+                    names.forEach((name, index) => {
+                        allChildren.push({ name, aadhaar: aadhaarNumbers[index] });
+                    });
+                });
+
+                const childrenHTML = allChildren.map(child => `
                     <div class="list-group-item">
-                        <h6 class="mb-1">${parent.name || 'No Name'}</h6>
-                        <small class="text-muted">Email: ${parent.email || 'No Email'}</small>
-                        <br>
-                        <small class="text-muted">Children Name: ${parent.childrenName?.join(', ') || 'No Aadhaar'}</small>
+                        <h6 class="mb-1">${child.name}</h6>
+                        <small class="text-muted">Aadhaar: ${child.aadhaar || 'N/A'}</small>
                     </div>
                 `).join('');
-                elements.parentsList.innerHTML = parentsHTML || '<div class="list-group-item">No parents found</div>';
-                
-                //Display children
+                elements.childrenList.innerHTML = childrenHTML || '<div class="list-group-item">No children found</div>';
 
                 // Display teachers
                 const teachersHTML = teachers.map(teacher => `
