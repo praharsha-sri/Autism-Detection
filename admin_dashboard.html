@@ -34,6 +34,9 @@
             font-size: 0.9em;
             color: #666;
         }
+        .view-allocations-btn {
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -119,6 +122,9 @@
                         </div>
                     </div>
                 </div>
+            </div>
+            <div class="view-allocations-btn text-center">
+                <a href="allocation.html" class="btn btn-primary">View Allocations</a>
             </div>
         </div>
     </div>
@@ -209,18 +215,22 @@
                 parents.forEach(parent => {
                     const names = parent.childrenName || [];
                     const aadhaarNumbers = parent.childrenAadhaar || [];
-                    names.forEach((name, index) => {
-                        allChildren.push({ name, aadhaar: aadhaarNumbers[index] });
+                    aadhaarNumbers.forEach((aadhaar, index) => {
+                    allChildren.push({
+                    name: names[index] || 'NA',
+                    aadhaar: aadhaar || 'N/A'
                     });
+                 });
                 });
 
                 const childrenHTML = allChildren.map(child => `
-                    <div class="list-group-item">
-                        <h6 class="mb-1">${child.name}</h6>
-                        <small class="text-muted">Aadhaar: ${child.aadhaar || 'N/A'}</small>
-                    </div>
+                <div class="list-group-item">
+                <h6 class="mb-1">Name: ${child.name}</h6>
+                <small class="text-muted">Aadhaar: ${child.aadhaar}</small>
+                </div>
                 `).join('');
                 elements.childrenList.innerHTML = childrenHTML || '<div class="list-group-item">No children found</div>';
+
 
                 // Display teachers
                 const teachersHTML = teachers.map(teacher => `
