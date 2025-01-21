@@ -22,7 +22,11 @@
     <!-- Navigation bar -->
     <nav class="navbar navbar-expand-lg navbar-light sticky-top">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#" id="user-name">Dashboard</a>
+            <div class="navbar-brand">
+                <span id="user-name">Dashboard</span>
+                <span class="mx-2">|</span>
+                <span id="child-name" class="text-primary"></span>
+            </div>
             <div class="d-flex align-items-center">
                 <select id="language-switcher" class="form-select me-2">
                     <option value="en">English</option>
@@ -104,33 +108,23 @@
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
             authDomain: "autism-evaluation-platform.firebaseapp.com",
             projectId: "autism-evaluation-platform",
-            storageBucket: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform.appspot.com",
             messagingSenderId: "748226978662",
             appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
             measurementId: "G-1TGEHTTJF4"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Utility functions
         const showLoading = () => document.getElementById('loading-overlay').style.display = 'flex';
         const hideLoading = () => document.getElementById('loading-overlay').style.display = 'none';
 
-        // Check if user has selected a language
-        function checkLanguageSelection() {
-            const selectedLanguage = localStorage.getItem('selectedLanguage');
-            return selectedLanguage ? true : false;
-        }
-
-        // Initialize dashboard with user role verification
         async function initializeDashboard(user) {
             showLoading();
             try {
@@ -139,15 +133,26 @@
                     const userData = userDoc.data();
                     const role = userData.role;
 
-                    // Redirect if not parent
                     if (role !== "parent") {
                         alert("Access restricted to parents only.");
                         window.location.href = 'index.html';
                         return;
                     }
 
+                    // Set parent's name
                     const userName = userData.name || "User";
                     document.getElementById('user-name').textContent = `${userName}'s Dashboard`;
+
+                    // Get child's Aadhaar from session storage
+                    const childAadhaar = sessionStorage.getItem('currentChildAadhaar');
+                    
+                    // Find and display child's name
+                    if (childAadhaar && userData.children) {
+                        const child = userData.children.find(child => child.aadhaar === childAadhaar);
+                        if (child) {
+                            document.getElementById('child-name').textContent = `Child Name: ${child.name}`;
+                        }
+                    }
 
                     const selectedLanguage = localStorage.getItem('selectedLanguage');
                     document.getElementById('language-switcher').value = selectedLanguage;
@@ -162,7 +167,6 @@
             }
         }
 
-        // Auth state observer
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 initializeDashboard(user);
@@ -183,6 +187,7 @@
                 try {
                     await signOut(auth);
                     localStorage.removeItem('selectedLanguage');
+                    sessionStorage.removeItem('currentChildAadhaar');
                     window.location.href = 'login.html';
                 } catch (error) {
                     console.error('Error signing out:', error);

@@ -28,35 +28,67 @@
         const db = getFirestore(app);
     
         document.addEventListener('DOMContentLoaded', function () {
+            const roleSelect = document.getElementById('role');
+            const childAadhaarDiv = document.getElementById('childAadhaarDiv');
+
+            // Show/hide child Aadhaar field based on role selection
+            roleSelect.addEventListener('change', function() {
+                if (this.value === 'parent') {
+                    childAadhaarDiv.style.display = 'block';
+                } else {
+                    childAadhaarDiv.style.display = 'none';
+                }
+            });
+
             document.getElementById('loginForm').addEventListener('submit', async function (event) {
                 event.preventDefault();
     
                 const email = document.getElementById('username').value;
                 const password = document.getElementById('login-password').value;
-                const selectedRole = document.getElementById('role').value; // 'parent' or 'teacher'
+                const selectedRole = document.getElementById('role').value;
     
                 try {
                     const userCredential = await signInWithEmailAndPassword(auth, email, password);
                     const user = userCredential.user;
     
                     // Retrieve user role from Firestore
-                    const userRef = doc(db, "users", user.uid); // Assuming "users" collection stores role info
+                    const userRef = doc(db, "users", user.uid);
                     const userDoc = await getDoc(userRef);
     
                     if (userDoc.exists()) {
                         const userRole = userDoc.data().role;
     
-                        // Check if the selected role matches the stored role in Firestore
+                        // Check if the selected role matches the stored role
                         if (selectedRole === userRole) {
                             if (userRole === 'parent') {
-                                window.location.href = 'language.html'; // Redirect to parent dashboard
+                                // For parent role, verify child's Aadhaar
+                                const childAadhaar = document.getElementById('childAadhaar').value;
+                                const userData = userDoc.data();
+                                
+                                // Check if the parent has a child with matching Aadhaar
+                                let childFound = false;
+                                if (userData.children) {
+                                    for (let child of userData.children) {
+                                        if (child.aadhaar === childAadhaar) {
+                                            childFound = true;
+                                            // Store child's Aadhaar for future reference
+                                            sessionStorage.setItem('currentChildAadhaar', childAadhaar);
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                if (childFound) {
+                                    window.location.href = 'language.html';
+                                } else {
+                                    alert("Invalid child Aadhaar number.");
+                                }
                             } else if (userRole === 'teacher') {
-                                window.location.href = 'language.html'; // Redirect to teacher dashboard
+                                window.location.href = 'language.html';
                             } else if (userRole === 'admin') {
-                                window.location.href = 'admin_dashboard.html'; // Redirect to admin dashboard
+                                window.location.href = 'admin_dashboard.html';
                             }
-                        }  else {
-                            // Wrong role selected
+                        } else {
                             alert("Selected role is incorrect. Please choose the correct role.");
                         }
                     } else {
@@ -64,24 +96,18 @@
                     }
     
                 } catch (error) {
-                    // Generic invalid credentials error
+                    console.error(error);
                     alert("Invalid credentials. Please try again.");
                 }
             });
         });
     </script>
-    
-    
-    
 </head>
 <body>
     <header class="main-header">
         <div class="logo-container">
-            <!-- First Logo -->
             <img src="GNITS_Logo.jpeg" alt="GNITS Logo" class="logo-img">
-            <!-- Second Logo -->
             <img src="Ignitio logo.jpg" alt="IGNITO Logo" class="logo-img">
-            <!-- Title -->
             <h1>Bālāmṛta</h1>
         </div>
         <div class="auth-buttons">
@@ -112,11 +138,14 @@
                         <label for="login-password" class="form-label">Password</label>
                         <input type="password" class="form-control" id="login-password" required>
                     </div>
+                    <div class="mb-3" id="childAadhaarDiv">
+                        <label for="childAadhaar" class="form-label">Child's Aadhaar Number</label>
+                        <input type="text" class="form-control" id="childAadhaar">
+                    </div>
                     <button type="submit" class="btn-primary-custom" id="loginBtn">Log In</button>
                     <div class="mt-2">
                         <a href="forgot_password.html" class="text-decoration-none">Forgot Password?</a>
                     </div>
-                    
                 </form>
                 <div class="mt-4 text-center">
                     <p>Don't have an account? <a href="register.html">Sign Up</a></p>
@@ -128,4 +157,3 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
- 
