@@ -14,7 +14,6 @@
                 color: #333;
                 padding-top: 20px;
             }
-    
             h1 {
                 font-size: 2rem;
                 text-align: center;
@@ -22,7 +21,6 @@
                 color: #000000;
                 font-weight: bold;
             }
-    
             .submission-card {
                 background-color: #ffffff;
                 border: none;
@@ -32,25 +30,21 @@
                 box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
                 transition: transform 0.3s ease-in-out;
             }
-    
             .submission-card:hover {
                 transform: translateY(-5px);
                 box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
             }
-    
             .submission-card h3 {
                 font-size: 1.25rem;
                 font-weight: bold;
                 color: #fd0000;
             }
-    
             .submission-card p {
                 margin-bottom: 0.5rem;
                 font-size: 1rem;
                 font-weight: bold;
                 color: #000000;
             }
-    
             #loading {
                 text-align: center;
                 color: #0d6efd;
@@ -58,30 +52,31 @@
                 font-size: 1.2rem;
                 margin-top: 20px;
             }
-    
             .error {
                 color: #dc3545;
                 text-align: center;
                 margin: 20px 0;
                 font-size: 1.2rem;
             }
-    
             .home-button {
                 position: absolute;
                 top: 20px;
                 right: 20px;
             }
+            #child-aadhaar-display {
+            color: #0f0e0e;  /* Change to your desired color */
+             }
         </style>
     </head>
     <body>
         <div class="container">
             <a href="parent_dashboard_en.html" class="btn btn-primary home-button">Home</a>
             <h1>Visualization Reports</h1>
+            <b><p id="child-aadhaar-display" class="text-success">Child Aadhaar Number:</p></b>
             <div id="submissionsContainer"></div>
             <div id="loading">Loading submissions...</div>
             <div id="error" class="error" style="display: none;">Error loading submissions. Please refresh the page.</div>
         </div>
-    
         <script>
             // Firebase configuration
             const firebaseConfig = {
@@ -93,20 +88,20 @@
                 appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
                 measurementId: "G-1TGEHTTJF4"
             };
-    
+
             firebase.initializeApp(firebaseConfig);
             const db = firebase.firestore();
             const auth = firebase.auth();
-    
+
             const domainLimits = {
-                'behaviourPatterns': { min: 7, max: 35 },
-        'sensoryAspects': { min: 6, max: 30 },
-        'cognitiveComponent': { min: 4, max: 20 },
-        'socialRelationship': { min: 9, max: 45 },
-        'emotionalResponsiveness': { min:5, max: 25 },
-        'speechLanguageCommunication': {min:9,max:45}
+                behaviourPatterns: { min: 7, max: 35 },
+                sensoryAspects: { min: 6, max: 30 },
+                cognitiveComponent: { min: 4, max: 20 },
+                socialRelationship: { min: 9, max: 45 },
+                emotionalResponsiveness: { min: 5, max: 25 },
+                speechLanguageCommunication: { min: 9, max: 45 }
             };
-    
+
             function createGroupedBarChart(canvas, labels, actualData, maxScores, minScores) {
                 return new Chart(canvas, {
                     type: 'bar',
@@ -139,125 +134,91 @@
                     options: {
                         responsive: true,
                         scales: {
-                            x: {
-                                grid: {
-                                    display: false
-                                }
-                            },
-                            y: {
-                                beginAtZero: true,
-                                max: Math.max(...maxScores) + 2,
-                                grid: {
-                                    color: 'rgba(0, 0, 0, 0.1)'
-                                }
-                            }
-                        },
-                        plugins: {
-                            legend: {
-                                position: 'top',
-                                labels: {
-                                    padding: 20,
-                                    font: {
-                                        size: 12,
-                                        weight: 'bold'
-                                    }
-                                }
-                            },
-                            tooltip: {
-                                mode: 'index',
-                                intersect: false,
-                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                padding: 12,
-                                titleColor: '#fff',
-                                bodyColor: '#fff',
-                                borderColor: '#fff',
-                                borderWidth: 1,
-                                callbacks: {
-                                    label: function(context) {
-                                        let label = context.dataset.label || '';
-                                        if (label) {
-                                            label += ': ';
-                                        }
-                                        label += context.parsed.y.toFixed(1);
-                                        return label;
-                                    }
-                                }
-                            }
-                        },
-                        barPercentage: 0.8,
-                        categoryPercentage: 0.9
+                            x: { grid: { display: false } },
+                            y: { beginAtZero: true, max: Math.max(...maxScores) + 2, grid: { color: 'rgba(0, 0, 0, 0.1)' } }
+                        }
                     }
                 });
             }
-    
-            async function displaySubmissionsWithReport(userId) {
+            
+            async function displaySubmissionsWithReport(userId, childAadhaar) {
                 const submissionsContainer = document.getElementById('submissionsContainer');
                 const loading = document.getElementById('loading');
                 const error = document.getElementById('error');
-    
+
                 try {
                     loading.style.display = 'block';
                     error.style.display = 'none';
                     submissionsContainer.innerHTML = '';
-    
-                    const submissionsRef = db.collection('users').doc(userId).collection('submissions');
+
+                    const submissionsRef = db
+                        .collection('users')
+                        .doc(userId)
+                        .collection(childAadhaar)
+                        .doc('info')
+                        .collection('submissions');
+
                     const submissionsSnap = await submissionsRef.orderBy('submittedAt', 'desc').get();
-    
+
                     if (submissionsSnap.empty) {
-                        loading.style.display = 'none';
-                        error.style.display = 'block';
-                        error.textContent = 'No submissions found.';
-                        return;
+                        throw new Error('No submissions found.');
                     }
-    
+
                     submissionsSnap.forEach(doc => {
                         const data = doc.data();
-                        if (!data.scores || Object.keys(data.scores).length === 0) return;
-    
                         const submissionCard = document.createElement('div');
                         submissionCard.classList.add('submission-card');
-    
-                        const scores = data.scores;
-                        const chartLabels = Object.keys(scores).sort();
-                        const chartData = chartLabels.map(label => scores[label]);
-                        const maxScores = chartLabels.map(label => domainLimits[label]?.max || 40);
-                        const minScores = chartLabels.map(label => domainLimits[label]?.min || 0);
-    
-                        const reportHTML = `
-                            <h3><strong>Student Name: ${data.studentName || 'Unknown'}</strong></h3>
-                            <h3><strong>Student Age: ${data.studentAge || 'Unknown'}</strong></h3>
-                            <h3><strong>Student DOB: ${data.studentDob || 'Unknown'}</strong></h3>
-                            <h3><strong>Autism Range: ${data.autismRange}</strong></h3>
-                            <p><strong>Total Score:</strong> ${data.totalScore}</p>
-                            <p><strong>Percentage Score:</strong> ${data.percentageScore}</p>
-                            <p><strong>Submission Date:</strong> ${data.submittedAt.toDate().toLocaleString()}</p>
-                        `;
-    
-                        const canvas = document.createElement('canvas');
-                        canvas.id = 'chart-' + doc.id;
-    
-                        submissionCard.innerHTML = reportHTML;
-                        submissionCard.appendChild(canvas);
+
+                        const scores = data.scores || {};
+                        const labels = Object.keys(scores).sort();
+                        const actualData = labels.map(label => scores[label]);
+                        const maxScores = labels.map(label => domainLimits[label]?.max || 40);
+                        const minScores = labels.map(label => domainLimits[label]?.min || 0);
+
+                        submissionCard.innerHTML = 
+                            `<h3>Student Name: ${data.studentName || 'Unknown'}</h3>
+                            <p>Score: ${data.totalScore || 'Unknown'}</p>
+                            <p>Percentage: ${data.percentageScore || 'Unknown'}%</p>
+                            <p>Autism Range: ${data.autismRange || 'Unknown'}</p>
+                            <p>Submission Date: ${new Date(data.submittedAt.seconds * 1000).toLocaleString()}</p>
+                            <canvas id="chart-${doc.id}"></canvas>`;
+
                         submissionsContainer.appendChild(submissionCard);
-    
-                        createGroupedBarChart(canvas, chartLabels, chartData, maxScores, minScores);
+
+                        const canvas = document.getElementById(`chart-${doc.id}`);
+                        createGroupedBarChart(canvas, labels, actualData, maxScores, minScores);
                     });
-    
+
                     loading.style.display = 'none';
                 } catch (err) {
-                    console.error('Error fetching submissions:', err);
                     loading.style.display = 'none';
                     error.style.display = 'block';
+                    error.textContent = err.message;
+                    console.error('Error:', err.message);
                 }
             }
-    
+            
+            document.addEventListener("DOMContentLoaded", () => {
+                const childAadhaar = sessionStorage.getItem("childAadhaar");
+
+                if (childAadhaar) {
+                    document.getElementById("child-aadhaar-display").textContent = `Child's Aadhaar: ${childAadhaar}`;
+                } else {
+                    console.warn("Child Aadhaar not found in sessionStorage");
+                    document.getElementById("child-aadhaar-display").textContent = "No Aadhaar data available.";
+                }
+            });
+
             auth.onAuthStateChanged(user => {
                 if (user) {
-                    displaySubmissionsWithReport(user.uid);
+                    const childAadhaar = sessionStorage.getItem("childAadhaar");
+                    if (childAadhaar) {
+                        displaySubmissionsWithReport(user.uid, childAadhaar);
+                    }
                 } else {
                     window.location.href = 'login.html';
                 }
             });
         </script>
     </body>
-    </html>
+</html>
