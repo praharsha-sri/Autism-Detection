@@ -129,6 +129,7 @@
 
         async function fetchScoresAndStore(userId, studentName, studentAge, studentDob) {
             const studentCollectionName = studentName.replace(/\s+/g, "_").toLowerCase();
+            const childAadhaar =new URLSearchParams(window.location.search).get('childAadhaar');
             try {
                 let totalScore = 0;
                 const scores = {};
@@ -148,7 +149,7 @@
                     if (isTeacher) {
                         docRef = doc(db, 'users', userId, studentCollectionName, docId);
                     } else {
-                        docRef = doc(db, 'users', userId, 'Questionnaire', docId);
+                        docRef = doc(db, 'users', userId, childAadhaar,"info", "parentfilledquestionnaire", docId);
                     }
 
                     const docSnap = await getDoc(docRef);
@@ -197,7 +198,7 @@
                         submittedAt: new Date()
                     });
                 } else {
-                    const submissionsRef = collection(db, 'users', userId, 'submissions');
+                    const submissionsRef = collection(db, 'users', userId, childAadhaar, 'info', 'submissions');
                     await addDoc(submissionsRef, {
                         userId: userId,
                         studentName: studentName,

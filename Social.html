@@ -88,6 +88,7 @@
     const user = auth.currentUser;
     const collectionName = new URLSearchParams(window.location.search).get('collectionName') || 'Questionnaire';
     const studentAge =new URLSearchParams(window.location.search).get('studentAge'); // Get student age from URL
+    const childAadhaar =new URLSearchParams(window.location.search).get('childAadhaar');
     const studentName = new URLSearchParams(window.location.search).get('studentName'); // Get student name from URL
     const studentDob = new URLSearchParams(window.location.search).get('studentDob'); // Get student dob from URL
     // Ensure studentName is available
@@ -119,7 +120,7 @@
                 docRef = doc(db, "users", user.uid, studentCollectionName, "socialRelationship");
             } else {
                 // Reference to the parent's questionnaire collection (if needed)
-                docRef = doc(db, "users", user.uid, "Questionnaire", "socialRelationship");
+                docRef = doc(db, "users", user.uid, childAadhaar,"info", "parentfilledquestionnaire", "socialRelationship");
             }
 
             // Store the questionnaire data in Firestore
@@ -130,7 +131,7 @@
             });
 
             console.log("Data stored successfully!");
-            window.location.href = `emotional.html?collectionName=${encodeURIComponent(collectionName)}&studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(studentAge)}&studentDob=${encodeURIComponent(studentDob)}`;
+            window.location.href = `emotional.html?collectionName=${encodeURIComponent(collectionName)}&studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(studentAge)}&studentDob=${encodeURIComponent(studentDob)}&childAadhaar=${encodeURIComponent(childAadhaar)}`;
         } catch (error) {
             console.error("Error storing data: ", error);
         }
