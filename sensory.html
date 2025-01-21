@@ -89,6 +89,7 @@
     const collectionName = new URLSearchParams(window.location.search).get('collectionName') || 'Questionnaire';
     const studentName = new URLSearchParams(window.location.search).get('studentName'); // Get student name from URL
     const studentAge = new URLSearchParams(window.location.search).get('studentAge'); // Get student name from URL
+    const childAadhaar =new URLSearchParams(window.location.search).get('childAadhaar');
     const studentDob = new URLSearchParams(window.location.search).get('studentDob'); // Get student dob from URL
 
     // Ensure studentName is available
@@ -120,7 +121,7 @@
                 docRef = doc(db, "users", user.uid, studentCollectionName, "sensoryAspects");
             } else {
                 // Reference to the parent's questionnaire collection (if needed)
-                docRef = doc(db, "users", user.uid, "Questionnaire", "sensoryAspects");
+                docRef = doc(db, "users", user.uid, childAadhaar,"info", "parentfilledquestionnaire", "sensoryAspects");
             }
 
             // Store the questionnaire data in Firestore
@@ -131,7 +132,7 @@
             });
 
             console.log("Data stored successfully!");
-            window.location.href = `cognitive.html?collectionName=${encodeURIComponent(collectionName)}&studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(studentAge)}&studentDob=${encodeURIComponent(studentDob)}`;
+            window.location.href = `cognitive.html?collectionName=${encodeURIComponent(collectionName)}&studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(studentAge)}&studentDob=${encodeURIComponent(studentDob)}&childAadhaar=${encodeURIComponent(childAadhaar)}`;
         } catch (error) {
             console.error("Error storing data: ", error);
         }
@@ -233,7 +234,7 @@
             const studentName = encodeURIComponent(params.get('studentName'));
             const studentAge = encodeURIComponent(params.get('studentAge'));
             const studentDob = encodeURIComponent(params.get('studentDob'));
-            window.location.href = `behaviour.html?studentName=${studentName}&studentAge=${studentAge}&studentDob=${studentDob}`;
+            window.location.href = `behaviour.html?studentName=${studentName}&studentAge=${studentAge}&studentDob=${studentDob}&childAadhaar=${encodeURIComponent(childAadhaar)}`;
         ">Previous</button>            <button type="submit">Next</button>
         </div>
     </form>
