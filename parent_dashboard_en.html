@@ -126,53 +126,52 @@
         const hideLoading = () => document.getElementById('loading-overlay').style.display = 'none';
 
         async function initializeDashboard(user) {
-            showLoading();
-            try {
-                const userDoc = await getDoc(doc(db, "users", user.uid));
-                if (userDoc.exists()) {
-                    const userData = userDoc.data();
-                    const role = userData.role;
+    showLoading();
+    try {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+            const userData = userDoc.data();
+            const role = userData.role;
 
-                    if (role !== "parent") {
-                        alert("Access restricted to parents only.");
-                        window.location.href = 'index.html';
-                        return;
-                    }
-
-                    // Set parent's name
-                    const userName = userData.name || "User";
-                    document.getElementById('user-name').textContent = `${userName}'s Dashboard`;
-
-                    // Get child's Aadhaar from the database and display the child's name
-                    const childAadhaar = sessionStorage.getItem('currentChildAadhaar');
-                    if (userData.children) {
-                        const child = userData.children.find(
-                            (child) => child.name && child.aadhaar === childAadhaar
-                        );
-
-                        if (child) {
-                            document.getElementById('child-name').textContent = `Child Name: ${child.name}`;
-
-                            // Store the Aadhaar in sessionStorage for use in other pages
-                            sessionStorage.setItem("childAadhaar", child.aadhaar);
-                            sessionStorage.setItem("childName", child.name);
-                        } else {
-                            console.warn("Child Aadhaar mapping not found");
-                        }
-                    }
-
-                    const selectedLanguage = localStorage.getItem('selectedLanguage');
-                    document.getElementById('language-switcher').value = selectedLanguage;
-                } else {
-                    console.error("User document not found");
-                    window.location.href = 'login.html';
-                }
-            } catch (error) {
-                console.error('Error initializing dashboard:', error);
-            } finally {
-                hideLoading();
+            if (role !== "parent") {
+                alert("Access restricted to parents only.");
+                window.location.href = 'index.html';
+                return;
             }
+
+            // Set parent's name
+            const userName = userData.name || "User";
+            document.getElementById('user-name').textContent = `${userName}'s Dashboard`;
+
+            // Get child's Aadhaar from the database and display the child's name
+            const childAadhaar = sessionStorage.getItem('currentChildAadhaar');
+            if (userData.children) {
+                const child = userData.children.find(
+                    (child) => child.name && child.aadhaar === childAadhaar
+                );
+
+                if (child) {
+                    document.getElementById('child-name').textContent = `Child Name: ${child.name}`;
+                    
+                    // Store the Aadhaar in sessionStorage for use in other pages
+                    sessionStorage.setItem("childAadhaar", child.aadhaar);
+                } else {
+                    console.warn("Child Aadhaar mapping not found");
+                }
+            }
+
+            const selectedLanguage = localStorage.getItem('selectedLanguage');
+            document.getElementById('language-switcher').value = selectedLanguage;
+        } else {
+            console.error("User document not found");
+            window.location.href = 'login.html';
         }
+    } catch (error) {
+        console.error('Error initializing dashboard:', error);
+    } finally {
+        hideLoading();
+    }
+}
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -195,7 +194,6 @@
                     await signOut(auth);
                     localStorage.removeItem('selectedLanguage');
                     sessionStorage.removeItem('currentChildAadhaar');
-                    sessionStorage.removeItem('childName');
                     window.location.href = 'login.html';
                 } catch (error) {
                     console.error('Error signing out:', error);

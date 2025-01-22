@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Speech Language and Communication Form</title>
+    <title>Social Relationship and Reciprocity Form</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="questionnaire_style.css">
 
@@ -85,23 +85,23 @@
         }
         async function storeQuestionnaireDataInFirebase(data) {
     const user = auth.currentUser;
+    const collectionName = new URLSearchParams(window.location.search).get('collectionName') || 'Questionnaire';
     const studentName = new URLSearchParams(window.location.search).get('studentName'); // Get student name from URL
-    const studentAadhaar = new URLSearchParams(window.location.search).get('studentAadhaar'); // Get student Aadhaar from URL
+    const childAadhaar =new URLSearchParams(window.location.search).get('childAadhaar');
     const studentAge = new URLSearchParams(window.location.search).get('studentAge'); // Get student age from URL
     const studentDob = new URLSearchParams(window.location.search).get('studentDob'); // Get student dob from URL
-    const collectionName = new URLSearchParams(window.location.search).get('collectionName') || 'Questionnaire';
 
     // Ensure studentName is available
-    if (!studentName || !studentAadhaar) {
-        console.error("Student name or Aadhaar is missing.");
-        alert("Student details are missing. Please go back and fill in the details.");
+    if (!studentName) {
+        console.error("Student name is missing.");
+        alert("Student name is missing. Please go back and fill in the details.");
         return;
     }
 
     if (user) {
         try {
             // Convert student name to a valid Firestore path format
-            const studentCollectionName = studentName.replace(/\s+/g, "_").toLowerCase();
+            const studentCollectionName = studentName.replace(/\s+/g, "_").toLowerCase(); 
 
             // Retrieve the user's role from Firestore
             const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -117,14 +117,9 @@
 
             // Store data for teacher role in the student's collection
             if (role === 'teacher') {
-                // Use teacher-specific allocation collection for storing the student data
-                const allocationDocId = `${userData.name}_${userData.organization}`; // Concatenate teacher name and organization
-                const studentDocId = `${studentName.toLowerCase()}_${studentAadhaar}`;
-                
-                // Firestore path: allocations/[teachername_org]/allocated_students/[studentname_aadhaar]/teacherfilledquestionnaire/details
-                docRef = doc(db, "allocations", allocationDocId, "allocated_students", studentDocId, "teacherfilledquestionnaire", "speechLanguageCommunication");
+                docRef = doc(db, "users", user.uid, studentCollectionName, "speechLanguageCommunication");
             } else {
-                // If the user is a parent, store in the parent's document under child information
+                // Reference to the parent's questionnaire collection (if needed)
                 docRef = doc(db, "users", user.uid, childAadhaar,"info", "parentfilledquestionnaire", "speechLanguageCommunication");
             }
 
@@ -136,7 +131,7 @@
             });
 
             console.log("Data stored successfully!");
-            window.location.href = `behaviour.html?studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(studentAge)}&studentDob=${encodeURIComponent(studentDob)}&studentAadhaar=${encodeURIComponent(studentAadhaar)}`;
+            window.location.href = `behaviour.html?collectionName=${encodeURIComponent(collectionName)}&studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(studentAge)}&studentDob=${encodeURIComponent(studentDob)}&childAadhaar=${encodeURIComponent(childAadhaar)}`;
         } catch (error) {
             console.error("Error storing data: ", error);
         }
@@ -144,7 +139,6 @@
         console.error("User not signed in.");
     }
 }
-
 
         function saveFormDataToLocalStorage() {
             const data = calculateScore();

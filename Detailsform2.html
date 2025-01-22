@@ -11,7 +11,8 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-
+    
+        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
             authDomain: "autism-evaluation-platform.firebaseapp.com",
@@ -21,56 +22,49 @@
             appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
             measurementId: "G-1TGEHTTJF4"
         };
-
+    
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-
+    
+        // Function to store form data in Firestore
         async function storeFormDataInFirestore(data, studentName) {
             const user = auth.currentUser;
             if (user) {
                 try {
+                    // Retrieve the user's role from Firestore
                     const userDoc = await getDoc(doc(db, "users", user.uid));
                     if (!userDoc.exists()) {
                         console.error("User document does not exist.");
                         return;
                     }
-
+    
                     const userData = userDoc.data();
                     const role = userData.role;
-
+    
+                    let docRef;
+    
                     if (role === 'teacher') {
-                        const urlParams = new URLSearchParams(window.location.search);
-                        const studentAadhaar = urlParams.get('aadhaar');
-
-                        if (!studentAadhaar) {
-                            console.error("Student Aadhaar not found in URL parameters");
-                            return;
-                        }
-
-                        const allocationDocId = `${userData.name}_${userData.organization}`;
-                        const studentDocId = `${studentName.toLowerCase()}_${studentAadhaar}`;
-
-                        const docRef = doc(db, 
-                            "allocations", 
-                            allocationDocId,
-                            "allocated_students",
-                            studentDocId, 
-                            "teacherfilledquestionnaire",
-                            "details"
-                        );
-                        await setDoc(docRef, data);
-                        console.log("Teacher's form data stored successfully!");
+                        const studentCollectionName = studentName.replace(/\s+/g, "_").toLowerCase();
+                        docRef = doc(db, "users", user.uid, studentCollectionName, "details");
                     } else if (role === 'parent') {
+                        // Get child Aadhaar from session storage
                         const childAadhaar = sessionStorage.getItem('currentChildAadhaar');
                         if (!childAadhaar) {
                             console.error("Child Aadhaar number not found in session storage.");
                             return;
                         }
-                        const docRef = doc(db, "users", user.uid, childAadhaar, "info", "parentfilledquestionnaire", "details");
-                        await setDoc(docRef, data);
-                        console.log("Parent's form data stored successfully!");
+    
+                        // Store data inside the child's Aadhaar collection under the parent
+                        docRef = doc(db, "users", user.uid, childAadhaar,"info", "parentfilledquestionnaire", "details");
+                    } else {
+                        console.error("Invalid role detected.");
+                        return;
                     }
+    
+                    await setDoc(docRef, data);
+                    console.log("Data stored successfully in Firestore!");
                 } catch (error) {
                     console.error("Error storing data: ", error);
                 }
@@ -78,25 +72,18 @@
                 console.error("User not signed in.");
             }
         }
-
+    
         document.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const studentName = urlParams.get('name');
-            const studentAadhaar = urlParams.get('aadhaar');
-
-            // Pre-fill student name if available
-            if (studentName) {
-                document.getElementById('name').value = decodeURIComponent(studentName);
-            }
-
             const form = document.getElementById('autismForm');
+    
             form.onsubmit = async (e) => {
                 e.preventDefault();
-
+    
                 const studentAge = document.getElementById('age').value;
                 const studentName = document.getElementById('name').value;
                 const studentDob = document.getElementById('dob').value;
-
+                // Get child Aadhaar from session storage
+                const childAadhaar = sessionStorage.getItem('currentChildAadhaar');
                 const formData = {
                     name: studentName,
                     gender: document.getElementById('gender').value,
@@ -104,37 +91,38 @@
                     dob: studentDob,
                     age: studentAge,
                     examiner: document.getElementById('examiner').value,
-                    timestamp: new Date(),
-                    aadhaar: studentAadhaar
+                    timestamp: new Date()
                 };
-
+    
                 const errorMessageElement = document.getElementById('error-message');
                 errorMessageElement.textContent = '';
-
+    
                 let allFilled = Object.values(formData).every(field => field);
                 const age = parseInt(studentAge);
                 if (isNaN(age) || age < 3 || age > 9) {
                     allFilled = false;
                     errorMessageElement.textContent = 'Age must be between 3 and 9 years.';
                 }
-
+    
                 if (allFilled) {
                     await storeFormDataInFirestore(formData, studentName);
-                    window.location.href = `social.html?studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(studentAge)}&studentDob=${encodeURIComponent(studentDob)}&studentAadhaar=${encodeURIComponent(studentAadhaar)}`;
+                    window.location.href = `social.html?studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(studentAge)}&studentDob=${encodeURIComponent(studentDob)}&childAadhaar=${encodeURIComponent(childAadhaar)}`;
                 }
             };
-
+    
             onAuthStateChanged(auth, (user) => {
                 if (!user) {
                     console.error("User not signed in.");
                 }
             });
-
-            // Set today's date and validate DOB
+        });
+    
+        // Pre-fill the current date and validate the date of birth
+        window.onload = function() {
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('date').value = today;
             document.getElementById('dob').setAttribute('max', today);
-
+    
             document.getElementById('dob').addEventListener('change', function() {
                 const dobValue = this.value;
                 if (dobValue) {
@@ -148,55 +136,54 @@
                     document.getElementById('age').value = age;
                 }
             });
-        });
+        };
     </script>
 </head>
 <body>
-    <div class="container">
-        <h2 class="text-center">Indian Scale for Assessment of Autism</h2>
+    <h2>Indian Scale for Assessment of Autism</h2>
 
-        <form id="autismForm">
-            <div class="mb-3">
-                <label for="name" class="form-label">Name of the Child <span class="text-danger">*</span></label>
-                <input type="text" id="name" name="name" class="form-control" required>
-            </div>
+    <form id="autismForm" action="social.html" method="POST">
+        <div class="question">
+            <label for="name">Name of the child <span class="required">*</span></label>
+            <input type="text" id="name" name="name" class="form-control" required>
+        </div>
 
-            <div class="mb-3">
-                <label for="gender" class="form-label">Gender <span class="text-danger">*</span></label>
-                <select id="gender" name="gender" class="form-select" required>
-                    <option value="">Select Gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
-                </select>
-            </div>
+        <div class="question">
+            <label for="gender">Gender <span class="required">*</span></label>
+            <select id="gender" name="gender" class="form-select" required>
+                <option value="">Select Gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+            </select>
+        </div>
 
-            <div class="mb-3">
-                <label for="date" class="form-label">Date <span class="text-danger">*</span></label>
-                <input type="date" id="date" name="date" class="form-control" required>
-            </div>
+        <div class="question">
+            <label for="date">Date <span class="required">*</span></label>
+            <input type="date" id="date" name="date" class="form-control" required>
+        </div>
 
-            <div class="mb-3">
-                <label for="dob" class="form-label">D.O.B. <span class="text-danger">*</span></label>
-                <input type="date" id="dob" name="dob" class="form-control" required>
-            </div>
+        <div class="question">
+            <label for="dob">D.O.B. <span class="required">*</span></label>
+            <input type="date" id="dob" name="dob" class="form-control" required>
+        </div>
 
-            <div class="mb-3">
-                <label for="age" class="form-label">Age <span class="text-danger">*</span></label>
-                <input type="text" id="age" name="age" class="form-control" readonly>
-            </div>
+        <div class="question">
+            <label for="age">Age <span class="required">*</span></label>
+            <input type="text" id="age" name="age" class="form-control" readonly>
+        </div>
 
-            <div id="error-message" class="text-danger mb-3"></div>
+        <div id="error-message" style="color: red; margin-top: 5px;"></div>
 
-            <div class="mb-3">
-                <label for="examiner" class="form-label">Examiner <span class="text-danger">*</span></label>
-                <input type="text" id="examiner" name="examiner" class="form-control" required>
-            </div>
+        <div class="question">
+            <label for="examiner">Examiner <span class="required">*</span></label>
+            <input type="text" id="examiner" name="examiner" class="form-control" required>
+        </div>
 
-            <div class="text-center">
-                <button type="submit" class="btn btn-primary">Next</button>
-            </div>
-        </form>
-    </div>
+        <div class="button-container">
+            <a href="Questionnaire_score.html" class="btn prev-btn">Previous</a>
+            <button type="submit">Next</button>
+        </div>
+    </form>
 </body>
 </html>

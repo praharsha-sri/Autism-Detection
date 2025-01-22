@@ -7,11 +7,11 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
-            margin-top: 0;
-            margin-bottom: .5rem;
-            font-weight: 500;
-            line-height: 1.2;
-            color: green;
+        margin-top: 0;
+        margin-bottom: .5rem;
+        font-weight: 500;
+        line-height: 1.2;
+        color: green;
         }
         body {
             background-color: #f8f9fa;
@@ -107,24 +107,9 @@
     <!-- JavaScript to handle navigation -->
     <script>
         function validateNext() {
-            // Retrieve child details from sessionStorage
-            const childName = sessionStorage.getItem('childName');
-            const childAadhaar = sessionStorage.getItem('childAadhaar');
-
-            if (!childName || !childAadhaar) {
-                alert("Child details are missing. Returning to dashboard.");
-                window.location.href = 'parent_dashboard.html';
-                return;
-            }
-
-            // Append details to the next page URL
-            const nextPageURL = `Detailsform2.html?childName=${encodeURIComponent(childName)}&childAadhaar=${encodeURIComponent(childAadhaar)}`;
-            window.location.href = nextPageURL;
+            // Navigate to the next page (replace 'nextPage.html' with your actual target page)
+            window.location.href = 'Detailsform2.html';
         }
-
-        // Debugging: Ensure child details are in sessionStorage
-        console.log("Child Name:", sessionStorage.getItem('childName'));
-        console.log("Child Aadhaar:", sessionStorage.getItem('childAadhaar'));
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
