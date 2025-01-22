@@ -132,34 +132,37 @@
                         for (const studentDoc of allocatedStudentsSnap.docs) {
                             const studentData = studentDoc.data();
                             const studentId = studentDoc.id;
-                            const teacherQuestionnaireRef = collection(db, `student_aadhaar/${studentId}/teacherfilledquestionnaire`);
-                            const teacherQuestionnaireSnap = await getDocs(teacherQuestionnaireRef);
+
+                            // Check if the teacherfilledquestionnaire exists for this student
+                            const docRef = doc(db, "allocations", allocationDocId, "allocated_students", studentId, "teacherfilledquestionnaire", "speechLanguageCommunication");
+                            const docSnap = await getDoc(docRef);
 
                             // Create Assigned Student Card
                             const assignedStudentElement = document.createElement("div");
                             assignedStudentElement.classList.add("col-md-6", "col-lg-4");
-                            assignedStudentElement.innerHTML = `
+                            assignedStudentElement.innerHTML = ` 
                                 <div class="simple-card">
                                     <h5>${studentData.name}</h5>
                                     <p><strong>Aadhaar:</strong> ${studentData.aadhaar}</p>
                                 </div>`;
                             assignedContainer.appendChild(assignedStudentElement);
 
-                            // Create Completed/Pending Student Card with both name and aadhaar parameters
+                            // Create Student Card for either Pending or Completed
                             const studentElement = document.createElement("div");
                             studentElement.classList.add("col-md-6", "col-lg-4");
-                            studentElement.innerHTML = `
-                                <div class="student-card"
-                                    onclick="window.location.href='detailsform2.html?name=${encodeURIComponent(studentData.name.toLowerCase())}&aadhaar=${encodeURIComponent(studentData.aadhaar)}'"
+                            studentElement.innerHTML = ` 
+                                <div class="student-card" onclick="window.location.href='detailsform2.html?name=${encodeURIComponent(studentData.name.toLowerCase())}&aadhaar=${encodeURIComponent(studentData.aadhaar)}'">
                                     <h5>${studentData.name}</h5>
                                     <p><strong>Aadhaar:</strong> ${studentData.aadhaar}</p>
                                 </div>`;
 
                             // Categorize into Completed or Pending
-                            if (teacherQuestionnaireSnap.empty) {
-                                pendingContainer.appendChild(studentElement);
-                            } else {
+                            if (docSnap.exists()) {
+                                // If teacherfilledquestionnaire/details exists, move to completed
                                 completedContainer.appendChild(studentElement);
+                            } else {
+                                // If teacherfilledquestionnaire/details doesn't exist, move to pending
+                                pendingContainer.appendChild(studentElement);
                             }
                         }
                     } else {
