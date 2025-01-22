@@ -9,10 +9,9 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     
-        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
             authDomain: "autism-evaluation-platform.firebaseapp.com",
@@ -23,57 +22,76 @@
             measurementId: "G-1TGEHTTJF4"
         };
     
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
     
-        // Function to store form data in Firestore
         async function storeFormDataInFirestore(data, studentName) {
-            const user = auth.currentUser;
-            if (user) {
-                try {
-                    // Retrieve the user's role from Firestore
-                    const userDoc = await getDoc(doc(db, "users", user.uid));
-                    if (!userDoc.exists()) {
-                        console.error("User document does not exist.");
-                        return;
-                    }
-    
-                    const userData = userDoc.data();
-                    const role = userData.role;
-    
-                    let docRef;
-    
-                    if (role === 'teacher') {
-                        const studentCollectionName = studentName.replace(/\s+/g, "_").toLowerCase();
-                        docRef = doc(db, "users", user.uid, studentCollectionName, "details");
-                    } else if (role === 'parent') {
-                        // Get child Aadhaar from session storage
-                        const childAadhaar = sessionStorage.getItem('currentChildAadhaar');
-                        if (!childAadhaar) {
-                            console.error("Child Aadhaar number not found in session storage.");
-                            return;
-                        }
-    
-                        // Store data inside the child's Aadhaar collection under the parent
-                        docRef = doc(db, "users", user.uid, childAadhaar,"info", "parentfilledquestionnaire", "details");
-                    } else {
-                        console.error("Invalid role detected.");
-                        return;
-                    }
-    
-                    await setDoc(docRef, data);
-                    console.log("Data stored successfully in Firestore!");
-                } catch (error) {
-                    console.error("Error storing data: ", error);
-                }
-            } else {
-                console.error("User not signed in.");
+    const user = auth.currentUser;
+    if (user) {
+        try {
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (!userDoc.exists()) {
+                console.error("User document does not exist.");
+                return;
             }
+
+            const userData = userDoc.data();
+            const role = userData.role;
+
+            if (role === 'teacher') {
+                // Get student's Aadhaar from URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const studentAadhaar = urlParams.get('aadhaar');
+                
+                if (!studentAadhaar) {
+                    console.error("Student Aadhaar not found in URL parameters");
+                    return;
+                }
+
+                // Use the existing allocations path and existing student document
+                const allocationDocId = `${userData.name}_${userData.organization}`;
+                const studentDocId = `${studentName.toLowerCase()}_${studentAadhaar}`;
+                
+                // Path: allocations/[teachername_org]/allocated_students/[studentname_aadhaar]/teacherfilledquestionnaire/details
+                const docRef = doc(db, 
+                    "allocations", 
+                    allocationDocId,
+                    "allocated_students",
+                    studentDocId, // Using existing document ID
+                    "teacherfilledquestionnaire",
+                    "details"
+                );
+                
+                await setDoc(docRef, data);
+                console.log("Teacher's form data stored successfully!");
+
+            } else if (role === 'parent') {
+                const childAadhaar = sessionStorage.getItem('currentChildAadhaar');
+                if (!childAadhaar) {
+                    console.error("Child Aadhaar number not found in session storage.");
+                    return;
+                }
+                const docRef = doc(db, "users", user.uid, childAadhaar, "info", "parentfilledquestionnaire", "details");
+                await setDoc(docRef, data);
+                console.log("Parent's form data stored successfully!");
+            }
+        } catch (error) {
+            console.error("Error storing data: ", error);
         }
+    } else {
+        console.error("User not signed in.");
+    }
+}
     
         document.addEventListener('DOMContentLoaded', () => {
+            // Pre-fill student name and Aadhaar if available in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const studentName = urlParams.get('name');
+            if (studentName) {
+                document.getElementById('name').value = studentName;
+            }
+
             const form = document.getElementById('autismForm');
     
             form.onsubmit = async (e) => {
@@ -82,8 +100,8 @@
                 const studentAge = document.getElementById('age').value;
                 const studentName = document.getElementById('name').value;
                 const studentDob = document.getElementById('dob').value;
-                // Get child Aadhaar from session storage
-                const childAadhaar = sessionStorage.getItem('currentChildAadhaar');
+                const studentAadhaar = urlParams.get('aadhaar'); // Get from URL params
+
                 const formData = {
                     name: studentName,
                     gender: document.getElementById('gender').value,
@@ -91,7 +109,8 @@
                     dob: studentDob,
                     age: studentAge,
                     examiner: document.getElementById('examiner').value,
-                    timestamp: new Date()
+                    timestamp: new Date(),
+                    aadhaar: studentAadhaar // Include Aadhaar in form data
                 };
     
                 const errorMessageElement = document.getElementById('error-message');
@@ -106,7 +125,8 @@
     
                 if (allFilled) {
                     await storeFormDataInFirestore(formData, studentName);
-                    window.location.href = `social.html?studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(studentAge)}&studentDob=${encodeURIComponent(studentDob)}&childAadhaar=${encodeURIComponent(childAadhaar)}`;
+                    // Pass along both name and Aadhaar to next page
+                    window.location.href = `social.html?studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(studentAge)}&studentDob=${encodeURIComponent(studentDob)}&studentAadhaar=${encodeURIComponent(studentAadhaar)}`;
                 }
             };
     
@@ -181,7 +201,6 @@
         </div>
 
         <div class="button-container">
-            <a href="Questionnaire_score.html" class="btn prev-btn">Previous</a>
             <button type="submit">Next</button>
         </div>
     </form>

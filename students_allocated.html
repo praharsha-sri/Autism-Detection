@@ -79,8 +79,6 @@
         <div id="completed-students-list" class="row g-4">
             <!-- Completed student cards will be appended here -->
         </div>
-
-       
     </div>
 
     <!-- Firebase and JavaScript -->
@@ -147,12 +145,12 @@
                                 </div>`;
                             assignedContainer.appendChild(assignedStudentElement);
 
-                            // Create Completed/Pending Student Card
+                            // Create Completed/Pending Student Card with both name and aadhaar parameters
                             const studentElement = document.createElement("div");
                             studentElement.classList.add("col-md-6", "col-lg-4");
                             studentElement.innerHTML = `
                                 <div class="student-card"
-                                    onclick="window.location.href='detailsform2.html?name=${studentData.name}'">
+                                    onclick="window.location.href='detailsform2.html?name=${encodeURIComponent(studentData.name.toLowerCase())}&aadhaar=${encodeURIComponent(studentData.aadhaar)}'"
                                     <h5>${studentData.name}</h5>
                                     <p><strong>Aadhaar:</strong> ${studentData.aadhaar}</p>
                                 </div>`;
