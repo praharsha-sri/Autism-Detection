@@ -136,7 +136,7 @@
             });
 
             console.log("Data stored successfully!");
-            window.location.href = `behaviour.html?collectionName=${encodeURIComponent(collectionName)}&studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(studentAge)}&studentDob=${encodeURIComponent(studentDob)}&studentAadhaar=${encodeURIComponent(studentAadhaar)}`;
+            window.location.href = `behaviour.html?studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(studentAge)}&studentDob=${encodeURIComponent(studentDob)}&studentAadhaar=${encodeURIComponent(studentAadhaar)}`;
         } catch (error) {
             console.error("Error storing data: ", error);
         }

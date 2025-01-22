@@ -134,7 +134,7 @@
                             const studentId = studentDoc.id;
 
                             // Check if the teacherfilledquestionnaire exists for this student
-                            const docRef = doc(db, "allocations", allocationDocId, "allocated_students", studentId, "teacherfilledquestionnaire", "speechLanguageCommunication");
+                            const docRef = doc(db, "allocations", allocationDocId, "allocated_students", studentId, "teacherfilledquestionnaire", "cognitiveComponent");
                             const docSnap = await getDoc(docRef);
 
                             // Create Assigned Student Card
