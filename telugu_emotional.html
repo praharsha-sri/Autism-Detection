@@ -91,16 +91,18 @@
 
         async function storeQuestionnaireDataInFirebase(data) {
             const user = auth.currentUser;
-    const collectionName = new URLSearchParams(window.location.search).get('collectionName') || 'Questionnaire';
-    const studentAge =new URLSearchParams(window.location.search).get('studentAge'); // Get student age from URL
-    const studentName = new URLSearchParams(window.location.search).get('studentName'); // Get student name from URL
-    const studentDob = new URLSearchParams(window.location.search).get('studentDob'); // Get student dob from URL
-    // Ensure studentName is available
-    if (!studentName) {
-        console.error("Student name is missing.");
-        alert("Student name is missing. Please go back and fill in the details.");
-        return;
-    }
+            const urlParams = new URLSearchParams(window.location.search);
+
+            const studentName = urlParams.get('studentName');
+            const studentAadhaar = urlParams.get('studentAadhaar');
+            const studentAge = urlParams.get('studentAge');
+            const studentDob = urlParams.get('studentDob');
+
+            if (!studentName || !studentAadhaar) {
+                console.error("Student details missing.");
+                alert("Student details are missing. Please go back and fill in the details.");
+                return;
+            }
 
     if (user) {
         try {
@@ -121,10 +123,14 @@
 
             // Store data for teacher role in the student's collection
             if (role === 'teacher') {
-                docRef = doc(db, "users", user.uid, studentCollectionName, "emotionalResponsiveness");
-            } else {
+                const allocationDocId = `${userData.name}_${userData.organization}`;
+                        const studentDocId = `${studentName.toLowerCase()}_${studentAadhaar}`;
+
+                        // Path: allocations/[teachername_org]/allocated_students/[studentname_aadhaar]/teacherfilledquestionnaire/details
+                        docRef = doc(db, "allocations", allocationDocId, "allocated_students", studentDocId, "teacherfilledquestionnaire", "emotionalResponsiveness");
+            } else if (role === 'parent') {
                 // Reference to the parent's questionnaire collection (if needed)
-                docRef = doc(db, "users", user.uid, "Questionnaire", "emotionalResponsiveness");
+                docRef = doc(db, "users", user.uid, studentAadhaar,"info", "parentfilledquestionnaire", "emotionalResponsiveness");
             }
 
             // Store the questionnaire data in Firestore
@@ -135,7 +141,7 @@
             });
 
             console.log("Data stored successfully!");
-            window.location.href = `telugu_speech.html?collectionName=${encodeURIComponent(collectionName)}&studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(studentAge)}&studentDob=${encodeURIComponent(studentDob)}`;
+            window.location.href = `telugu_speech.html?studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(studentAge)}&studentDob=${encodeURIComponent(studentDob)}&studentAadhaar=${encodeURIComponent(studentAadhaar)}`;
         } catch (error) {
             console.error("Error storing data: ", error);
         }
@@ -146,11 +152,11 @@
 
         function saveFormDataToLocalStorage() {
             const data = calculateScore();
-            localStorage.setItem('భావ_ప్రక్రియలు', JSON.stringify(data.responses));
+            localStorage.setItem('emotionalResponsivenessData', JSON.stringify(data.responses));
         }
 
         function loadFormDataFromLocalStorage() {
-            const savedData = JSON.parse(localStorage.getItem('భావ_ప్రక్రియలు'));
+            const savedData = JSON.parse(localStorage.getItem('emotionalResponsivenessData'));
             if (savedData) {
                 Object.entries(savedData).forEach(([name, value]) => {
                     const input = document.querySelector(`input[name="${name}"][value="${value}"]`);
@@ -159,15 +165,15 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeRadioButtons([
-                'inappropriate', 'exaggerated', 'self-stimulating', 'lackOfFear', 'excited'
-            ]);
 
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeRadioButtons(['inappropriate', 'exaggerated', 'self-stimulating', 'lackOfFear', 'excited']);
             loadFormDataFromLocalStorage();
 
             onAuthStateChanged(auth, (user) => {
-                if (!user) console.error("User not signed in.");
+                if (!user) {
+                    console.error("User not signed in.");
+                }
             });
 
             document.querySelector('form').onsubmit = (e) => {
@@ -180,8 +186,8 @@
                     showAlert();
                 }
             };
-
-            document.querySelector('.custom-alert-btn').addEventListener('click', closeAlert);
+            // Ensure the close button works after DOM is loaded.
+    document.querySelector('.custom-alert-btn').addEventListener('click', closeAlert);
         });
     </script>
 </head>
@@ -192,26 +198,36 @@
     <form id="form" action="telugu_speech.html" method="post">
         <div class="question">
             <label>10. తగినట్టైన భావోద్వేగ ప్రతిస్పందన ఇవ్వకపోవడం <span class="required">*</span></label>
+            <div class="question-description">మందలించినప్పుడు నవ్వడం లేదా చిన్న విషయాలకే ఎక్కువగా ఏడవడం వంటి ఊహించని భావాలను చూపించడం.
+            </div>
             <div id="inappropriate" class="radio-group"></div>
         </div>
 
         <div class="question">
             <label>11. అతిశయ భావోద్వేగాలు <span class="required">*</span></label>
+            <div class="question-description">ఎలాంటి స్పష్టమైన కారణం లేకుండానే తీవ్ర భయం లేదా ఆందోళన చెందడం.
+            </div>
             <div id="exaggerated" class="radio-group"></div>
         </div>
 
         <div class="question">
             <label>12. స్వయం ప్రేరిత భావోద్వేగాలు <span class="required">*</span></label>
+            <div class="question-description"> వయస్సుకు తగినట్టు కాకుండా, తాము మాట్లాడుకోవడం, అర్థం లేని సమయాల్లో నవ్వడం లేదా చిరునవ్వు చూపించడం.
+            </div>
             <div id="self-stimulating" class="radio-group"></div>
         </div>
 
         <div class="question">
             <label>13. ప్రమాదాన్ని గుర్తించకపోవడం <span class="required">*</span></label>
+            <div class="question-description">ప్రమాదం ఉన్నప్పటికీ భయపడకపోవడం, జాగ్రత్తలు పాటించకపోవడం.
+            </div>
             <div id="lackOfFear" class="radio-group"></div>
         </div>
 
         <div class="question">
             <label>14. కారణం లేకుండా ఉత్తేజితంగా లేదా ఆందోళనగా ఉండడం <span class="required">*</span></label>
+            <div class="question-description">స్పష్టమైన కారణం లేకుండా మరీంతగా ఉత్సాహంగా లేదా ఆందోళనగా ఉండడం, సర్దుకోవడం కష్టమవడం.
+            </div>
             <div id="excited" class="radio-group"></div>
         </div>
 
@@ -223,8 +239,9 @@
             const params = new URLSearchParams(window.location.search);
             const studentName = encodeURIComponent(params.get('studentName'));
             const studentAge = encodeURIComponent(params.get('studentAge'));
+            const studentAadhaar = encodeURIComponent(params.get('studentAadhaar'));
             const studentDob = encodeURIComponent(params.get('studentDob'));
-            window.location.href = `telugu_social.html?studentName=${studentName}&studentAge=${studentAge}&studentDob=${studentDob}`;
+            window.location.href = `telugu_social.html?studentName=${studentName}&studentAge=${studentAge}&studentDob=${studentDob}&studentAadhaar=${studentAadhaar}`;
         ">మునుపటి (Previous)</button>
             <button type="submit">తరువాత (Next)</button>
         </div>

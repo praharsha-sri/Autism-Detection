@@ -98,14 +98,19 @@
 
             try {
                 // Store form data in Firestore
-                const docRef = doc(db, "users", user.uid, "casehistory", "identification");
+                const childAadhaar = sessionStorage.getItem('currentChildAadhaar');
+                if (!childAadhaar) {
+                    console.error("Child Aadhaar number not found in session storage.");
+                    return;
+                }
+                const docRef = doc(db, "users", user.uid, childAadhaar, "info", "casehistory", "identification");
                 await setDoc(docRef, formData);
 
                 console.log("Form data successfully stored in Firebase.");
                // alert('Data submitted successfully.');
 
                 // Navigate to the next page
-                window.location.href = 'parental.html';
+                window.location.href = `parental.html?childAadhaar=${encodeURIComponent(childAadhaar)}`;
             } catch (error) {
                 console.error("Error storing form data in Firebase:", error);
                 alert('Failed to submit data. Please try again.');

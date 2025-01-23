@@ -61,6 +61,8 @@
         }
 
         async function handleFormSubmit(event) {
+
+            const childAadhaar =new URLSearchParams(window.location.search).get('childAadhaar');
             event.preventDefault(); // Prevent default form submission
 
             const user = auth.currentUser; // Get current user
@@ -74,14 +76,14 @@
 
             try {
                 // Store data in Firestore under users/{userId}/casehistory/educational
-                const docRef = doc(db, "users", user.uid, "casehistory", "educational");
+                const docRef = doc(db, "users", user.uid, childAadhaar, "info", "casehistory", "educational");
                 await setDoc(docRef, formData);
 
                 console.log("Educational history data successfully stored in Firebase.");
                 //alert('Educational history submitted successfully.');
 
                 // Redirect to the next page after submission
-                window.location.href = 'familyhistory.html'; // Change to your desired page
+                window.location.href = `familyhistory.html?childAadhaar=${encodeURIComponent(childAadhaar)}`; // Change to your desired page
             } catch (error) {
                 console.error("Error storing educational history data in Firebase:", error);
                 alert('Failed to submit data. Please try again.');

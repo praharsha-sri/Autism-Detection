@@ -107,8 +107,10 @@
     <!-- JavaScript to handle navigation -->
     <script>
         function validateNext() {
+            const studentAadhaar =new URLSearchParams(window.location.search).get('studentAadhaar');
+            const studentName =new URLSearchParams(window.location.search).get('studentName');
             // Navigate to the next page (replace 'nextPage.html' with your actual target page)
-            window.location.href = 'Detailsform2.html';
+            window.location.href = `Detailsform2.html?studentName=${encodeURIComponent(studentName)}&studentAadhaar=${encodeURIComponent(studentAadhaar)}`;
         }
     </script>
 

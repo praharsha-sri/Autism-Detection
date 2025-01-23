@@ -131,6 +131,7 @@
 
         async function fetchScoresAndStore(userId, studentName, studentAge, studentDob) {
             const studentCollectionName = studentName.replace(/\s+/g, "_").toLowerCase();
+            const studentAadhaar =new URLSearchParams(window.location.search).get('studentAadhaar');
             try {
                 let totalScore = 0;
                 const scores = {};
@@ -148,9 +149,13 @@
                 for (const docId of documentIds) {
                     let docRef;
                     if (isTeacher) {
-                        docRef = doc(db, 'users', userId, studentCollectionName, docId);
+                        const allocationDocId = `${userData.name}_${userData.organization}`;
+                        const studentDocId = `${studentName.toLowerCase()}_${studentAadhaar}`;
+
+                        // Path: allocations/[teachername_org]/allocated_students/[studentname_aadhaar]/teacherfilledquestionnaire/details
+                        docRef = doc(db, "allocations", allocationDocId, "allocated_students", studentDocId, "teacherfilledquestionnaire",  docId);
                     } else {
-                        docRef = doc(db, 'users', userId, 'Questionnaire', docId);
+                        docRef = doc(db, 'users', userId, studentAadhaar,"info", "parentfilledquestionnaire", docId);
                     }
 
                     const docSnap = await getDoc(docRef);
@@ -174,26 +179,26 @@
 
                 // Store the results
                 if (isTeacher) {
-                    //store overall socre inside the collection of the user (student)
-                    const overallScoreRef = doc(db, 'users', userId, studentCollectionName, 'overallscore');
+                    const allocationDocId = `${userData.name}_${userData.organization}`;
+                    const studentDocId = `${studentName.toLowerCase()}_${studentAadhaar}`;
+                    const overallScoreRef = doc(db, "allocations", allocationDocId, "allocated_students", studentDocId, 'overallscore','submissions');
                     await setDoc(overallScoreRef, {
                         userId: userId,
                         studentName: studentName,
-                        studentDob:studentDob,
-                        studentAge:studentAge,
+                        studentDob: studentDob,
+                        studentAge: studentAge,
                         scores: scores,
                         totalScore: totalScore,
                         percentageScore: percentageScore,
                         autismRange: autismRange,
                         submittedAt: new Date()
                     });
-                    //store all the data again in the submissions collections, inside with unique id and all the other detials inside it
-                    const submissionsRef = collection(db, 'users', userId, 'submissions');
+                    const submissionsRef = collection(db, 'users', userId, studentAadhaar,"info", 'submissions');
                     await addDoc(submissionsRef, {
                         userId: userId,
                         studentName: studentName,
-                        studentDob:studentDob,
-                        studentAge:studentAge,
+                        studentDob: studentDob,
+                        studentAge: studentAge,
                         scores: scores,
                         totalScore: totalScore,
                         percentageScore: percentageScore,
@@ -201,12 +206,12 @@
                         submittedAt: new Date()
                     });
                 } else {
-                    const submissionsRef = collection(db, 'users', userId, 'submissions');
+                    const submissionsRef = collection(db, 'users', userId, studentAadhaar, 'info', 'submissions');
                     await addDoc(submissionsRef, {
                         userId: userId,
                         studentName: studentName,
-                        studentDob:studentDob,
-                        studentAge:studentAge,
+                        studentDob: studentDob,
+                        studentAge: studentAge,
                         scores: scores,
                         totalScore: totalScore,
                         percentageScore: percentageScore,
@@ -239,9 +244,9 @@
 
                     const studentName = new URLSearchParams(window.location.search).get('studentName');
                     const studentAge = new URLSearchParams(window.location.search).get('studentAge');
-                    const studentDob = new URLSearchParams(window.location.search).get('studentDob'); // Get student dob from URL
+                    const studentDob = new URLSearchParams(window.location.search).get('studentDob');
                     if (studentName) {
-                        fetchScoresAndStore(user.uid, studentName,studentAge,studentDob);
+                        fetchScoresAndStore(user.uid, studentName, studentAge, studentDob);
                     }
                 }
             } else {
@@ -255,6 +260,5 @@
             }
         });
     </script>
-        
 </body>
 </html>

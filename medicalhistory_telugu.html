@@ -67,6 +67,7 @@
         }
 
         async function handleFormSubmit(event) {
+            const childAadhaar =new URLSearchParams(window.location.search).get('childAadhaar');
             event.preventDefault(); // Prevent default form submission
 
             const user = auth.currentUser; // Get current user
@@ -80,14 +81,14 @@
 
             try {
                 // Store data in Firestore under users/{userId}/casehistory/treatment
-                const docRef = doc(db, "users", user.uid, "casehistory", "treatment");
+                const docRef = doc(db, "users", user.uid, childAadhaar, "info", "casehistory", "treatment");
                 await setDoc(docRef, formData);
 
                 console.log("చికిత్స మరియు వైద్య చరిత్ర డేటా Firebase లో విజయవంతంగా సేవ్ చేయబడింది.");
                 // alert('చికిత్స మరియు వైద్య చరిత్ర విజయవంతంగా సమర్పించబడింది.');
 
                 // Redirect to the next page after submission
-                window.location.href = 'educationalhistory_telugu.html'; // Change to your desired page
+                window.location.href = `educationalhistory_telugu.html?childAadhaar=${encodeURIComponent(childAadhaar)}`; // Change to your desired page
             } catch (error) {
                 console.error("Firebase లో చికిత్స మరియు వైద్య చరిత్ర డేటా సేవ్ చేయడంలో తప్పు:", error);
                 alert('డేటా సమర్పించడంలో విఫలమైంది. దయచేసి తిరిగి ప్రయత్నించండి.');

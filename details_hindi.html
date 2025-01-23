@@ -6,12 +6,12 @@
     <title>ऑटिज़्म आकलन फ़ॉर्म</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="questionnaire_style.css">
+    
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-
-        // Firebase configuration
+    
         const firebaseConfig = {
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
             authDomain: "autism-evaluation-platform.firebaseapp.com",
@@ -21,54 +21,111 @@
             appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
             measurementId: "G-1TGEHTTJF4"
         };
-
-        // Initialize Firebase
+    
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-
-        // Save form data to Firestore
+    
         async function storeFormDataInFirestore(data, studentName) {
-            const user = auth.currentUser;
-            if (user) {
-                try {
-                    const userDoc = await getDoc(doc(db, "users", user.uid));
-                    if (!userDoc.exists()) {
-                        console.error("User document does not exist.");
-                        return;
-                    }
+    const user = auth.currentUser;
+    if (!user) {
+        console.error("User not signed in.");
+        return;
+    }
 
-                    const userData = userDoc.data();
-                    const role = userData.role;
-
-                    let docRef;
-                    if (role === 'teacher') {
-                        const studentCollectionName = studentName.replace(/\s+/g, "_").toLowerCase();
-                        docRef = doc(db, "users", user.uid, studentCollectionName, "details");
-                    } else {
-                        docRef = doc(db, "users", user.uid, "Questionnaire", "details");
-                    }
-
-                    await setDoc(docRef, data);
-                    console.log("Data stored successfully!");
-                } catch (error) {
-                    console.error("Error storing data: ", error);
-                }
-            } else {
-                console.error("User not signed in.");
-            }
+    try {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (!userDoc.exists()) {
+            console.error("User document does not exist.");
+            return;
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const form = document.getElementById('autismForm');
+        const userData = userDoc.data();
+        const role = userData.role;
+        const urlParams = new URLSearchParams(window.location.search);
+        const studentAadhaar = urlParams.get('studentAadhaar');
+        const studentName = urlParams.get('studentName');
 
+        if (!studentAadhaar) {
+            console.error("Student Aadhaar not found in URL parameters.");
+            return;
+        }
+
+        if (role === 'teacher') {
+            const allocationDocId = `${userData.name}_${userData.organization}`;
+            const studentDocId = `${studentName.toLowerCase()}_${studentAadhaar}`;
+
+            const docRef = doc(db, 
+                "allocations", 
+                allocationDocId, 
+                "allocated_students", 
+                studentDocId, 
+                "teacherfilledquestionnaire", 
+                "details"
+            );
+
+            await setDoc(docRef, data);
+            console.log("Teacher's form data stored successfully!");
+
+        } else if (role === 'parent') {
+            const docRef = doc(db, "users", user.uid, studentAadhaar, "info", "parentfilledquestionnaire", "details");
+
+            await setDoc(docRef, data);
+            console.log("Parent's form data stored successfully!");
+        }
+
+        // Single redirection logic for both teacher and parent roles
+        window.location.href = `social_hindi.html?studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(data.age)}&studentDob=${encodeURIComponent(data.dob)}&studentAadhaar=${encodeURIComponent(studentAadhaar)}`;
+
+    } catch (error) {
+        console.error("Error storing data:", error);
+    }
+}
+
+    
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const studentName = urlParams.get('studentName');
+    
+            onAuthStateChanged(auth, async (user) => {
+                if (!user) {
+                    console.error("User not signed in.");
+                    return;
+                }
+    
+                try {
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (userDoc.exists()) {
+                const role = userDoc.data().role;
+                const nameInput = document.getElementById('name');
+
+                if (role === 'teacher' && studentName) {
+                    nameInput.value = studentName;
+                } else if (role === 'parent' && studentName) {
+                    nameInput.value = studentName;
+                }
+
+                // Make the name field read-only
+                nameInput.readOnly = true;
+            }
+        }  catch (error) {
+                    console.error("Error fetching user role:", error);
+                }
+            });
+    
+            const form = document.getElementById('autismForm');
+    
             form.onsubmit = async (e) => {
                 e.preventDefault();
-
-                const studentName = document.getElementById('name').value;
+    
                 const studentAge = document.getElementById('age').value;
                 const studentDob = document.getElementById('dob').value;
-
+                const studentAadhaar = urlParams.get('studentAadhaar');
+                const studentName = urlParams.get('studentName');
+    
+                const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
+                const role = userDoc.exists() ? userDoc.data().role : null;
+    
                 const formData = {
                     name: studentName,
                     gender: document.getElementById('gender').value,
@@ -76,32 +133,49 @@
                     dob: studentDob,
                     age: studentAge,
                     examiner: document.getElementById('examiner').value,
-                    timestamp: new Date()
+                    timestamp: new Date(),
+                    aadhaar: studentAadhaar
                 };
-
+    
                 const errorMessageElement = document.getElementById('error-message');
                 errorMessageElement.textContent = '';
-
+    
                 let allFilled = Object.values(formData).every(field => field);
-                const age = parseInt(formData.age);
+                const age = parseInt(studentAge);
                 if (isNaN(age) || age < 3 || age > 9) {
                     allFilled = false;
                     errorMessageElement.textContent = 'आयु 3 से 9 वर्ष के बीच होनी चाहिए।';
                 }
-
+    
                 if (allFilled) {
                     await storeFormDataInFirestore(formData, studentName);
-                    window.location.href = `social_hindi.html?studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(studentAge)}&studentDob=${encodeURIComponent(studentDob)}`;
                 }
-            };
+            
+            
+            }
 
-            // Firebase auth state listener
-            onAuthStateChanged(auth, (user) => {
-                if (!user) {
-                    console.error("User not signed in.");
+        });
+    
+        // Pre-fill the current date and validate the date of birth
+        window.onload = function () {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').value = today;
+            document.getElementById('dob').setAttribute('max', today);
+    
+            document.getElementById('dob').addEventListener('change', function () {
+                const dobValue = this.value;
+                if (dobValue) {
+                    const dob = new Date(dobValue);
+                    const today = new Date();
+                    let age = today.getFullYear() - dob.getFullYear();
+                    const monthDifference = today.getMonth() - dob.getMonth();
+                    if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < dob.getDate())) {
+                        age--;
+                    }
+                    document.getElementById('age').value = age;
                 }
             });
-        });
+        };
     </script>
 </head>
 <body>

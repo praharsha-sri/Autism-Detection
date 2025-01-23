@@ -93,58 +93,62 @@
 
         async function storeQuestionnaireDataInFirebase(data) {
             const user = auth.currentUser;
-    const collectionName = new URLSearchParams(window.location.search).get('collectionName') || 'Questionnaire';
-    const studentAge =new URLSearchParams(window.location.search).get('studentAge'); // Get student age from URL
-    const studentName = new URLSearchParams(window.location.search).get('studentName'); // Get student name from URL
-    const studentDob = new URLSearchParams(window.location.search).get('studentDob'); // Get student dob from URL
-    // Ensure studentName is available
-    if (!studentName) {
-        console.error("Student name is missing.");
-        alert("Student name is missing. Please go back and fill in the details.");
-        return;
-    }
+            const urlParams = new URLSearchParams(window.location.search);
 
+            const studentName = urlParams.get('studentName');
+            const studentAadhaar = urlParams.get('studentAadhaar');
+            const studentAge = urlParams.get('studentAge');
+            const studentDob = urlParams.get('studentDob');
 
-    if (user) {
-        try {
-            // Convert student name to a valid Firestore path format
-            const studentCollectionName = studentName.replace(/\s+/g, "_").toLowerCase(); 
-
-            // Retrieve the user's role from Firestore
-            const userDoc = await getDoc(doc(db, "users", user.uid));
-            if (!userDoc.exists()) {
-                console.error("User document does not exist.");
+            if (!studentName || !studentAadhaar) {
+                console.error("Student details missing.");
+                alert("Student details are missing. Please go back and fill in the details.");
                 return;
             }
 
-            const userData = userDoc.data();
-            const role = userData.role; // Assuming 'role' field is present in the user's Firestore document
+            if (user) {
+                try {
+                    // Retrieve the user's role from Firestore
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (!userDoc.exists()) {
+                        console.error("User document does not exist.");
+                        return;
+                    }
 
-            let docRef;
+                    const userData = userDoc.data();
+                    const role = userData.role;
 
-            // Store data for teacher role in the student's collection
-            if (role === 'teacher') {
-                docRef = doc(db, "users", user.uid, studentCollectionName, "socialRelationship");
+                    let docRef;
+
+                    // Store data for teacher role in the student's allocated collection
+                    if (role === 'teacher') {
+                        const allocationDocId = `${userData.name}_${userData.organization}`;
+                        const studentDocId = `${studentName.toLowerCase()}_${studentAadhaar}`;
+                        
+                        // Path: allocations/[teachername_org]/allocated_students/[studentname_aadhaar]/teacherfilledquestionnaire/details
+                        docRef = doc(db, "allocations", allocationDocId, "allocated_students", studentDocId, "teacherfilledquestionnaire", "socialRelationship");
+                    } else if (role === 'parent') {
+                        // Store data for parent (not in the teacher's allocation path)
+                        docRef = doc(db, "users", user.uid, studentAadhaar,"info", "parentfilledquestionnaire", "socialRelationship");
+                    }
+
+                    // Store the questionnaire data in Firestore
+                    await setDoc(docRef, {
+                        timestamp: new Date(),
+                        domain: 'socialRelationship',
+                        ...data
+                    });
+
+                    console.log("Data stored successfully!");
+                    window.location.href = `telugu_emotional.html?studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(studentAge)}&studentDob=${encodeURIComponent(studentDob)}&studentAadhaar=${encodeURIComponent(studentAadhaar)}`;
+
+                } catch (error) {
+                    console.error("Error storing data: ", error);
+                }
             } else {
-                // Reference to the parent's questionnaire collection (if needed)
-                docRef = doc(db, "users", user.uid, "Questionnaire", "socialRelationship");
+                console.error("User not signed in.");
             }
-
-            // Store the questionnaire data in Firestore
-            await setDoc(docRef, {
-                timestamp: new Date(),
-                domain: 'socialRelationship',
-                ...data
-            });
-            console.log("Data stored successfully!");
-            window.location.href = `telugu_emotional.html?collectionName=${encodeURIComponent(collectionName)}&studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(studentAge)}&studentDob=${encodeURIComponent(studentDob)}`;
-        } catch (error) {
-            console.error("Error storing data: ", error);
         }
-    } else {
-        console.error("User not signed in.");
-    }
-}
 
 
         function saveFormDataToLocalStorage() {
@@ -266,7 +270,12 @@
        <br>
        <br>
         <div class="button-container">
-            <button class="prev-btn" type="button" onclick="window.location.href='telugu_Detailsform2.html'">మునుపటి (Previous)</button>
+                <button class="prev-btn" type="button" onclick="
+                const params = new URLSearchParams(window.location.search);
+                const studentName = encodeURIComponent(params.get('studentName'));
+                const studentAadhaar = encodeURIComponent(params.get('studentAadhaar'));
+                window.location.href = `telugu_Detailsform2.html?studentName=${studentName}&studentAadhaar=${encodeURIComponent(studentAadhaar)}`;
+            ">మునుపటి (Previous)</button>
             <button type="submit">తరువాత (Next)</button>
         </div>
     </form>

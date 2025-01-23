@@ -88,6 +88,7 @@
         }
 
         async function handleFormSubmit(event) {
+            const childAadhaar =new URLSearchParams(window.location.search).get('childAadhaar');
             event.preventDefault();
             const user = auth.currentUser;
             if (!user) {
@@ -107,10 +108,10 @@
             };
 
             try {
-                const docRef = doc(db, "users", user.uid, "casehistory", "perinatal");
+                const docRef = doc(db, "users", user.uid, childAadhaar, "info", "casehistory", "perinatal");
                 await setDoc(docRef, formData);
                 console.log("పెరినాటల్ చరిత్ర Firebase లో విజయవంతంగా నిల్వ చేయబడింది.");
-                window.location.href = 'postnatal_telugu.html';
+                window.location.href = `postnatal_telugu.html?childAadhaar=${encodeURIComponent(childAadhaar)}`;
             } catch (error) {
                 console.error("పెరినాటల్ చరిత్ర Firebase లో నిల్వ చేయడంలో లోపం:", error);
                 alert('డేటా సమర్పించడంలో విఫలమైంది. దయచేసి మళ్లీ ప్రయత్నించండి.');

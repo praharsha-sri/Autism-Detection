@@ -57,6 +57,7 @@
         }
 
         async function handleFormSubmit(event) {
+            const childAadhaar =new URLSearchParams(window.location.search).get('childAadhaar');
             event.preventDefault(); // Prevent default form submission
 
             const user = auth.currentUser; // Get current user
@@ -70,7 +71,7 @@
 
             try {
                 // Store data in Firestore under users/{userId}/casehistory/previousDiagnosis
-                const docRef = doc(db, "users", user.uid, "casehistory", "previousDiagnosis");
+                const docRef = doc(db, "users", user.uid, childAadhaar, "info", "casehistory", "previousDiagnosis");
                 await setDoc(docRef, formData);
 
                 console.log("మునుపటి నిర్ధారణ మరియు సిఫార్సులు Firebase లో విజయవంతంగా నిల్వ చేయబడ్డాయి.");

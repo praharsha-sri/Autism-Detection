@@ -93,6 +93,7 @@
         }
 
         async function handleFormSubmit(event) {
+            const childAadhaar =new URLSearchParams(window.location.search).get('childAadhaar');
             event.preventDefault();
             const user = auth.currentUser;
             if (!user) {
@@ -103,11 +104,11 @@
             const formData = JSON.parse(localStorage.getItem('selfhelpFormData')) || {};
             formData.timestamp = new Date();
             try {
-                const docRef = doc(db, "users", user.uid, "casehistory", "selfhelp");
+                const docRef = doc(db, "users", user.uid, childAadhaar, "info","casehistory", "selfhelp");
                 await setDoc(docRef, formData);
 
                 console.log("స్వీయ సహాయం నైపుణ్యాలు Firebase లో విజయవంతంగా నిల్వ చేయబడ్డాయి.");
-                window.location.href = 'recommendations_telugu.html';
+                window.location.href = `recommendations_telugu.html?childAadhaar=${encodeURIComponent(childAadhaar)}`;
             } catch (error) {
                 console.error("స్వీయ సహాయం నైపుణ్యాలు Firebase లో నిల్వ చేయడంలో తప్పు:", error);
                 alert('డేటాను సబ్మిట్ చేయడంలో విఫలమైంది. దయచేసి మళ్లీ ప్రయత్నించండి.');

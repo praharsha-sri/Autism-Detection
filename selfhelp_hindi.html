@@ -94,6 +94,7 @@
     }
 
     async function handleFormSubmit(event) {
+        const childAadhaar =new URLSearchParams(window.location.search).get('childAadhaar');
         event.preventDefault(); // Prevent default form submission
 
         const user = auth.currentUser; // Get current user
@@ -106,14 +107,14 @@
         formData.timestamp = new Date();  // Add timestamp
         try {
             // Store data in Firestore under users/{userId}/casehistory/selfhelp
-            const docRef = doc(db, "users", user.uid, "casehistory", "selfhelp");
+            const docRef = doc(db, "users", user.uid, childAadhaar, "info", "casehistory", "selfhelp");
             await setDoc(docRef, formData);
 
             console.log("Self-help skills data successfully stored in Firebase.");
            
 
             // Redirect to the next page after submission
-            window.location.href = 'recommendations_hindi.html'; // Change to your desired page
+            window.location.href = `recommendations_hindi.html?childAadhaar=${encodeURIComponent(childAadhaar)}`; // Change to your desired page
         } catch (error) {
             console.error("Error storing self-help skills data in Firebase:", error);
             alert('Failed to submit data. Please try again.');

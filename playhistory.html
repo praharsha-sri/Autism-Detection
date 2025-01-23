@@ -66,6 +66,7 @@
 
         // Handle form submission
         async function handleFormSubmit(event) {
+            const childAadhaar =new URLSearchParams(window.location.search).get('childAadhaar');
             event.preventDefault();  // Prevent default form submission
 
             const user = auth.currentUser;  // Get current user
@@ -79,14 +80,14 @@
 
             try {
                 // Store data in Firestore under users/{userId}/casehistory/playhistory
-                const docRef = doc(db, "users", user.uid, "casehistory", "playhistory");
+                const docRef = doc(db, "users", user.uid, childAadhaar, "info", "casehistory", "playhistory");
                 await setDoc(docRef, formData);
 
                 console.log("Play and developmental history data successfully stored in Firebase.");
                 //alert('Play and developmental history submitted successfully.');
 
                 // Redirect to the next page
-                window.location.href = 'behavioralcognitive.html';  // Ensure this page exists
+                window.location.href = `behavioralcognitive.html?childAadhaar=${encodeURIComponent(childAadhaar)}`;  // Ensure this page exists
             } catch (error) {
                 console.error("Error storing data in Firebase:", error);
                 alert('Failed to submit data. Please try again.');

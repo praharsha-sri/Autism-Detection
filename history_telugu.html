@@ -14,7 +14,6 @@
                 color: #333;
                 padding-top: 20px;
             }
-    
             h1 {
                 font-size: 2rem;
                 text-align: center;
@@ -22,7 +21,6 @@
                 color: #000000;
                 font-weight: bold;
             }
-    
             .submission-card {
                 background-color: #ffffff;
                 border: none;
@@ -32,25 +30,21 @@
                 box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
                 transition: transform 0.3s ease-in-out;
             }
-    
             .submission-card:hover {
                 transform: translateY(-5px);
                 box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
             }
-    
             .submission-card h3 {
                 font-size: 1.25rem;
                 font-weight: bold;
                 color: #fd0000;
             }
-    
             .submission-card p {
                 margin-bottom: 0.5rem;
                 font-size: 1rem;
                 font-weight: bold;
                 color: #000000;
             }
-    
             #loading {
                 text-align: center;
                 color: #0d6efd;
@@ -58,19 +52,20 @@
                 font-size: 1.2rem;
                 margin-top: 20px;
             }
-    
             .error {
                 color: #dc3545;
                 text-align: center;
                 margin: 20px 0;
                 font-size: 1.2rem;
             }
-    
             .home-button {
                 position: absolute;
                 top: 20px;
                 right: 20px;
             }
+            #child-aadhaar-display {
+            color: #0f0e0e;  /* Change to your desired color */
+             }
         </style>
     </head>
     <body>
@@ -139,76 +134,35 @@
                     options: {
                         responsive: true,
                         scales: {
-                            x: {
-                                grid: {
-                                    display: false
-                                }
-                            },
-                            y: {
-                                beginAtZero: true,
-                                max: Math.max(...maxScores) + 2,
-                                grid: {
-                                    color: 'rgba(0, 0, 0, 0.1)'
-                                }
-                            }
-                        },
-                        plugins: {
-                            legend: {
-                                position: 'top',
-                                labels: {
-                                    padding: 20,
-                                    font: {
-                                        size: 12,
-                                        weight: 'bold'
-                                    }
-                                }
-                            },
-                            tooltip: {
-                                mode: 'index',
-                                intersect: false,
-                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                padding: 12,
-                                titleColor: '#fff',
-                                bodyColor: '#fff',
-                                borderColor: '#fff',
-                                borderWidth: 1,
-                                callbacks: {
-                                    label: function(context) {
-                                        let label = context.dataset.label || '';
-                                        if (label) {
-                                            label += ': ';
-                                        }
-                                        label += context.parsed.y.toFixed(1);
-                                        return label;
-                                    }
-                                }
-                            }
-                        },
-                        barPercentage: 0.8,
-                        categoryPercentage: 0.9
+                            x: { grid: { display: false } },
+                            y: { beginAtZero: true, max: Math.max(...maxScores) + 2, grid: { color: 'rgba(0, 0, 0, 0.1)' } }
+                        }
                     }
                 });
             }
     
-            async function displaySubmissionsWithReport(userId) {
-    const submissionsContainer = document.getElementById('submissionsContainer');
-    const loading = document.getElementById('loading');
-    const error = document.getElementById('error');
+            async function displaySubmissionsWithReport(userId, studentAadhaar) {
+                const submissionsContainer = document.getElementById('submissionsContainer');
+                const loading = document.getElementById('loading');
+                const error = document.getElementById('error');
 
-    try {
-        loading.style.display = 'block';
-        error.style.display = 'none';
-        submissionsContainer.innerHTML = '';
+                try {
+                    loading.style.display = 'block';
+                    error.style.display = 'none';
+                    submissionsContainer.innerHTML = '';
 
-        const submissionsRef = db.collection('users').doc(userId).collection('submissions');
-        const submissionsSnap = await submissionsRef.orderBy('submittedAt', 'desc').get();
+                    const submissionsRef = db
+                        .collection('users')
+                        .doc(userId)
+                        .collection(studentAadhaar)
+                        .doc('info')
+                        .collection('submissions');
 
-        if (submissionsSnap.empty) {
-            loading.style.display = 'none';
-            error.style.display = 'block';
-            error.textContent = 'No submissions found.';
-            return;
-        }
+                    const submissionsSnap = await submissionsRef.orderBy('submittedAt', 'desc').get();
+
+                    if (submissionsSnap.empty) {
+                        throw new Error('No submissions found.');
+                    }
 
         const teluguLabels = {
             'behaviourPatterns': 'ప్రవర్తనా సరళులు',
@@ -220,49 +174,58 @@
         };
 
         submissionsSnap.forEach(doc => {
-            const data = doc.data();
-            if (!data.scores || Object.keys(data.scores).length === 0) return;
+                        const data = doc.data();
+                        const submissionCard = document.createElement('div');
+                        submissionCard.classList.add('submission-card');
 
-            const submissionCard = document.createElement('div');
-            submissionCard.classList.add('submission-card');
+                        const scores = data.scores || {};
+                        const labels = Object.keys(scores).sort();
+                        const actualData = labels.map(label => scores[label]);
+                        const maxScores = labels.map(label => domainLimits[label]?.max || 40);
+                        const minScores = labels.map(label => domainLimits[label]?.min || 0);
 
-            const scores = data.scores;
-            const chartLabels = Object.keys(scores).sort().map(label => teluguLabels[label] || label);
-            const chartData = chartLabels.map((_, index) => scores[Object.keys(scores).sort()[index]]);
-            const maxScores = chartLabels.map((_, index) => domainLimits[Object.keys(scores).sort()[index]]?.max || 40);
-            const minScores = chartLabels.map((_, index) => domainLimits[Object.keys(scores).sort()[index]]?.min || 0);
-                    const reportHTML = `
+                        submissionCard.innerHTML = `
 
-                    
-                    <h3><strong>పేరు: ${data.studentName || 'Unknown'}</strong> </h3>
-                    <h3><strong>వయస్సు: ${data.studentAge || 'Unknown'}</strong> </h3>
-                    <h3><strong>పుట్టిన తేదీ: ${data.studentDob || 'Unknown'}</strong> </h3>
-                     <h3><strong>ఆటిజం రేంజ్: ${data.autismRange}</strong></h3>
-                    <p><strong>మొత్తం స్కోర్: </strong> ${data.totalScore}</p>
-                    <p><strong>శాతం: </strong> ${data.percentageScore}</p>
-                    <p><strong>ఆటిజం రేంజ్: </strong> ${data.submittedAt.toDate().toLocaleString()}</p>
-                    `;
-            const canvas = document.createElement('canvas');
-            canvas.id = 'chart-' + doc.id;
+                    <h3>Student పేరు: ${data.studentName || 'Unknown'}</h3>
+                            <p>స్కోర్: ${data.totalScore || 'Unknown'}</p>
+                            <p>శాతం: ${data.percentageScore || 'Unknown'}%</p>
+                            <p>ఆటిజం రేంజ్: ${data.autismRange || 'Unknown'}</p>
+                            <p>సమర్పణ తేదీ: ${new Date(data.submittedAt.seconds * 1000).toLocaleString()}</p>
+                            <canvas id="chart-${doc.id}"></canvas>`;
 
-            submissionCard.innerHTML = reportHTML;
-            submissionCard.appendChild(canvas);
-            submissionsContainer.appendChild(submissionCard);
+                        submissionsContainer.appendChild(submissionCard);
 
-            createGroupedBarChart(canvas, chartLabels, chartData, maxScores, minScores);
-        });
+                        const canvas = document.getElementById(`chart-${doc.id}`);
+                        createGroupedBarChart(canvas, labels, actualData, maxScores, minScores);
+                    });
 
-        loading.style.display = 'none';
-    } catch (err) {
-        console.error('Error fetching submissions:', err);
-        loading.style.display = 'none';
-        error.style.display = 'block';
-    }
-}
+                    loading.style.display = 'none';
+                } catch (err) {
+                    loading.style.display = 'none';
+                    error.style.display = 'block';
+                    error.textContent = err.message;
+                    console.error('Error:', err.message);
+                }
+            }
+
+            document.addEventListener("DOMContentLoaded", () => {
+                const studentAadhaar = sessionStorage.getItem("currentChildAadhaar");
+
+                if (studentAadhaar) {
+                    document.getElementById("child-aadhaar-display").textContent = `Child's Aadhaar: ${studentAadhaar}`;
+                } else {
+                    console.warn("Child Aadhaar not found in sessionStorage");
+                    document.getElementById("child-aadhaar-display").textContent = "No Aadhaar data available.";
+                }
+            });
+
     
             auth.onAuthStateChanged(user => {
                 if (user) {
-                    displaySubmissionsWithReport(user.uid);
+                    const studentAadhaar = sessionStorage.getItem("currentChildAadhaar");
+                    if (studentAadhaar) {
+                        displaySubmissionsWithReport(user.uid, studentAadhaar);
+                    }
                 } else {
                     window.location.href = 'login.html';
                 }
