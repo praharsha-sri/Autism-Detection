@@ -76,6 +76,7 @@
 
         // Handle form submission
         async function handleFormSubmit(event) {
+            const childAadhaar =new URLSearchParams(window.location.search).get('childAadhaar');
             event.preventDefault(); // Prevent page reload
 
             const user = auth.currentUser;
@@ -96,14 +97,14 @@
             };
 
             try {
-                const docRef = doc(db, "users", user.uid, "casehistory", "perinatal");
+                const docRef = doc(db, "users", user.uid, childAadhaar, "info", "casehistory", "perinatal");
                 await setDoc(docRef, formData);
 
                 console.log("Perinatal history data successfully stored in Firebase.");
                 //alert('Perinatal history submitted successfully.');
 
                 // Navigate to the next page
-                window.location.href = 'postnatal_hindi.html';
+                window.location.href = `postnatal_hindi.html?childAadhaar=${encodeURIComponent(childAadhaar)}`;
             } catch (error) {
                 console.error("Error storing perinatal history data in Firebase:", error);
                 alert('Failed to submit data. Please try again.');

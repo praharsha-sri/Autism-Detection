@@ -141,7 +141,7 @@
                 });
             }
             
-            async function displaySubmissionsWithReport(userId, childAadhaar) {
+            async function displaySubmissionsWithReport(userId, studentAadhaar) {
                 const submissionsContainer = document.getElementById('submissionsContainer');
                 const loading = document.getElementById('loading');
                 const error = document.getElementById('error');
@@ -154,7 +154,7 @@
                     const submissionsRef = db
                         .collection('users')
                         .doc(userId)
-                        .collection(childAadhaar)
+                        .collection(studentAadhaar)
                         .doc('info')
                         .collection('submissions');
 
@@ -199,10 +199,10 @@
             }
             
             document.addEventListener("DOMContentLoaded", () => {
-                const childAadhaar = sessionStorage.getItem("childAadhaar");
+                const studentAadhaar = sessionStorage.getItem("currentChildAadhaar");
 
-                if (childAadhaar) {
-                    document.getElementById("child-aadhaar-display").textContent = `Child's Aadhaar: ${childAadhaar}`;
+                if (studentAadhaar) {
+                    document.getElementById("child-aadhaar-display").textContent = `Child's Aadhaar: ${studentAadhaar}`;
                 } else {
                     console.warn("Child Aadhaar not found in sessionStorage");
                     document.getElementById("child-aadhaar-display").textContent = "No Aadhaar data available.";
@@ -211,9 +211,9 @@
 
             auth.onAuthStateChanged(user => {
                 if (user) {
-                    const childAadhaar = sessionStorage.getItem("childAadhaar");
-                    if (childAadhaar) {
-                        displaySubmissionsWithReport(user.uid, childAadhaar);
+                    const studentAadhaar = sessionStorage.getItem("currentChildAadhaar");
+                    if (studentAadhaar) {
+                        displaySubmissionsWithReport(user.uid, studentAadhaar);
                     }
                 } else {
                     window.location.href = 'login.html';

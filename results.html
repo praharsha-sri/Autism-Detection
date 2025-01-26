@@ -129,7 +129,7 @@
 
         async function fetchScoresAndStore(userId, studentName, studentAge, studentDob) {
             const studentCollectionName = studentName.replace(/\s+/g, "_").toLowerCase();
-            const childAadhaar =new URLSearchParams(window.location.search).get('childAadhaar');
+            const studentAadhaar =new URLSearchParams(window.location.search).get('studentAadhaar');
             try {
                 let totalScore = 0;
                 const scores = {};
@@ -147,9 +147,13 @@
                 for (const docId of documentIds) {
                     let docRef;
                     if (isTeacher) {
-                        docRef = doc(db, 'users', userId, studentCollectionName, docId);
+                        const allocationDocId = `${userData.name}_${userData.organization}`;
+                        const studentDocId = `${studentName.toLowerCase()}_${studentAadhaar}`;
+
+                        // Path: allocations/[teachername_org]/allocated_students/[studentname_aadhaar]/teacherfilledquestionnaire/details
+                        docRef = doc(db, "allocations", allocationDocId, "allocated_students", studentDocId, "teacherfilledquestionnaire",  docId);
                     } else {
-                        docRef = doc(db, 'users', userId, childAadhaar,"info", "parentfilledquestionnaire", docId);
+                        docRef = doc(db, 'users', userId, studentAadhaar,"info", "parentfilledquestionnaire", docId);
                     }
 
                     const docSnap = await getDoc(docRef);
@@ -173,7 +177,9 @@
 
                 // Store the results
                 if (isTeacher) {
-                    const overallScoreRef = doc(db, 'users', userId, studentCollectionName, 'overallscore');
+                    const allocationDocId = `${userData.name}_${userData.organization}`;
+                    const studentDocId = `${studentName.toLowerCase()}_${studentAadhaar}`;
+                    const overallScoreRef = doc(db, "allocations", allocationDocId, "allocated_students", studentDocId, 'overallscore','submissions');
                     await setDoc(overallScoreRef, {
                         userId: userId,
                         studentName: studentName,
@@ -185,7 +191,7 @@
                         autismRange: autismRange,
                         submittedAt: new Date()
                     });
-                    const submissionsRef = collection(db, 'users', userId, 'submissions');
+                    const submissionsRef = collection(db, 'users', userId, studentAadhaar,"info", 'submissions');
                     await addDoc(submissionsRef, {
                         userId: userId,
                         studentName: studentName,
@@ -198,7 +204,7 @@
                         submittedAt: new Date()
                     });
                 } else {
-                    const submissionsRef = collection(db, 'users', userId, childAadhaar, 'info', 'submissions');
+                    const submissionsRef = collection(db, 'users', userId, studentAadhaar, 'info', 'submissions');
                     await addDoc(submissionsRef, {
                         userId: userId,
                         studentName: studentName,

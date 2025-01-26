@@ -66,6 +66,7 @@
         }
 
         async function handleFormSubmit(event) {
+            const childAadhaar =new URLSearchParams(window.location.search).get('childAadhaar');
             event.preventDefault(); // Prevent default form submission
 
             const user = auth.currentUser;
@@ -78,14 +79,14 @@
             formData.timestamp = new Date(); // Add a timestamp
 
             try {
-                const docRef = doc(db, "users", user.uid, "casehistory", "prenatal");
+                const docRef = doc(db, "users", user.uid, childAadhaar, "info", "casehistory", "prenatal");
                 await setDoc(docRef, formData);
 
                 console.log("Prenatal history data successfully stored.");
                 //alert('Prenatal history submitted successfully.');
 
                 // Navigate to the next page
-                window.location.href = 'perinatal_hindi.html';
+                window.location.href = `perinatal_hindi.html?childAadhaar=${encodeURIComponent(childAadhaar)}`;
             } catch (error) {
                 console.error("Error storing prenatal history:", error);
                 alert('Failed to submit data. Please try again.');

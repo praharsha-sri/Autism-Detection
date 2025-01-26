@@ -48,7 +48,8 @@
 
         async function restoreFormData() {
             try {
-                const docRef = doc(db, "users", userId, "casehistory", "parental");
+                const childAadhaar =new URLSearchParams(window.location.search).get('childAadhaar');
+                const docRef = doc(db, "users", userId, childAadhaar, "info", "casehistory", "parental");
                 const docSnap = await getDoc(docRef);
 
                 if (docSnap.exists()) {
@@ -66,6 +67,7 @@
         }
 
         async function handleFormSubmit(event) {
+            const childAadhaar =new URLSearchParams(window.location.search).get('childAadhaar');
             event.preventDefault(); // Prevent page reload
 
             const formData = {
@@ -79,12 +81,12 @@
             };
 
             try {
-                const docRef = doc(db, "users", userId, "casehistory", "parental");
+                const docRef = doc(db, "users", userId, childAadhaar, "info", "casehistory", "parental");
                 await setDoc(docRef, formData);
 
                 console.log("Parental history data successfully stored.");
                // alert('Parental history submitted successfully.');
-                window.location.href = 'prenatal.html'; // Navigate to the next page
+                window.location.href = `prenatal.html?childAadhaar=${encodeURIComponent(childAadhaar)}`;// Navigate to the next page
             } catch (error) {
                 console.error("Error saving data:", error);
                 alert('Failed to save data. Please try again.');

@@ -92,6 +92,7 @@
 
         // Handle form submission
         async function handleFormSubmit(event) {
+            const childAadhaar =new URLSearchParams(window.location.search).get('childAadhaar');
             event.preventDefault();  // Prevent page reload
 
             if (!currentUser) {
@@ -103,13 +104,13 @@
             formData.timestamp = new Date();  // Add timestamp
 
             try {
-                const docRef = doc(db, "users", currentUser.uid, "casehistory", "postnatal");
+                const docRef = doc(db, "users", currentUser.uid, childAadhaar, "info", "casehistory", "postnatal");
                 await setDoc(docRef, formData);
 
                 console.log("పోస్ట్‌నాటల్ చరిత్ర Firebase లో విజయవంతంగా నిల్వ చేయబడింది.");
 
                 // Navigate to the next page
-                window.location.href = 'medicalhistory_telugu.html';
+                window.location.href = `medicalhistory_telugu.html?childAadhaar=${encodeURIComponent(childAadhaar)}`;
             } catch (error) {
                 console.error("Firebase లో పోస్ట్‌నాటల్ చరిత్ర నిల్వ చేయడంలో పొరపాటు:", error);
                 alert('డేటాను సమర్పించడం విఫలమైంది. మళ్లీ ప్రయత్నించండి.');

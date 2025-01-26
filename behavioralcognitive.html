@@ -70,6 +70,7 @@
 
 
         async function handleFormSubmit(event) {
+            const childAadhaar =new URLSearchParams(window.location.search).get('childAadhaar');
             event.preventDefault(); // Prevent default form submission
 
             const user = auth.currentUser; // Get current user
@@ -82,14 +83,14 @@
             formData.timestamp = new Date();  // Add timestamp
             try {
                 // Store data in Firestore under users/{userId}/casehistory/behavior
-                const docRef = doc(db, "users", user.uid, "casehistory", "behavior");
+                const docRef = doc(db, "users", user.uid, childAadhaar, "info", "casehistory", "behavior");
                 await setDoc(docRef, formData);
 
                 console.log("Behavioral and higher function data successfully stored in Firebase.");
                 //alert('Behavioral and higher function history submitted successfully.');
 
                 // Redirect to the next page after submission
-                window.location.href = 'selfhelp.html'; // Change to your desired page
+                window.location.href = `selfhelp.html?childAadhaar=${encodeURIComponent(childAadhaar)}`; // Change to your desired page
             } catch (error) {
                 console.error("Error storing behavioral and higher function data in Firebase:", error);
                 alert('Failed to submit data. Please try again.');

@@ -98,14 +98,15 @@
 
             try {
                 // Store form data in Firestore
-                const docRef = doc(db, "users", user.uid, "casehistory", "identification");
+                const childAadhaar = sessionStorage.getItem('currentChildAadhaar');
+                const docRef = doc(db, "users", user.uid, childAadhaar, "info", "casehistory", "identification");
                 await setDoc(docRef, formData);
 
                 console.log("Form data successfully stored in Firebase.");
                // alert('Data submitted successfully.');
 
                 // Navigate to the next page
-                window.location.href = 'parental_hindi.html';
+                window.location.href = `parental_hindi.html?childAadhaar=${encodeURIComponent(childAadhaar)}`;
             } catch (error) {
                 console.error("Error storing form data in Firebase:", error);
                 alert('Failed to submit data. Please try again.');

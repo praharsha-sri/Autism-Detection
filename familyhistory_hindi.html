@@ -59,6 +59,7 @@
         }
 
     async function handleFormSubmit(event) {
+      const childAadhaar =new URLSearchParams(window.location.search).get('childAadhaar');
         event.preventDefault(); // डिफ़ॉल्ट फ़ॉर्म सबमिशन को रोकें
 
         const user = auth.currentUser; // वर्तमान उपयोगकर्ता प्राप्त करें
@@ -72,14 +73,14 @@
 
         try {
             // Firestore में डेटा स्टोर करें, उपयोगकर्ता के UID के साथ 'casehistory' कलेक्शन के अंदर
-            const docRef = doc(db, "users", user.uid, "casehistory", "family");
+            const docRef = doc(db, "users", user.uid, childAadhaar, "info", "casehistory", "family");
             await setDoc(docRef, formData);
 
             console.log("परिवार का इतिहास डेटा Firebase में सफलतापूर्वक संग्रहीत किया गया।");
            // alert('परिवार का इतिहास सफलतापूर्वक सबमिट किया गया।');
 
             // सबमिशन के बाद अगले पेज पर रीडायरेक्ट करें
-            window.location.href = 'playhistory_hindi.html'; // अपनी इच्छित पेज पर रीडायरेक्ट करें
+            window.location.href = `playhistory_hindi.html?childAadhaar=${encodeURIComponent(childAadhaar)}`; // अपनी इच्छित पेज पर रीडायरेक्ट करें
         } catch (error) {
             console.error("परिवार का इतिहास डेटा Firebase में संग्रहीत करने में त्रुटि:", error);
             alert('डेटा सबमिट करने में विफल। कृपया फिर से प्रयास करें।');
