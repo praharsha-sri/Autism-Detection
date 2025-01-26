@@ -120,7 +120,13 @@
         function displayChildInfo(user) {
             const childDetailsDiv = document.getElementById('child-details');
 
-            db.collection('users').doc(user.uid).collection('Questionnaire').doc('details').get().then(doc => {
+            const studentAadhaar = sessionStorage.getItem('currentChildAadhaar');
+
+            db.collection('users').doc(user.uid)
+                        .collection(studentAadhaar)
+                        .doc('info')
+                        .collection('parentfilledquestionnaire')
+            .doc('details').get().then(doc => {
                 if (doc.exists) {
                     const childData = doc.data();
                     const info = {
@@ -171,10 +177,13 @@
                 const domains = Object.keys(domainNames);
                 const scores = {};
                 let totalScore = 0;
+                const studentAadhaar = sessionStorage.getItem('currentChildAadhaar');
 
                 for (const domain of domains) {
                     const docRef = db.collection('users').doc(user.uid)
-                                   .collection('Questionnaire').doc(domain);
+                        .collection(studentAadhaar)
+                        .doc('info')
+                        .collection('parentfilledquestionnaire').doc(domain);
                     const docSnap = await docRef.get();
 
                     if (docSnap.exists) {
