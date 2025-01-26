@@ -151,7 +151,7 @@
                             const studentElement = document.createElement("div");
                             studentElement.classList.add("col-md-6", "col-lg-4");
                             studentElement.innerHTML = ` 
-                                <div class="student-card" onclick="window.location.href='detailsform2.html?name=${encodeURIComponent(studentData.name.toLowerCase())}&aadhaar=${encodeURIComponent(studentData.aadhaar)}'">
+                                <div class="student-card" onclick="window.location.href='detailsform2.html?studentName=${encodeURIComponent(studentData.name.toLowerCase())}&studentAadhaar=${encodeURIComponent(studentData.aadhaar)}'">
                                     <h5>${studentData.name}</h5>
                                     <p><strong>Aadhaar:</strong> ${studentData.aadhaar}</p>
                                 </div>`;
