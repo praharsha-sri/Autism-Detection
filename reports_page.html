@@ -127,13 +127,16 @@
 
 function displayChildInfo(user) {
     const childDetailsDiv = document.getElementById('child-details');
+    const studentAadhaar = sessionStorage.getItem('currentChildAadhaar');
     
     // Show loading state
     childDetailsDiv.innerHTML = '<p>Loading child information...</p>';
     
     db.collection('users').doc(user.uid)
-        .collection('Questionnaire')
-        .doc('details')
+                        .collection(studentAadhaar)
+                        .doc('info')
+                        .collection('parentfilledquestionnaire')
+            .doc('details')
         .get()
         .then(doc => {
             if (doc.exists) {
@@ -196,6 +199,7 @@ async function fetchReports() {
         const userDoc = await db.collection('users').doc(user.uid).get();
         const userData = userDoc.exists ? userDoc.data() : {};
         const userName = userData.name || user.displayName || 'Not provided';
+        const studentAadhaar = sessionStorage.getItem('currentChildAadhaar');
 
                 displayUserInfo(user);
                 displayChildInfo(user);
@@ -206,7 +210,9 @@ async function fetchReports() {
 
                 for (const domain of domains) {
                     const docRef = db.collection('users').doc(user.uid)
-                                   .collection('Questionnaire').doc(domain);
+                        .collection(studentAadhaar)
+                        .doc('info')
+                        .collection('parentfilledquestionnaire').doc(domain);
                     const docSnap = await docRef.get();
                     
                     if (docSnap.exists) {
@@ -298,10 +304,13 @@ async function fetchReports() {
 
         function showLanguageModal(reportData) {
     // First, fetch child information before showing the modal
+    const studentAadhaar = sessionStorage.getItem('currentChildAadhaar');
     const user = firebase.auth().currentUser;
     if (user) {
         db.collection('users').doc(user.uid)
-            .collection('Questionnaire')
+                        .collection(studentAadhaar)
+                        .doc('info')
+                        .collection('parentfilledquestionnaire')
             .doc('details')
             .get()
             .then(doc => {
