@@ -147,22 +147,26 @@
                                 </div>`;
                             assignedContainer.appendChild(assignedStudentElement);
 
-                            // Create Student Card for either Pending or Completed
-                            const studentElement = document.createElement("div");
+                               // Create Student Card for either Pending or Completed
+                               const studentElement = document.createElement("div");
                             studentElement.classList.add("col-md-6", "col-lg-4");
-                            studentElement.innerHTML = ` 
-                                <div class="student-card" onclick="window.location.href='telugu_detailsform2.html?studentName=${encodeURIComponent(studentData.name.toLowerCase())}&studentAadhaar=${encodeURIComponent(studentData.aadhaar)}'">
-                                    <h5>${studentData.name}</h5>
-                                    <p><strong>ఆధార్:</strong> ${studentData.aadhaar}</p>
-                                </div>`;
-
-                            // Categorize into Completed or Pending
+                            // Check if the student is completed or pending
                             if (docSnap.exists()) {
-                                // If teacherfilledquestionnaire/details exists, move to completed
-                                completedContainer.appendChild(studentElement);
+                            // If teacherfilledquestionnaire/details exist, create a non-clickable card
+                            studentElement.innerHTML = `
+                            <div class="simple-card">
+                                 <h5>${studentData.name}</h5>
+                                <p><strong>ఆధార్:</strong> ${studentData.aadhaar}</p>
+                            </div>`;
+                            completedContainer.appendChild(studentElement);
                             } else {
-                                // If teacherfilledquestionnaire/details doesn't exist, move to pending
-                                pendingContainer.appendChild(studentElement);
+                                 // If teacherfilledquestionnaire/details don't exist, create a clickable card
+                            studentElement.innerHTML = `
+                            <div class="student-card" onclick="window.location.href='telugu_detailsform2.html?studentName=${encodeURIComponent(studentData.name.toLowerCase())}&studentAadhaar=${encodeURIComponent(studentData.aadhaar)}'">
+                              <h5>${studentData.name}</h5>
+                                <p><strong>ఆధార్:</strong> ${studentData.aadhaar}</p>
+                             </div>`;
+                     pendingContainer.appendChild(studentElement);
                             }
                         }
                     } else {

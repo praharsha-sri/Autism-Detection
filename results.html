@@ -191,7 +191,8 @@
                         autismRange: autismRange,
                         submittedAt: new Date()
                     });
-                    const submissionsRef = collection(db, 'users', userId, studentAadhaar,"info", 'submissions');
+                    //const submissionsRef = collection(db, 'users', userId, studentAadhaar,"info", 'submissions');
+                    const submissionsRef = collection(db, 'users', userId, 'submissions');
                     await addDoc(submissionsRef, {
                         userId: userId,
                         studentName: studentName,
