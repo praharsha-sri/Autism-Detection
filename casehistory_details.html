@@ -199,45 +199,61 @@
 
         // Fetch case history details
         function fetchCaseHistory() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const parentId = urlParams.get('id');
-            const contentContainer = document.getElementById('case-history-content');
+    const urlParams = new URLSearchParams(window.location.search);
+    const parentId = urlParams.get('id');
+    const aadhaarNumber = urlParams.get('childAadhaar'); // Get aadhaar from URL
+    const contentContainer = document.getElementById('case-history-content');
 
-            if (!parentId) {
-                alert('No parent ID provided');
-                return;
-            }
+    if (!parentId || !aadhaarNumber) {
+        alert('Missing required parameters');
+        return;
+    }
 
-            // Sections to fetch in specific order
-            const sections = [
-                { name: 'Identification Data', doc: 'identification', mappings: fieldMappings.identification },
-                { name: 'Treatment and Medical History', doc: 'treatment', mappings: fieldMappings.treatment },
-                { name: 'Educational History', doc: 'educational', mappings: fieldMappings.educational },
-                { name: 'Play History', doc: 'playhistory', mappings: fieldMappings.playhistory },
-                { name: 'Behavioral History', doc: 'behavior', mappings: fieldMappings.behavior },
-                { name: 'Previous Diagnosis', doc: 'previousDiagnosis', mappings: fieldMappings.previousDiagnosis }
-            ];
+    console.log('Fetching case history for:', { parentId, aadhaarNumber }); // Debug log
 
-            // Fetch all sections
-            sections.forEach(section => {
-                db.collection('users')
-                  .doc(parentId)
-                  .collection('casehistory')
-                  .doc(section.doc)
-                  .get()
-                  .then(doc => {
-                      if (doc.exists) {
-                          const sectionElement = createSection(section.name, doc.data(), section.mappings);
-                          if (sectionElement) {
-                              contentContainer.appendChild(sectionElement);
-                          }
-                      }
-                  })
-                  .catch(error => {
-                      console.error(`Error fetching ${section.name}:`, error);
-                  });
+    // Sections to fetch in specific order
+    const sections = [
+        { name: 'Identification Data', doc: 'identification', mappings: fieldMappings.identification },
+        { name: 'Treatment and Medical History', doc: 'treatment', mappings: fieldMappings.treatment },
+        { name: 'Educational History', doc: 'educational', mappings: fieldMappings.educational },
+        { name: 'Play History', doc: 'playhistory', mappings: fieldMappings.playhistory },
+        { name: 'Behavioral History', doc: 'behavior', mappings: fieldMappings.behavior },
+        { name: 'Previous Diagnosis', doc: 'previousDiagnosis', mappings: fieldMappings.previousDiagnosis }
+    ];
+
+    // Fetch all sections
+    sections.forEach(section => {
+        db.collection('users')
+            .doc(parentId)
+            .collection(aadhaarNumber) // Access the aadhaarNumber collection
+            .doc('info') // Access the 'info' document
+            .collection('casehistory') // Access the 'casehistory' collection
+            .doc(section.doc) // Access the specific section document
+            .get()
+            .then(doc => {
+                if (doc.exists) {
+                    console.log(`Found data for section: ${section.name}`); // Debug log
+                    const sectionElement = createSection(section.name, doc.data(), section.mappings);
+                    if (sectionElement) {
+                        contentContainer.appendChild(sectionElement);
+                    }
+                } else {
+                    console.log(`No data found for section: ${section.name}`); // Debug log
+                    const noDataDiv = document.createElement('div');
+                    noDataDiv.className = 'no-data';
+                    noDataDiv.textContent = `No data available for ${section.name}`;
+                    contentContainer.appendChild(noDataDiv);
+                }
+            })
+            .catch(error => {
+                console.error(`Error fetching ${section.name}:`, error);
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'text-danger';
+                errorDiv.textContent = `Error loading ${section.name}: ${error.message}`;
+                contentContainer.appendChild(errorDiv);
             });
-        }
+    });
+}
 
         // PDF Download Function
         function downloadPDF() {

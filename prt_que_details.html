@@ -144,6 +144,7 @@
             // Get student ID from URL
             const urlParams = new URLSearchParams(window.location.search);
             const studentId = urlParams.get('id');
+            const aadhaarNumber = urlParams.get('childAadhaar');
 
             if (!studentId) {
                 alert('No student ID provided');
@@ -151,7 +152,7 @@
             }
 
             // Fetch student details
-            const detailsRef = db.collection('users').doc(studentId).collection('Questionnaire').doc('details');
+            const detailsRef = db.collection('users').doc(studentId).collection(aadhaarNumber).doc('info').collection('parentfilledquestionnaire').doc('details');
             const domainRefs = [
                 'socialRelationship', 
                 'emotionalResponsiveness', 
@@ -177,7 +178,7 @@
             let totalScore = 0;
 
             domainRefs.forEach(domain => {
-                db.collection('users').doc(studentId).collection('Questionnaire').doc(domain).get()
+                const detailsRef = db.collection('users').doc(studentId).collection(aadhaarNumber).doc('info').collection('parentfilledquestionnaire').doc(domain).get()
                     .then(doc => {
                         if (doc.exists) {
                             const score = doc.data().score || 0;

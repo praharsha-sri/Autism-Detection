@@ -55,172 +55,158 @@
     </div>
 
     <!-- Firebase Scripts -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+        import { getFirestore, collection, doc, getDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-    <script>
-        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
             authDomain: "autism-evaluation-platform.firebaseapp.com",
             projectId: "autism-evaluation-platform",
-            storageBucket: "autism-evaluation-platform.firebasestorage.app",
+            storageBucket: "autism-evaluation-platform.appspot.com",
             messagingSenderId: "748226978662",
             appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
             measurementId: "G-1TGEHTTJF4"
         };
 
         // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const auth = firebase.auth();
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        firebase.auth().onAuthStateChanged((user) => {
-            if (user) {
-                fetchTeacherDetails(user);
+        async function fetchTeacherDetails(user) {
+            try {
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    const teacherData = userDoc.data();
+                    
+                    document.getElementById('teacher-name').textContent = 
+                        `Name: ${teacherData.name || 'Not provided'}`;
+                    document.getElementById('teacher-email').textContent = 
+                        `Email: ${user.email || 'Not provided'}`;
+                    document.getElementById('teacher-organisation').textContent = 
+                        `Organisation: ${teacherData.organization || 'Not provided'}`;
 
-                fetchStudents(user);
-            } else {
-                alert('Please log in');
+                    return teacherData;
+                }
+            } catch (error) {
+                console.error('Error fetching teacher details:', error);
             }
-        });
-        function fetchTeacherDetails(user) {
-            db.collection('users').doc(user.uid).get()
-                .then(doc => {
-                    if (doc.exists) {
-                        const teacherData = doc.data();
-                        
-                        document.getElementById('teacher-name').textContent = 
-                            `Name: ${teacherData.name || 'Not provided'}`;
-                        document.getElementById('teacher-email').textContent = 
-                            `Email: ${user.email || 'Not provided'}`;
-                        document.getElementById('teacher-organisation').textContent = 
-                            `Organisation: ${teacherData.organization || 'Not provided'}`;
-
-                        sessionStorage.setItem('teacherOrganisation', teacherData.organization);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching teacher details:', error);
-                });
+            return null;
         }
 
-        function fetchStudents(user) {
-    const teacherOrganisation = sessionStorage.getItem('teacherOrganisation');
-    const studentList = document.getElementById('student-list');
-    studentList.innerHTML = ''; // Clear previous students
-
-    const processedParentIds = new Set();
-
-    // Get all parents without organization filter
-    db.collection('users')
-        .where('role', '==', 'parent')
-        .get()
-        .then(snapshot => {
-            let hasMatches = false;
-
-            snapshot.forEach(doc => {
-                const parentData = doc.data();
+        async function fetchAllocatedStudents(teacherData) {
+            try {
+                const allocationDocId = `${teacherData.name}_${teacherData.organization}`;
+                const allocationDocRef = doc(db, "allocations", allocationDocId);
+                const allocatedStudentsRef = collection(allocationDocRef, "allocated_students");
+                const allocatedStudentsSnap = await getDocs(allocatedStudentsRef);
                 
-                // Case insensitive comparison of organizations
-                if (parentData.organization && 
-                    parentData.organization.toLowerCase() === teacherOrganisation.toLowerCase()) {
+                // Create a Set of allocated student Aadhaar numbers
+                const allocatedAadhaarNumbers = new Set();
+                allocatedStudentsSnap.forEach(doc => {
+                    allocatedAadhaarNumbers.add(doc.data().aadhaar);
+                });
+                
+                return allocatedAadhaarNumbers;
+            } catch (error) {
+                console.error('Error fetching allocated students:', error);
+                return new Set();
+            }
+        }
+
+        async function fetchAndDisplayStudents(teacherData, allocatedAadhaarNumbers) {
+            const studentList = document.getElementById('student-list');
+            studentList.innerHTML = ''; // Clear previous students
+
+            try {
+                const usersRef = collection(db, "users");
+                const parentQuery = query(usersRef, where("role", "==", "parent"));
+                const parentSnapshot = await getDocs(parentQuery);
+                
+                let hasMatches = false;
+
+                for (const parentDoc of parentSnapshot.docs) {
+                    const parentData = parentDoc.data();
                     
-                    hasMatches = true;
-                    processedParentIds.add(doc.id);
-
-                    // Fetch questionnaire details
-                    db.collection('users')
-                        .doc(doc.id)
-                        .collection('Questionnaire')
-                        .doc('details')
-                        .get()
-                        .then(detailsDoc => {
-                            if (detailsDoc.exists) {
-                                const detailsData = detailsDoc.data();
-
+                    // Check if parent's organization matches teacher's organization (case insensitive)
+                    if (parentData.organization && 
+                        parentData.organization.toLowerCase() === teacherData.organization.toLowerCase()) {
+                        
+                        // Check children array
+                        const children = parentData.children || [];
+                        for (const child of children) {
+                            // Check if child's Aadhaar is in allocated students
+                            if (allocatedAadhaarNumbers.has(child.aadhaar)) {
+                                hasMatches = true;
+                                
                                 const studentItem = document.createElement('div');
                                 studentItem.classList.add('list-group-item', 'list-group-item-action');
                                 
-                                // Show both original organization name and student details
                                 studentItem.innerHTML = `
                                     <div class="d-flex w-100 justify-content-between">
                                         <div>
-                                            <h5 class="mb-1">Student Name: ${detailsData.name || 'N/A'}</h5>
+                                            <h5 class="mb-1">Student Name: ${child.name || 'N/A'}</h5>
                                             <small class="text-muted">Parent Name: ${parentData.name || 'N/A'}</small>
                                             <br>
                                             <small class="text-muted">Organization: ${parentData.organization}</small>
+                                            <br>
+                                            <small class="text-muted">Aadhaar: ${child.aadhaar || 'N/A'}</small>
                                         </div>
                                     </div>
                                 `;
 
                                 studentItem.addEventListener('click', () => {
-                                    window.location.href = `casehistory_details.html?id=${doc.id}`;
+                                    window.location.href = `casehistory_details.html?id=${parentDoc.id}&childAadhaar=${child.aadhaar}`;
                                 });
 
                                 studentList.appendChild(studentItem);
                             }
-                        })
-                        .catch(error => {
-                            console.error('Error fetching details document:', error);
-                        });
+                        }
+                    }
                 }
-            });
 
-            // Show message if no matches found
-            if (!hasMatches) {
-                const noMatchesMsg = document.createElement('div');
-                noMatchesMsg.classList.add('alert', 'alert-info', 'mt-3');
-                noMatchesMsg.textContent = 'No students found for your organization.';
-                studentList.appendChild(noMatchesMsg);
+                if (!hasMatches) {
+                    const noMatchesMsg = document.createElement('div');
+                    noMatchesMsg.classList.add('alert', 'alert-info', 'mt-3');
+                    noMatchesMsg.textContent = 'No allocated students found for your organization.';
+                    studentList.appendChild(noMatchesMsg);
+                }
+            } catch (error) {
+                console.error('Error fetching students:', error);
+                const errorMsg = document.createElement('div');
+                errorMsg.classList.add('alert', 'alert-danger', 'mt-3');
+                errorMsg.textContent = 'Error loading students. Please try again.';
+                studentList.appendChild(errorMsg);
             }
-        })
-        .catch(error => {
-            console.error('Error fetching students:', error);
-            const errorMsg = document.createElement('div');
-            errorMsg.classList.add('alert', 'alert-danger', 'mt-3');
-            errorMsg.textContent = 'Error loading students. Please try again.';
-            studentList.appendChild(errorMsg);
-        });
-}
-
-function fetchTeacherDetails(user) {
-    db.collection('users').doc(user.uid).get()
-        .then(doc => {
-            if (doc.exists) {
-                const teacherData = doc.data();
-                
-                document.getElementById('teacher-name').textContent = 
-                    `Name: ${teacherData.name || 'Not provided'}`;
-                document.getElementById('teacher-email').textContent = 
-                    `Email: ${user.email || 'Not provided'}`;
-                document.getElementById('teacher-organisation').textContent = 
-                    `Organisation: ${teacherData.organization || 'Not provided'}`;
-
-                // Store the original organization name
-                sessionStorage.setItem('teacherOrganisation', teacherData.organization || '');
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching teacher details:', error);
-        });
-}
+        }
 
         document.getElementById('search-input').addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase();
             const studentItems = document.querySelectorAll('#student-list .list-group-item');
             
             studentItems.forEach(item => {
-                const studentName = item.querySelector('h5').textContent.toLowerCase();
-                const parentName = item.querySelector('small').textContent.toLowerCase();
-                
-                if (studentName.includes(searchTerm) || parentName.includes(searchTerm)) {
+                const text = item.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
                     item.style.display = '';
                 } else {
                     item.style.display = 'none';
                 }
             });
+        });
+
+        // Initialize the page
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const teacherData = await fetchTeacherDetails(user);
+                if (teacherData) {
+                    const allocatedAadhaarNumbers = await fetchAllocatedStudents(teacherData);
+                    await fetchAndDisplayStudents(teacherData, allocatedAadhaarNumbers);
+                }
+            } else {
+                window.location.href = 'login.html';
+            }
         });
     </script>
 
