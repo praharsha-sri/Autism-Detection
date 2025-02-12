@@ -66,6 +66,29 @@
             #child-aadhaar-display {
             color: #0f0e0e;  /* Change to your desired color */
              }
+             .therapy-section {
+                margin-top: 15px;
+                padding: 15px;
+                background-color: #f8f9fa;
+                border-radius: 8px;
+                border: 1px solid #dee2e6;
+            }
+            .therapy-item {
+                margin: 8px 0;
+                padding: 10px;
+                background-color: white;
+                border-left: 4px solid #0d6efd;
+                border-radius: 4px;
+            }
+            .therapy-name {
+                font-weight: bold;
+                color: #0d6efd;
+                margin-bottom: 5px;
+            }
+            .therapy-confidence {
+                color: #6c757d;
+                font-size: 0.9em;
+            }
         </style>
     </head>
     <body>
@@ -141,6 +164,27 @@
                 });
             }
             
+            function displayTherapyRecommendations(therapyData, container) {
+                if (!therapyData || Object.keys(therapyData).length === 0) {
+                    return '<div class="therapy-section"><p>No therapy recommendations available.</p></div>';
+                }
+
+                let therapyHTML = '<div class="therapy-section"><h4>Recommended Therapies</h4>';
+                
+                Object.entries(therapyData).forEach(([therapy, probabilities]) => {
+                    const probability = probabilities[0] * 100;
+                    therapyHTML += `
+                        <div class="therapy-item">
+                            <div class="therapy-name">${therapy.replace(/_/g, ' ').toUpperCase()}</div>
+                            <div class="therapy-confidence">Recommendation Confidence: ${probability.toFixed(1)}%</div>
+                        </div>
+                    `;
+                });
+
+                therapyHTML += '</div>';
+                return therapyHTML;
+            }
+            
             async function displaySubmissionsWithReport(userId, studentAadhaar) {
                 const submissionsContainer = document.getElementById('submissionsContainer');
                 const loading = document.getElementById('loading');
@@ -175,13 +219,16 @@
                         const maxScores = labels.map(label => domainLimits[label]?.max || 40);
                         const minScores = labels.map(label => domainLimits[label]?.min || 0);
 
-                        submissionCard.innerHTML = 
-                            `<h3>Student Name: ${data.studentName || 'Unknown'}</h3>
+                        // Create the initial content with assessment results
+                        submissionCard.innerHTML = `
+                            <h3>Student Name: ${data.studentName || 'Unknown'}</h3>
                             <p>Score: ${data.totalScore || 'Unknown'}</p>
                             <p>Percentage: ${data.percentageScore || 'Unknown'}%</p>
                             <p>Autism Range: ${data.autismRange || 'Unknown'}</p>
                             <p>Submission Date: ${new Date(data.submittedAt.seconds * 1000).toLocaleString()}</p>
-                            <canvas id="chart-${doc.id}"></canvas>`;
+                            ${displayTherapyRecommendations(data.therapyRecommendations)}
+                            <canvas id="chart-${doc.id}"></canvas>
+                        `;
 
                         submissionsContainer.appendChild(submissionCard);
 
@@ -197,7 +244,6 @@
                     console.error('Error:', err.message);
                 }
             }
-            
             document.addEventListener("DOMContentLoaded", () => {
                 const studentAadhaar = sessionStorage.getItem("currentChildAadhaar");
 
