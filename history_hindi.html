@@ -66,12 +66,36 @@
             #child-aadhaar-display {
             color: #0f0e0e;  /* Change to your desired color */
              }
+             .therapy-section {
+                margin-top: 15px;
+                padding: 15px;
+                background-color: #f8f9fa;
+                border-radius: 8px;
+                border: 1px solid #dee2e6;
+            }
+            .therapy-item {
+                margin: 8px 0;
+                padding: 10px;
+                background-color: white;
+                border-left: 4px solid #0d6efd;
+                border-radius: 4px;
+            }
+            .therapy-name {
+                font-weight: bold;
+                color: #0d6efd;
+                margin-bottom: 5px;
+            }
+            .therapy-confidence {
+                color: #6c757d;
+                font-size: 0.9em;
+            }
         </style>
     </head>
     <body>
         <div class="container">
             <a href="parent_dashboard_hi.html" class="btn btn-primary home-button">होम</a>
             <h1>प्रदर्शन परिणाम</h1>
+            <b><p id="child-aadhaar-display" class="text-success">बाल आधार संख्या:</p></b>
             <div id="submissionsContainer"></div>
             <div id="loading">सबमिशन लोड हो रहे हैं...</div>
             <div id="error" class="error" style="display: none;">सबमिशन लोड करने में त्रुटि। कृपया पेज को रीफ्रेश करें।</div>
@@ -141,6 +165,27 @@
                 });
             }
 
+            function displayTherapyRecommendations(therapyData, container) {
+                if (!therapyData || Object.keys(therapyData).length === 0) {
+                    return '<div class="therapy-section"><p>कोई थेरेपी सिफारिश उपलब्ध नहीं है।</p></div>';
+                }
+
+                let therapyHTML = '<div class="therapy-section"><h4>सिफारिश की गई थेरेपी</h4>';
+                
+                Object.entries(therapyData).forEach(([therapy, probabilities]) => {
+                    const probability = probabilities[0] * 100;
+                    therapyHTML += `
+                        <div class="therapy-item">
+                            <div class="therapy-name">${therapy.replace(/_/g, ' ').toUpperCase()}</div>
+                            <div class="therapy-confidence">सिफारिश की विश्वासनीयता: ${probability.toFixed(1)}%</div>
+                        </div>
+                    `;
+                });
+
+                therapyHTML += '</div>';
+                return therapyHTML;
+            }
+
     
             async function displaySubmissionsWithReport(userId, studentAadhaar) {
                 const submissionsContainer = document.getElementById('submissionsContainer');
@@ -191,8 +236,7 @@
                             <p>प्रतिशत स्कोर: ${data.percentageScore || 'Unknown'}%</p>
                             <p>ऑटिज़्म रेंज: ${data.autismRange || 'Unknown'}</p>
                             <p>सबमिशन तिथि: ${new Date(data.submittedAt.seconds * 1000).toLocaleString()}</p>
-
-
+                            ${displayTherapyRecommendations(data.therapyRecommendations)}
                         <canvas id="chart-${doc.id}"></canvas>`;
 
                         submissionsContainer.appendChild(submissionCard);
@@ -214,7 +258,7 @@
                 const studentAadhaar = sessionStorage.getItem("currentChildAadhaar");
 
                 if (studentAadhaar) {
-                    document.getElementById("child-aadhaar-display").textContent = `Child's Aadhaar: ${studentAadhaar}`;
+                    document.getElementById("child-aadhaar-display").textContent = `बाल आधार संख्या: ${studentAadhaar}`;
                 } else {
                     console.warn("Child Aadhaar not found in sessionStorage");
                     document.getElementById("child-aadhaar-display").textContent = "No Aadhaar data available.";
