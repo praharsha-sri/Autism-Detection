@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Councellor-Child Allocation</title>
+    <title>Automatic Student-Teacher Allocation</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .allocation-card {
@@ -13,7 +13,7 @@
             transform: translateY(-5px);
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
-        .child-item {
+        .student-item {
             background-color: #f8f9fa;
             border-radius: 8px;
             padding: 10px;
@@ -38,46 +38,34 @@
         .loading-overlay.active {
             display: flex;
         }
-        .spinner-container {
-            text-align: center;
-        }
-        .loading-text {
-            margin-top: 1rem;
-            color: #4b6cb7;
-            font-weight: bold;
-        }
-        .no-data-message {
-            text-align: center;
-            padding: 2rem;
-            background: #f8f9fa;
-            border-radius: 8px;
-            margin-top: 1rem;
-        }
     </style>
 </head>
 <body class="bg-light">
     <div class="loading-overlay" id="loadingOverlay">
-        <div class="spinner-container">
-            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            <div class="loading-text">Loading data...</div>
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
         </div>
     </div>
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="#">Councellor-Child Allocation Dashboard</a>
-            <button id="logoutBtn" class="btn btn-light">Logout</button>
+            <a class="navbar-brand" href="#">Automatic Student-Teacher Allocation</a>
+            <div class="d-flex">
+                <a href="admin_dashboard.html" class="btn btn-light me-2">Back to Dashboard</a>
+                <button id="logoutBtn" class="btn btn-light">Logout</button>
+            </div>
         </div>
     </nav>
 
     <div class="container mt-4">
         <div class="row mb-4">
-            <div class="col-md-12">
+            <div class="col-md-6">
                 <select id="orgSelect" class="form-select">
                     <option value="">Select Organization</option>
                 </select>
+            </div>
+            <div class="col-md-6">
+                <button id="autoAllocate" class="btn btn-primary">Perform Automatic Allocation</button>
             </div>
         </div>
 
@@ -93,23 +81,23 @@
             <div class="col-md-4">
                 <div class="card stats-card">
                     <div class="card-body">
-                        <h5 class="card-title">Total Children</h5>
-                        <h2 id="childrenCount">0</h2>
+                        <h5 class="card-title">Total Students</h5>
+                        <h2 id="studentCount">0</h2>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="card stats-card">
                     <div class="card-body">
-                        <h5 class="card-title">Minimum children per Teacher</h5>
-                        <h2 id="childrenPerTeacher">0</h2>
+                        <h5 class="card-title">Students per Teacher</h5>
+                        <h2 id="studentsPerTeacher">0</h2>
                     </div>
                 </div>
             </div>
         </div>
 
         <div id="allocationsContainer" class="row">
-            <!-- Allocation cards will be inserted here -->
+            <!-- Allocation cards will be added here -->
         </div>
     </div>
 
@@ -121,12 +109,10 @@
             getDocs, 
             doc, 
             getDoc, 
-            setDoc, 
-            onSnapshot,
-            query,
-            where 
+            setDoc,
+            deleteDoc 
         } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
-        import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";  // Firebase Authentication import
+        import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
@@ -140,124 +126,25 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
 
         const elements = {
             orgSelect: document.getElementById('orgSelect'),
             allocationsContainer: document.getElementById('allocationsContainer'),
             teacherCount: document.getElementById('teacherCount'),
-            childrenCount: document.getElementById('childrenCount'),
-            childrenPerTeacher: document.getElementById('childrenPerTeacher'),
+            studentCount: document.getElementById('studentCount'),
+            studentsPerTeacher: document.getElementById('studentsPerTeacher'),
+            autoAllocate: document.getElementById('autoAllocate'),
             loadingOverlay: document.getElementById('loadingOverlay'),
-            logoutBtn: document.getElementById('logoutBtn')  // Logout button reference
+            logoutBtn: document.getElementById('logoutBtn')
         };
 
         function showLoading() {
             elements.loadingOverlay.classList.add('active');
-            elements.orgSelect.disabled = true;
         }
 
         function hideLoading() {
             elements.loadingOverlay.classList.remove('active');
-            elements.orgSelect.disabled = false;
-        }
-
-        function clearDashboard() {
-            elements.allocationsContainer.innerHTML = '';
-            updateStats([], 0);
-        }
-
-        function showNoDataMessage(message) {
-            elements.allocationsContainer.innerHTML = `
-                <div class="col-12">
-                    <div class="no-data-message">
-                        <h4 class="text-muted">${message}</h4>
-                    </div>
-                </div>
-            `;
-        }
-
-        async function displayCurrentAllocations(orgName, teachers) {
-            elements.allocationsContainer.innerHTML = '';
-            let totalChildren = 0;
-
-            if (!teachers || teachers.length === 0) {
-                showNoDataMessage('No teachers available in this organization');
-                updateStats([], 0);
-                return;
-            }
-
-            let hasChildren = false;
-            
-            for (const teacher of teachers) {
-                const docId = `${teacher.name}_${orgName}`.replace(/\s+/g, '_').toLowerCase();
-                const studentsSnapshot = await getDocs(collection(db, "allocations", docId, "allocated_students"));
-                
-                const allocation = {
-                    teacherName: teacher.name,
-                    email: teacher.email,
-                    children: []
-                };
-
-                studentsSnapshot.forEach(doc => {
-                    allocation.children.push(doc.data());
-                    hasChildren = true;
-                });
-
-                totalChildren += allocation.children.length;
-
-                const cardHtml = `
-                    <div class="col-md-4 mb-4">
-                        <div class="card allocation-card">
-                            <div class="card-header bg-primary text-white">
-                                <h5 class="card-title mb-0">${allocation.teacherName}</h5>
-                                <small>${allocation.email}</small>
-                            </div>
-                            <div class="card-body">
-                                <h6 class="mb-3">Assigned Children: ${allocation.children.length}</h6>
-                                <div class="children-list">
-                                    ${allocation.children.map(child => `
-                                        <div class="child-item">
-                                            <strong>${child.name}</strong><br>
-                                            <small class="text-muted">Aadhaar: ${child.aadhaar}</small>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                elements.allocationsContainer.innerHTML += cardHtml;
-            }
-
-            if (!hasChildren) {
-                showNoDataMessage('No children assigned in this organization');
-            }
-
-            updateStats(teachers, totalChildren);
-        }
-
-        function updateStats(teachers, allocatedChildrenCount) {
-            elements.teacherCount.textContent = teachers.length;
-            elements.childrenCount.textContent = allocatedChildrenCount;
-            elements.childrenPerTeacher.textContent = 
-                teachers.length ? Math.round(allocatedChildrenCount / teachers.length) : 0;
-        }
-
-        async function processOrgUpdates(orgData, orgName) {
-            try {
-                showLoading();
-                
-                if (!orgData || !orgData.teachers || orgData.teachers.length === 0) {
-                    showNoDataMessage('No teachers found in this organization');
-                    updateStats([], 0);
-                    return;
-                }
-
-                const teachers = orgData.teachers;
-                await displayCurrentAllocations(orgName, teachers);
-            } finally {
-                hideLoading();
-            }
         }
 
         async function loadOrganizations() {
@@ -278,44 +165,202 @@
             }
         }
 
-        elements.orgSelect.addEventListener('change', async (e) => {
-            clearDashboard();
+        function getStudentsFromParents(parents) {
+        let students = new Map(); // Using Map to ensure unique students by Aadhaar
+        parents.forEach(parent => {
+            const names = parent.childrenName || [];
+            const aadhaarNumbers = parent.childrenAadhaar || [];
             
-            if (e.target.value) {
-                const orgId = e.target.value;
-                showLoading();
-                
-                try {
-                    const docSnapshot = await getDoc(doc(db, "organizations", orgId));
-                    if (docSnapshot.exists()) {
-                        const orgData = docSnapshot.data();
-                        const orgName = orgData.name || orgId;
-                        await processOrgUpdates(orgData, orgName);
-                    } else {
-                        showNoDataMessage('Organization not found');
-                    }
-                } catch (error) {
-                    console.error("Error loading organization:", error);
-                    showNoDataMessage('Error loading organization data');
-                } finally {
-                    hideLoading();
+            // Process each Aadhaar number
+            aadhaarNumbers.forEach((aadhaar, index) => {
+                if (aadhaar) { // Only process if Aadhaar exists
+                    const name = names[index] || 'na';
+                    const studentId = `${name.toLowerCase()}_${aadhaar}`.replace(/\s+/g, '_');
+                    students.set(aadhaar, {
+                        name: names[index] || 'NA',
+                        aadhaar: aadhaar,
+                        studentId: studentId
+                    });
                 }
+            });
+        });
+        return Array.from(students.values());
+    }
+
+    async function performAllocation(orgName, teachers, students) {
+    try {
+        showLoading();
+
+        // Calculate students per teacher
+        const studentsPerTeacher = Math.ceil(students.length / teachers.length);
+        let studentIndex = 0;
+
+        for (const teacher of teachers) {
+            const teacherStudents = [];
+            for (let i = 0; i < studentsPerTeacher && studentIndex < students.length; i++) {
+                teacherStudents.push(students[studentIndex]);
+                studentIndex++;
+            }
+
+            // Generate unique docId based on organization and teacher
+            const docId = `${teacher.name}_${orgName}`.replace(/\s+/g, '_').toLowerCase();
+            const teacherAllocationRef = doc(db, "allocations", docId);
+
+            // Check if this allocation already exists
+            const existingAllocation = await getDoc(teacherAllocationRef);
+            if (!existingAllocation.exists()) {
+                // Create new allocation document if it doesn't exist
+                await setDoc(teacherAllocationRef, {
+                    teacherName: teacher.name,
+                    teacherEmail: teacher.email,
+                    organizationName: orgName,
+                    studentCount: teacherStudents.length,
+                    timestamp: new Date().toISOString()
+                });
+            }
+
+            // Add students to subcollection
+            for (const student of teacherStudents) {
+                const studentId = student.aadhaar
+                    ? `${(student.name || 'na').toLowerCase()}_${student.aadhaar}`.replace(/\s+/g, '_')
+                    : null;
+
+                if (studentId) {
+                    const studentRef = doc(teacherAllocationRef, "allocated_students", studentId);
+                    const studentDoc = await getDoc(studentRef);
+
+                    if (!studentDoc.exists()) {
+                        await setDoc(studentRef, {
+                            name: student.name || 'NA',
+                            aadhaar: student.aadhaar,
+                            allocationDate: new Date().toISOString()
+                        });
+                    }
+                }
+            }
+        }
+
+        displayAllocations(orgName, teachers, students);
+        alert("Allocation completed successfully!");
+    } catch (error) {
+        console.error("Error performing allocation:", error);
+        alert("Error performing allocation: " + error.message);
+    } finally {
+        hideLoading();
+    }
+}
+
+    function updateStats(teachers, students) {
+        // Count based on unique Aadhaar numbers
+        const uniqueStudentCount = new Set(students.map(s => s.aadhaar)).size;
+        elements.teacherCount.textContent = teachers.length;
+        elements.studentCount.textContent = uniqueStudentCount;
+        elements.studentsPerTeacher.textContent = 
+            teachers.length ? Math.ceil(uniqueStudentCount / teachers.length) : 0;
+    }
+
+    function displayAllocations(orgName, teachers, students) {
+        elements.allocationsContainer.innerHTML = '';
+        const studentsPerTeacher = Math.ceil(students.length / teachers.length);
+        let studentIndex = 0;
+
+        teachers.forEach(teacher => {
+            const teacherStudents = [];
+            for (let i = 0; i < studentsPerTeacher && studentIndex < students.length; i++) {
+                teacherStudents.push(students[studentIndex]);
+                studentIndex++;
+            }
+
+            const card = `
+                <div class="col-md-4 mb-4">
+                    <div class="card allocation-card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0">${teacher.name}</h5>
+                            <small>${teacher.email}</small>
+                        </div>
+                        <div class="card-body">
+                            <h6>Assigned Students: ${teacherStudents.length}</h6>
+                            ${teacherStudents.map(student => `
+                                <div class="student-item">
+                                    <strong>${student.name}</strong><br>
+                                    <small class="text-muted">Aadhaar: ${student.aadhaar}</small>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            elements.allocationsContainer.innerHTML += card;
+        });
+    }
+
+        elements.orgSelect.addEventListener('change', async (e) => {
+            if (!e.target.value) {
+                elements.allocationsContainer.innerHTML = '';
+                updateStats([], []);
+                return;
+            }
+
+            try {
+                showLoading();
+                const orgDoc = await getDoc(doc(db, "organizations", e.target.value));
+                if (orgDoc.exists()) {
+                    const orgData = orgDoc.data();
+                    const teachers = orgData.teachers || [];
+                    const students = getStudentsFromParents(orgData.parents || []);
+                    updateStats(teachers, students);
+                    displayAllocations(orgData.name || e.target.value, teachers, students);
+                }
+            } catch (error) {
+                console.error("Error loading organization:", error);
+                alert("Error loading organization details");
+            } finally {
+                hideLoading();
             }
         });
 
-        // Logout button functionality
+        elements.autoAllocate.addEventListener('click', async () => {
+            const orgId = elements.orgSelect.value;
+            if (!orgId) {
+                alert("Please select an organization first");
+                return;
+            }
+
+            try {
+                const orgDoc = await getDoc(doc(db, "organizations", orgId));
+                if (orgDoc.exists()) {
+                    const orgData = orgDoc.data();
+                    const teachers = orgData.teachers || [];
+                    const students = getStudentsFromParents(orgData.parents || []);
+                    
+                    if (teachers.length === 0) {
+                        alert("No teachers available in this organization");
+                        return;
+                    }
+                    if (students.length === 0) {
+                        alert("No students available in this organization");
+                        return;
+                    }
+
+                    await performAllocation(orgData.name || orgId, teachers, students);
+                }
+            } catch (error) {
+                console.error("Error during allocation:", error);
+                alert("Error performing allocation");
+            }
+        });
+
         elements.logoutBtn.addEventListener('click', async () => {
             try {
-                const auth = getAuth();
                 await signOut(auth);
-                alert("Logged out successfully");
-                window.location.href="login.html";
+                window.location.href = 'login.html';
             } catch (error) {
                 console.error("Logout error:", error);
                 alert("Error logging out");
             }
         });
 
+        // Initialize the page
         loadOrganizations();
     </script>
 
