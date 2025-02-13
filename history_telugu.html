@@ -66,12 +66,36 @@
             #child-aadhaar-display {
             color: #0f0e0e;  /* Change to your desired color */
              }
+             .therapy-section {
+                margin-top: 15px;
+                padding: 15px;
+                background-color: #f8f9fa;
+                border-radius: 8px;
+                border: 1px solid #dee2e6;
+            }
+            .therapy-item {
+                margin: 8px 0;
+                padding: 10px;
+                background-color: white;
+                border-left: 4px solid #0d6efd;
+                border-radius: 4px;
+            }
+            .therapy-name {
+                font-weight: bold;
+                color: #0d6efd;
+                margin-bottom: 5px;
+            }
+            .therapy-confidence {
+                color: #6c757d;
+                font-size: 0.9em;
+            }
         </style>
     </head>
     <body>
         <div class="container">
             <a href="parent_dashboard_te.html" class="btn btn-primary home-button">హోమ్</a>
             <h1>ప్రదర్శన ఫలితాలు</h1>
+            <b><p id="child-aadhaar-display" class="text-success">పిల్లల ఆధార్ సంఖ్య:</p></b>
             <div id="submissionsContainer"></div>
             <div id="loading">సమర్పణలు లోడ్ అవుతున్నాయి...</div>
             <div id="error" class="error" style="display: none;">సమర్పణలను లోడ్ చేయడంలో లోపం జరిగింది. దయచేసి పేజీని రిఫ్రెష్ చేయండి.</div>
@@ -140,6 +164,27 @@
                     }
                 });
             }
+
+            function displayTherapyRecommendations(therapyData, container) {
+                if (!therapyData || Object.keys(therapyData).length === 0) {
+                    return '<div class="therapy-section"><p>థెరపీ సూచనలు అందుబాటులో లేవు.</p></div>';
+                }
+
+                let therapyHTML = '<div class="therapy-section"><h4>సిఫారసు చేసిన థెరపీలు</h4>';
+                
+                Object.entries(therapyData).forEach(([therapy, probabilities]) => {
+                    const probability = probabilities[0] * 100;
+                    therapyHTML += `
+                        <div class="therapy-item">
+                            <div class="therapy-name">${therapy.replace(/_/g, ' ').toUpperCase()}</div>
+                            <div class="therapy-confidence">సిఫారసు నమ్మక స్థాయి: ${probability.toFixed(1)}%</div>
+                        </div>
+                    `;
+                });
+
+                therapyHTML += '</div>';
+                return therapyHTML;
+            }
     
             async function displaySubmissionsWithReport(userId, studentAadhaar) {
                 const submissionsContainer = document.getElementById('submissionsContainer');
@@ -191,6 +236,7 @@
                             <p>శాతం: ${data.percentageScore || 'Unknown'}%</p>
                             <p>ఆటిజం రేంజ్: ${data.autismRange || 'Unknown'}</p>
                             <p>సమర్పణ తేదీ: ${new Date(data.submittedAt.seconds * 1000).toLocaleString()}</p>
+                             ${displayTherapyRecommendations(data.therapyRecommendations)}
                             <canvas id="chart-${doc.id}"></canvas>`;
 
                         submissionsContainer.appendChild(submissionCard);
@@ -212,7 +258,7 @@
                 const studentAadhaar = sessionStorage.getItem("currentChildAadhaar");
 
                 if (studentAadhaar) {
-                    document.getElementById("child-aadhaar-display").textContent = `Child's Aadhaar: ${studentAadhaar}`;
+                    document.getElementById("child-aadhaar-display").textContent = `పిల్లల ఆధార్ సంఖ్య: ${studentAadhaar}`;
                 } else {
                     console.warn("Child Aadhaar not found in sessionStorage");
                     document.getElementById("child-aadhaar-display").textContent = "No Aadhaar data available.";

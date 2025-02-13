@@ -239,60 +239,62 @@
         }
 
         async function fetchScoresAndStore(userId, studentName, studentAge, studentDob) {
-            const studentAadhaar = new URLSearchParams(window.location.search).get('studentAadhaar');
-            try {
-                let totalScore = 0;
-                const scores = {};
-                const userDocRef = doc(db, 'users', userId);
-                const userDocSnap = await getDoc(userDocRef);
+    const studentAadhaar = new URLSearchParams(window.location.search).get('studentAadhaar');
+    try {
+        let totalScore = 0;
+        const scores = {};
+        const userDocRef = doc(db, 'users', userId);
+        const userDocSnap = await getDoc(userDocRef);
 
-                if (!userDocSnap.exists()) {
-                    console.log("No such user!");
-                    return;
+        if (!userDocSnap.exists()) {
+            console.log("No such user!");
+            return;
+        }
+
+        const userData = userDocSnap.data();
+        const isTeacher = userData.role === 'teacher';
+
+        // Fetching scores for each domain
+        for (const docId of documentIds) {
+            let docRef;
+            if (isTeacher) {
+                const allocationDocId = `${userData.name}_${userData.organization}`;
+                const studentDocId = `${studentName.toLowerCase()}_${studentAadhaar}`;
+                docRef = doc(db, "allocations", allocationDocId, "allocated_students", studentDocId, "teacherfilledquestionnaire", docId);
+            } else {
+                docRef = doc(db, 'users', userId, studentAadhaar, "info", "parentfilledquestionnaire", docId);
+            }
+
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const score = docSnap.data().score || 0;
+                totalScore += score;
+                scores[docId] = score;
+                document.getElementById(docId).textContent = score;
+            } else {
+                console.log(`No data found for ${docId}`);
+                document.getElementById(docId).textContent = '0';
+            }
+        }
+
+        const percentageScore = ((totalScore / 200) * 100).toFixed(2);
+        document.getElementById('totalScore').textContent = totalScore;
+        document.getElementById('percentagescore').textContent = `${percentageScore}%`;
+        const autismRange = classifyAutism(totalScore);
+        document.getElementById('autismRangeResult').textContent = autismRange;
+
+        // Fetching therapy recommendations
+        const therapyRecommendations = await getTherapyRecommendations(scores, autismRange);
+
+        const filteredRecommendations = {};
+        if (therapyRecommendations) {
+            Object.entries(therapyRecommendations).forEach(([therapy, probabilities]) => {
+                if (probabilities[0] * 100 > 50) {
+                    filteredRecommendations[therapy] = probabilities;
                 }
-
-                const userData = userDocSnap.data();
-                const isTeacher = userData.role === 'teacher';
-
-                for (const docId of documentIds) {
-                    let docRef;
-                    if (isTeacher) {
-                        const allocationDocId = `${userData.name}_${userData.organization}`;
-                        const studentDocId = `${studentName.toLowerCase()}_${studentAadhaar}`;
-                        docRef = doc(db, "allocations", allocationDocId, "allocated_students", studentDocId, "teacherfilledquestionnaire", docId);
-                    } else {
-                        docRef = doc(db, 'users', userId, studentAadhaar, "info", "parentfilledquestionnaire", docId);
-                    }
-
-                    const docSnap = await getDoc(docRef);
-
-                    if (docSnap.exists()) {
-                        const score = docSnap.data().score || 0;
-                        totalScore += score;
-                        scores[docId] = score;
-                        document.getElementById(docId).textContent = score;
-                    } else {
-                        console.log(`No data found for ${docId}`);
-                        document.getElementById(docId).textContent = '0';
-                    }
-                }
-
-                const percentageScore = ((totalScore / 200) * 100).toFixed(2);
-                document.getElementById('totalScore').textContent = totalScore;
-                document.getElementById('percentagescore').textContent = `${percentageScore}%`;
-                const autismRange = classifyAutism(totalScore);
-                document.getElementById('autismRangeResult').textContent = autismRange;
-
-                const therapyRecommendations = await getTherapyRecommendations(scores, autismRange);
-
-                const filteredRecommendations = {};
-                if (therapyRecommendations) {
-                    Object.entries(therapyRecommendations).forEach(([therapy, probabilities]) => {
-                        if (probabilities[0] * 100 > 50) {
-                            filteredRecommendations[therapy] = probabilities;
-                        }
-                    });
-                }
+            });
+        }
 
                 const resultData = {
                     userId: userId,
@@ -306,6 +308,12 @@
                     therapyRecommendations: filteredRecommendations,
                     submittedAt: new Date()
                 };
+
+                // Storing result data in Firestore (parentfilledquestionnaire)
+        const parentFilledQuestionnaireRef = doc(db, 'users', userId, studentAadhaar, 'info', 'parentfilledquestionnaire','therapydetails');
+        await setDoc(parentFilledQuestionnaireRef, {
+            therapyDetails: filteredRecommendations,
+        });
 
                 if (isTeacher) {
                     const allocationDocId = `${userData.name}_${userData.organization}`;
