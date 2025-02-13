@@ -120,41 +120,57 @@
                 `;
             }
         }
-
         function showStudentModal(index) {
-            const modalBackdrop = document.getElementById('modalBackdrop');
-            const studentModal = document.getElementById('studentModal');
-            const studentModalContent = document.getElementById('studentModalContent');
-            const data = window.submissions[index];
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    const studentModal = document.getElementById('studentModal');
+    const studentModalContent = document.getElementById('studentModalContent');
+    const data = window.submissions[index];
 
-            studentModalContent.innerHTML = `
-                <h2 class="text-primary mb-4">${data.studentName || 'Unknown'}</h2>
-                <div class="row">
-                    <div class="col-md-6">
-                        <p><strong>Age:</strong> ${data.studentAge || 'Unknown'}</p>
-                        <p><strong>Date of Birth:</strong> ${data.studentDob || 'Unknown'}</p>
-                        <p><strong>Submission Date:</strong> ${data.submittedAt.toDate().toLocaleString()}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <p><strong>Total Score:</strong> ${data.totalScore}</p>
-                        <p><strong>Percentage:</strong> ${data.percentageScore}%</p>
-                        <p><strong>Autism Range:</strong> ${data.autismRange}</p>
-                    </div>
-                </div>
-                <h4 class="mt-4 text-primary">Scores Breakdown</h4>
-                <ul class="list-group">
-                    ${Object.keys(data.scores).map(key => `
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            ${key}
-                            <span class="badge bg-primary rounded-pill">${data.scores[key]}</span>
-                        </li>
-                    `).join('')}
-                </ul>
-            `;
+    // Get therapy recommendations from the data
+    const therapyRecommendations = data.therapyRecommendations || {};
 
-            modalBackdrop.classList.add('show');
-            studentModal.classList.add('show');
-        }
+    // Extract therapy names from the keys of the therapyRecommendations map
+    const therapyNames = Object.keys(therapyRecommendations);
+
+    // Create therapy recommendations HTML if available
+    const therapyRecommendationsHTML = therapyNames.length > 0 
+        ? `<h4 class="mt-4 text-primary">Recommended Therapies</h4>
+           <ul class="list-group">
+               ${therapyNames.map(therapy => `<li class="list-group-item">${therapy}</li>`).join('')}
+           </ul>`
+        : '<p>No therapy recommendations available.</p>';
+
+    // Set the modal content
+    studentModalContent.innerHTML = `
+        <h2 class="text-primary mb-4">${data.studentName || 'Unknown'}</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Age:</strong> ${data.studentAge || 'Unknown'}</p>
+                <p><strong>Date of Birth:</strong> ${data.studentDob || 'Unknown'}</p>
+                <p><strong>Submission Date:</strong> ${data.submittedAt.toDate().toLocaleString()}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Total Score:</strong> ${data.totalScore}</p>
+                <p><strong>Percentage:</strong> ${data.percentageScore}%</p>
+                <p><strong>Autism Range:</strong> ${data.autismRange}</p>
+            </div>
+        </div>
+        ${therapyRecommendationsHTML}
+        <h4 class="mt-4 text-primary">Scores Breakdown</h4>
+        <ul class="list-group">
+            ${Object.keys(data.scores).map(key => `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    ${key}
+                    <span class="badge bg-primary rounded-pill">${data.scores[key]}</span>
+                </li>
+            `).join('')}
+        </ul>
+    `;
+
+    modalBackdrop.classList.add('show');
+    studentModal.classList.add('show');
+    }
+
 
         function closeModal() {
             const modalBackdrop = document.getElementById('modalBackdrop');
