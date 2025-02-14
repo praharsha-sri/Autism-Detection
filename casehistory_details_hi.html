@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="te">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -48,10 +48,6 @@
         .detail-value {
             color: #34495e;
         }
-        .no-data {
-            color: #7f8c8d;
-            font-style: italic;
-        }
         #download-pdf {
             margin-bottom: 20px;
         }
@@ -99,7 +95,7 @@
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
             authDomain: "autism-evaluation-platform.firebaseapp.com",
             projectId: "autism-evaluation-platform",
-            storageBucket: "autism-evaluation-platform.firebasestorage.app",
+            storageBucket: "autism-evaluation-platform.appspot.com",
             messagingSenderId: "748226978662",
             appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
             measurementId: "G-1TGEHTTJF4"
@@ -111,98 +107,103 @@
 
         // Mapping of database field names to form labels with specific order
         const fieldMappings = {
-            identification: {
-                name: 'नाम',
-                dob: 'जन्म तिथि', 
-                age: 'उम्र',
-                gender: 'लिंग',
-                informant: 'सूचना देने वाला (माँ/पिता/अभिभावक का नाम)',
-                parentOccupation: 'माता-पिता का व्यवसाय',
-                referral: 'संदर्भ स्रोत',
-                communication: 'बच्चे की संचार विधि',
-                complaints: 'प्रस्तुत प्रमुख शिकायतें'
-            },
-            treatment: {
-                illnessInjuries: 'बीमारी/चोट',
-                convulsions: 'दौरे',
-                earAches: 'कान में दर्द/स्राव',
-                anyOtherMedical: 'अन्य चिकित्सा विवरण'
-            },
-            educational: {
-                schoolAge: 'स्कूल की शुरुआत की उम्र',
-                peerTeacherRelationship: 'सहपाठियों और शिक्षकों के साथ संबंध',
-                schoolIssues: 'स्कूल की फोबिया/गैर-उपस्थिति/अवगति/पढ़ाई या लिखाई में कठिनाइयाँ',
-                anyOtherEducational: 'अन्य शैक्षिक विवरण'
-            },
-            playhistory: {
-                motordev: 'मोटर विकास',
-                speechdev: 'भाषण और भाषा विकास',
-                sensorydev: 'संवेदनात्मक विकास',
-                socialdev: 'सामाजिक विकास',
-                playinghistory: 'खेल इतिहास विवरण'
-            },
-            behavior: {
-                behave: 'शिशु और छोटे बच्चों में व्यवहार',
-                hearing: 'सुनाई',
-                homebehaviour: 'घर में व्यवहार',
-                socialbehaviour: 'सामाजिक व्यवहार',
-                differentbeh: 'विभिन्न व्यवहार',
-                vision: 'दृष्टि',
-                speech: 'भाषण',
-                orientation: 'दिशा (समय/स्थान/व्यक्ति)'
-            },
-            previousDiagnosis: {
-                prevtherapy: 'पिछला निदान और उपचार विवरण',
-                recommend: 'सिफारिश'
-            }
-        };
+    identification: {
+        name: 'नाम',
+        dob: 'जन्म तिथि', 
+        age: 'उम्र',
+        gender: 'लिंग',
+        informant: 'सूचनादाता (माँ/पिता/अभिभावक का नाम)',
+        parentOccupation: 'माता-पिता का व्यवसाय',
+        referral: 'रेफरल का स्रोत',
+        communication: 'बच्चे का संचार मोड',
+        complaints: 'वर्तमान मुख्य शिकायतें'
+    },
+    treatment: {
+        illnessInjuries: 'बीमारी/चोट',
+        convulsions: 'ऐंठन',
+        earAches: 'कान दर्द/स्राव',
+        anyOtherMedical: 'अन्य चिकित्सा विवरण'
+    },
+    educational: {
+        schoolAge: 'स्कूल शुरू करने की उम्र',
+        peerTeacherRelationship: 'सहपाठियों और शिक्षकों के बीच संबंध',
+        schoolIssues: 'स्कूल फोबिया/अनुपस्थिति/भागना/पढ़ने या लिखने में कठिनाई',
+        anyOtherEducational: 'अन्य शैक्षिक विवरण'
+    },
+    playhistory: {
+        motordev: 'मोटर विकास',
+        speechdev: 'भाषण और भाषा विकास',
+        sensorydev: 'संवेदी विकास',
+        socialdev: 'सामाजिक विकास',
+        playinghistory: 'खेल इतिहास विवरण'
+    },
+    behavior: {
+        behave: 'शिशु और बच्चे का व्यवहार',
+        hearing: 'सुनने की क्षमता',
+        homebehaviour: 'घर का व्यवहार',
+        socialbehaviour: 'सामाजिक व्यवहार',
+        differentbeh: 'विभिन्न व्यवहार',
+        vision: 'दृष्टि',
+        speech: 'भाषण',
+        orientation: 'अभिविन्यास (समय/स्थान/व्यक्ति)'
+    },
+    previousDiagnosis: {
+        prevtherapy: 'पिछली डायग्नोसिस और थेरेपी विवरण',
+        recommend: 'सिफारिश'
+    }
+};
+
 
         function createSection(title, data, mappings) {
-    if (!data || Object.keys(data).length === 0) return null;
+            if (!data || Object.keys(data).length === 0) return null;
 
-    delete data.timestamp; // Remove unnecessary fields
+            delete data.timestamp; // Remove unnecessary fields
 
-    const sectionDiv = document.createElement('div');
-    sectionDiv.className = 'mb-4 row';
+            const sectionDiv = document.createElement('div');
+            sectionDiv.className = 'mb-4 row';
 
-    // Section header
-    const headerDiv = document.createElement('div');
-    headerDiv.className = 'section-header col-12';
-    headerDiv.innerHTML = `<h3>${title}</h3>`;
-    sectionDiv.appendChild(headerDiv);
+            // Section header
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'section-header col-12';
+            headerDiv.innerHTML = `<h3>${title}</h3>`;
+            sectionDiv.appendChild(headerDiv);
 
-    // Create detail cards in two columns
-    const detailContainer = document.createElement('div');
-    detailContainer.className = 'row g-3';
+            // Create detail cards in two columns
+            const detailContainer = document.createElement('div');
+            detailContainer.className = 'row g-3';
 
-    Object.keys(mappings).forEach(key => {
-        const label = mappings[key];
-        const value = data[key];
+            Object.keys(mappings).forEach(key => {
+                const label = mappings[key];
+                const value = data[key];
 
-        if (value !== undefined && value !== '') {
-            const detailCard = document.createElement('div');
-            detailCard.className = 'detail-card col-md-6';
-            detailCard.innerHTML = ` 
-                <div class="row">
-                    <div class="col-6 detail-label">${label}</div>
-                    <div class="col-6 detail-value">${value || 'प्रदान नहीं किया गया'}</div>
-                </div>
-            `;
-            detailContainer.appendChild(detailCard);
+                if (value !== undefined && value !== '') {
+                    const detailCard = document.createElement('div');
+                    detailCard.className = 'detail-card col-md-6';
+                    detailCard.innerHTML = `
+                        <div class="row">
+                            <div class="col-6 detail-label">${label}</div>
+                            <div class="col-6 detail-value">${value}</div>
+                        </div>
+                    `;
+                    detailContainer.appendChild(detailCard);
+                }
+            });
+
+            sectionDiv.appendChild(detailContainer);
+            return sectionDiv;
         }
-    });
-
-    sectionDiv.appendChild(detailContainer);
-    return sectionDiv;
-}
-
 
         // Fetch case history details
         function fetchCaseHistory() {
             const urlParams = new URLSearchParams(window.location.search);
             const parentId = urlParams.get('id');
+            const aadhaarNumber = urlParams.get('childAadhaar'); // Get aadhaar from URL
             const contentContainer = document.getElementById('case-history-content');
 
+
+            console.log('Fetching case history for:', { parentId, aadhaarNumber }); // Debug log
+
+            // Sections to fetch in specific order
             if (!parentId) {
                 alert('कोई पैरेंट आईडी प्रदान नहीं की गई है');
                 return;
@@ -221,27 +222,32 @@
             // Fetch all sections
             sections.forEach(section => {
                 db.collection('users')
-                  .doc(parentId)
-                  .collection('casehistory')
-                  .doc(section.doc)
-                  .get()
-                  .then(doc => {
-                      if (doc.exists) {
-                          const sectionElement = createSection(section.name, doc.data(), section.mappings);
-                          if (sectionElement) {
-                              contentContainer.appendChild(sectionElement);
-                          }
-                      }
-                  })
-                  .catch(error => {
-                      console.error(`Error fetching ${section.name}:`, error);
-                  });
+                    .doc(parentId)
+                    .collection(aadhaarNumber) // Access the aadhaarNumber collection
+                    .doc('info') // Access the 'info' document
+                    .collection('casehistory') // Access the 'casehistory' collection
+                    .doc(section.doc) // Access the specific section document
+                    .get()
+                    .then(doc => {
+                        if (doc.exists) {
+                            console.log(`Found data for section: ${section.name}`); // Debug log
+                            const sectionElement = createSection(section.name, doc.data(), section.mappings);
+                            if (sectionElement) {
+                                contentContainer.appendChild(sectionElement);
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error(`Error fetching ${section.name}:`, error);
+                    });
             });
         }
 
         // PDF Download Function
         function downloadPDF() {
             const element = document.querySelector('.case-history-container'); // The container to convert into PDF
+            
+            // Options for html2pdf
             const opt = {
                 margin: 9,
                 filename: 'Case_History.pdf',
@@ -256,6 +262,17 @@
 
         // Attach event listener to the button
         document.getElementById('download-pdf').addEventListener('click', downloadPDF);
+
+        // Add additional script to load jsPDF
+        const jsPDFScript = document.createElement('script');
+        jsPDFScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        document.head.appendChild(jsPDFScript);
+
+        // Add PDF Download Event Listener
+        document.addEventListener('DOMContentLoaded', () => {
+            const downloadBtn = document.getElementById('download-pdf');
+            downloadBtn.addEventListener('click', downloadPDF);
+        });
 
         // Authentication and Fetch
         firebase.auth().onAuthStateChanged((user) => {

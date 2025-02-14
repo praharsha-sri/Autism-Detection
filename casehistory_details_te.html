@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>విస్తృత కేసు చరిత్ర</title>
+    <title>సమగ్ర కేసు చరిత్ర</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -48,10 +48,6 @@
         .detail-value {
             color: #34495e;
         }
-        .no-data {
-            color: #7f8c8d;
-            font-style: italic;
-        }
         #download-pdf {
             margin-bottom: 20px;
         }
@@ -67,14 +63,14 @@
     <div class="container case-history-container">
         <div class="row mb-4">
             <div class="col-12 text-center">
-                <h1 class="display-6">విస్తృత కేసు చరిత్ర</h1> <!-- Comprehensive Case History -->
+                <h1 class="display-6">సమగ్ర కేసు చరిత్ర</h1>
             </div>
         </div>
 
         <div class="row mb-4">
             <div class="col-12 text-center">
                 <button id="download-pdf" class="btn btn-primary">
-                    <i class="fas fa-download"></i> PDF డౌన్లోడ్ <!-- Download PDF -->
+                    <i class="fas fa-download"></i> PDF డౌన్లోడ్ చేయండి
                 </button>
             </div>
         </div>
@@ -99,7 +95,7 @@
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
             authDomain: "autism-evaluation-platform.firebaseapp.com",
             projectId: "autism-evaluation-platform",
-            storageBucket: "autism-evaluation-platform.firebasestorage.app",
+            storageBucket: "autism-evaluation-platform.appspot.com",
             messagingSenderId: "748226978662",
             appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
             measurementId: "G-1TGEHTTJF4"
@@ -112,48 +108,48 @@
         // Mapping of database field names to form labels with specific order
         const fieldMappings = {
             identification: {
-                name: 'పేరు', // Name
-                dob: 'పుట్టిన తేదీ', // Date of Birth
-                age: 'వయస్సు', // Age
-                gender: 'లింగం', // Gender
-                informant: 'సూచించేవారు (తల్లి/తండ్రి/గార్డియన్ పేరు)', // Informant (Mother/ Father/Guardian with name)
-                parentOccupation: 'తల్లిదండ్రుల ఉద్యోగం', // Parent's Occupation
-                referral: 'రిఫరల్ మూలం', // Source of Referral
-                communication: 'బच्चా సంప్రదింపుల మోడ్', // Child Mode of Communication
-                complaints: 'ప్రస్తుత ప్రధాన ఫిర్యాదులు' // Presenting Chief Complaints
+                name: 'పేరు',
+                dob: 'పుట్టిన తేదీ', 
+                age: 'వయస్సు',
+                gender: 'లింగం',
+                informant: 'సమాచారం ఇచ్చిన వ్యక్తి (తల్లి/తండ్రి/పరిరక్షకుడు)',
+                parentOccupation: 'తల్లిదండ్రుల వృత్తి',
+                referral: 'సూచన యొక్క మూలం',
+                communication: 'పిల్లల సంభాషణ మోడ్',
+                complaints: 'ప్రస్తుత ప్రధాన ఫిర్యాదులు'
             },
             treatment: {
-                illnessInjuries: 'రోగాలు/గాయాలు', // Illness/Injuries
-                convulsions: 'కంపల్సన్‌లు', // Convulsions
-                earAches: 'కానీ నొప్పులు/విసర్జన', // Ear Aches/Discharge
-                anyOtherMedical: 'ఇతర వైద్య వివరాలు' // Any Other Medical Details
+                illnessInjuries: 'అనారోగ్యం/గాయాలు',
+                convulsions: 'కంపనాలు',
+                earAches: 'చెవి నొప్పి/స్రావం',
+                anyOtherMedical: 'ఇతర వైద్య వివరాలు'
             },
             educational: {
-                schoolAge: 'పాఠశాల ప్రారంభ వయస్సు', // Age of Beginning of School
-                peerTeacherRelationship: 'సహపాఠి-ఉపాధ్యాయ సంబంధం', // Relationship between Peers and Teachers
-                schoolIssues: 'పాఠశాల సమస్యలు/నాలుగు/పాఠశాల హాజరు', // School Phobia/Non-Attendance/Truancy/Reading or Writing Difficulties
-                anyOtherEducational: 'ఇతర విద్యా వివరాలు' // Any Other Educational Details
+                schoolAge: 'బడికి ప్రారంభించిన వయస్సు',
+                peerTeacherRelationship: 'సహచరులు మరియు ఉపాధ్యాయుల మధ్య సంబంధం',
+                schoolIssues: 'బడి భయం/హాజరు కాకపోవడం/తప్పించుకోవడం/చదవడం లేదా వ్రాయడంలో ఇబ్బందులు',
+                anyOtherEducational: 'ఇతర విద్యా వివరాలు'
             },
             playhistory: {
-                motordev: 'మోటార్ అభివృద్ధి', // Motor Development
-                speechdev: 'భాష అభివృద్ధి', // Speech & Language Development
-                sensorydev: 'సెన్సరీ అభివృద్ధి', // Sensory Development
-                socialdev: 'సామాజిక అభివృద్ధి', // Social Development
-                playinghistory: 'క్రీడా చరిత్ర వివరాలు' // Play History Details
+                motordev: 'మోటార్ అభివృద్ధి',
+                speechdev: 'స్పీచ్ & లాంగ్వేజ్ అభివృద్ధి',
+                sensorydev: 'సెన్సరీ అభివృద్ధి',
+                socialdev: 'సామాజిక అభివృద్ధి',
+                playinghistory: 'ఆటల చరిత్ర వివరాలు'
             },
             behavior: {
-                behave: 'బాల్య మరియు చిన్న వయస్సులో ప్రవర్తన', // Behavior in Infancy and Toddler
-                hearing: 'శ్రవణం', // Hearing
-                homebehaviour: 'ఇంటింటి ప్రవర్తన', // Home Behaviour
-                socialbehaviour: 'సామాజిక ప్రవర్తన', // Social Behaviour
-                differentbeh: 'విభిన్న ప్రవర్తనలు', // Differential Behaviors
-                vision: 'దృష్టి', // Vision
-                speech: 'భాష', // Speech
-                orientation: 'సమయం/స్థానం/వ్యక్తి ఆకర్షణ' // Orientation (Time/Place/Person)
+                behave: 'శిశు మరియు చిన్నపిల్లల ప్రవర్తన',
+                hearing: 'వినికిడి',
+                homebehaviour: 'ఇంటి ప్రవర్తన',
+                socialbehaviour: 'సామాజిక ప్రవర్తన',
+                differentbeh: 'విభిన్న ప్రవర్తనలు',
+                vision: 'దృష్టి',
+                speech: 'స్పీచ్',
+                orientation: 'ఓరియంటేషన్ (సమయం/స్థలం/వ్యక్తి)'
             },
             previousDiagnosis: {
-                prevtherapy: 'మునుపటి నిర్ధారణ & చికిత్స వివరాలు', // Previous Diagnosis & Therapy Details
-                recommend: 'సిఫార్సు' // Recommendation
+                prevtherapy: 'మునుపటి నిర్ధారణ & థెరపీ వివరాలు',
+                recommend: 'సిఫార్సు'
             }
         };
 
@@ -185,7 +181,7 @@
                     detailCard.innerHTML = `
                         <div class="row">
                             <div class="col-6 detail-label">${label}</div>
-                            <div class="col-6 detail-value">${value || 'ప్రారంభించలేదు'}</div> <!-- Not Provided -->
+                            <div class="col-6 detail-value">${value}</div>
                         </div>
                     `;
                     detailContainer.appendChild(detailCard);
@@ -200,19 +196,22 @@
         function fetchCaseHistory() {
             const urlParams = new URLSearchParams(window.location.search);
             const parentId = urlParams.get('id');
+            const aadhaarNumber = urlParams.get('childAadhaar'); // Get aadhaar from URL
             const contentContainer = document.getElementById('case-history-content');
 
-            if (!parentId) {
-                alert('పెరుగుదల ID అందించలేదు');
+            if (!parentId || !aadhaarNumber) {
+                alert('అవసరమైన పారామీటర్లు లేవు');
                 return;
             }
 
+            console.log('Fetching case history for:', { parentId, aadhaarNumber }); // Debug log
+
             // Sections to fetch in specific order
             const sections = [
-                { name: 'పరిచయం డేటా', doc: 'identification', mappings: fieldMappings.identification },
+                { name: 'గుర్తింపు డేటా', doc: 'identification', mappings: fieldMappings.identification },
                 { name: 'చికిత్స మరియు వైద్య చరిత్ర', doc: 'treatment', mappings: fieldMappings.treatment },
                 { name: 'విద్యా చరిత్ర', doc: 'educational', mappings: fieldMappings.educational },
-                { name: 'ప్లే చరిత్ర', doc: 'playhistory', mappings: fieldMappings.playhistory },
+                { name: 'ఆటల చరిత్ర', doc: 'playhistory', mappings: fieldMappings.playhistory },
                 { name: 'ప్రవర్తన చరిత్ర', doc: 'behavior', mappings: fieldMappings.behavior },
                 { name: 'మునుపటి నిర్ధారణ', doc: 'previousDiagnosis', mappings: fieldMappings.previousDiagnosis }
             ];
@@ -220,21 +219,24 @@
             // Fetch all sections
             sections.forEach(section => {
                 db.collection('users')
-                  .doc(parentId)
-                  .collection('casehistory')
-                  .doc(section.doc)
-                  .get()
-                  .then(doc => {
-                      if (doc.exists) {
-                          const sectionElement = createSection(section.name, doc.data(), section.mappings);
-                          if (sectionElement) {
-                              contentContainer.appendChild(sectionElement);
-                          }
-                      }
-                  })
-                  .catch(error => {
-                      console.error(`Error fetching ${section.name}:`, error);
-                  });
+                    .doc(parentId)
+                    .collection(aadhaarNumber) // Access the aadhaarNumber collection
+                    .doc('info') // Access the 'info' document
+                    .collection('casehistory') // Access the 'casehistory' collection
+                    .doc(section.doc) // Access the specific section document
+                    .get()
+                    .then(doc => {
+                        if (doc.exists) {
+                            console.log(`Found data for section: ${section.name}`); // Debug log
+                            const sectionElement = createSection(section.name, doc.data(), section.mappings);
+                            if (sectionElement) {
+                                contentContainer.appendChild(sectionElement);
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error(`Error fetching ${section.name}:`, error);
+                    });
             });
         }
 
@@ -258,12 +260,23 @@
         // Attach event listener to the button
         document.getElementById('download-pdf').addEventListener('click', downloadPDF);
 
+        // Add additional script to load jsPDF
+        const jsPDFScript = document.createElement('script');
+        jsPDFScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        document.head.appendChild(jsPDFScript);
+
+        // Add PDF Download Event Listener
+        document.addEventListener('DOMContentLoaded', () => {
+            const downloadBtn = document.getElementById('download-pdf');
+            downloadBtn.addEventListener('click', downloadPDF);
+        });
+
         // Authentication and Fetch
         firebase.auth().onAuthStateChanged((user) => {
             if (user) {
                 fetchCaseHistory();
             } else {
-                alert('కృపయా లాగిన్ అవ్వండి');
+                alert('దయచేసి లాగిన్ చేయండి');
                 window.location.href = 'login.html';
             }
         });

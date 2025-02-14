@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>विद्यार्थी ऑटिज़्म मूल्यांकन विवरण</title>
+    <title>छात्र आत्मकेंद्रित मूल्यांकन विवरण</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -43,11 +43,11 @@
     <div class="container mt-5">
         <div class="card student-details-card">
             <div class="student-header text-center">
-                <h2 id="student-name">विद्यार्थी का नाम</h2>
+                <h2 id="student-name">छात्र का नाम</h2>
                 <div id="basic-details">
                     <p id="student-gender">लिंग: </p>
-                    <p id="student-dob">जन्मतिथि: </p>
-                    <p id="examiner-details">परीक्षक का नाम: </p>
+                    <p id="student-dob">जन्म तिथि: </p>
+                    <p id="examiner-details">परीक्षक: </p>
                 </div>
             </div>
             
@@ -56,12 +56,12 @@
                     <table class="table table-striped domain-table">
                         <thead>
                             <tr>
-                                <th>डोमेन</th>
+                                <th>क्षेत्र</th>
                                 <th>स्कोर</th>
                             </tr>
                         </thead>
                         <tbody id="domain-scores-body">
-                            <!-- Domains will be populated dynamically -->
+                            <!-- क्षेत्रों को डायनामिक रूप से भरा जाएगा -->
                         </tbody>
                         <tfoot>
                             <tr>
@@ -77,7 +77,7 @@
                 </div>
 
                 <div class="text-center">
-                    <h3>ऑटिज़्म वर्गीकरण</h3>
+                    <h3>आत्मकेंद्रित वर्गीकरण</h3>
                     <div id="autism-classification" class="badge classification-badge"></div>
                 </div>
             </div>
@@ -90,7 +90,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 
     <script>
-        // Firebase Configuration
+        // Firebase कॉन्फ़िगरेशन
         const firebaseConfig = {
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
             authDomain: "autism-evaluation-platform.firebaseapp.com",
@@ -101,57 +101,58 @@
             measurementId: "G-1TGEHTTJF4"
         };
 
-        // Initialize Firebase
+        // Firebase इनिशियलाइज़ करें
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // Domain Names Mapping
+        // क्षेत्र के नाम
         const domainNames = {
-            socialRelationship: "सामाजिक संबंध",
-            emotionalResponsiveness: "भावनात्मक प्रतिक्रिया",
-            speechLanguageCommunication: "भाषा और संवाद",
+            socialRelationship: "सामाजिक संबंध और पारस्परिकता",
+            emotionalResponsiveness: "भावनात्मक उत्तरदायित्व",
+            speechLanguageCommunication: "भाषा और संचार",
             behaviourPatterns: "व्यवहार पैटर्न",
-            sensoryAspects: "सांसदनात्मक पहलु",
+            sensoryAspects: "संवेदी पहलू",
             cognitiveComponent: "संज्ञानात्मक घटक"
         };
 
-        // Autism Classification Function
+        // आत्मकेंद्रित वर्गीकरण फ़ंक्शन
         function classifyAutism(totalScore) {
             if (totalScore <= 70) {
-                return "ऑटिज़्म नहीं है";
+                return "कोई आत्मकेंद्रित नहीं";
             } else if (totalScore <= 106) {
-                return "हल्का ऑटिज़्म";
+                return "माइल्ड आत्मकेंद्रित";
             } else if (totalScore <= 153) {
-                return "मध्यम ऑटिज़्म";
+                return "मध्यम आत्मकेंद्रित";
             } else {
-                return "गंभीर ऑटिज़्म";
+                return "गंभीर आत्मकेंद्रित";
             }
         }
 
-        // Function to get classification badge class
+        // वर्गीकरण बैज का वर्ग प्राप्त करें
         function getClassificationBadgeClass(classification) {
             const classMap = {
-                "ऑटिज़्म नहीं है": "badge-no-autism",
-                "हल्का ऑटिज़्म": "badge-mild-autism",
-                "मध्यम ऑटिज़्म": "badge-moderate-autism",
-                "गंभीर ऑटिज़्म": "badge-severe-autism"
+                "कोई आत्मकेंद्रित नहीं": "badge-no-autism",
+                "माइल्ड आत्मकेंद्रित": "badge-mild-autism",
+                "मध्यम आत्मकेंद्रित": "badge-moderate-autism",
+                "गंभीर आत्मकेंद्रित": "badge-severe-autism"
             };
             return classMap[classification] || "";
         }
 
-        // Fetch Student Details
+        // छात्र विवरण प्राप्त करें
         document.addEventListener('DOMContentLoaded', () => {
-            // Get student ID from URL
+            // URL से छात्र आईडी प्राप्त करें
             const urlParams = new URLSearchParams(window.location.search);
             const studentId = urlParams.get('id');
+            const aadhaarNumber = urlParams.get('childAadhaar');
 
             if (!studentId) {
-                alert('विद्यार्थी का ID नहीं दिया गया है');
+                alert('कोई छात्र आईडी प्रदान नहीं की गई');
                 return;
             }
 
-            // Fetch student details
-            const detailsRef = db.collection('users').doc(studentId).collection('Questionnaire').doc('details');
+            // छात्र विवरण प्राप्त करें
+            const detailsRef = db.collection('users').doc(studentId).collection(aadhaarNumber).doc('info').collection('parentfilledquestionnaire').doc('details');
             const domainRefs = [
                 'socialRelationship', 
                 'emotionalResponsiveness', 
@@ -161,23 +162,23 @@
                 'cognitiveComponent'
             ];
 
-            // Populate basic details
+            // बुनियादी विवरण भरें
             detailsRef.get().then(doc => {
                 if (doc.exists) {
                     const data = doc.data();
-                    document.getElementById('student-name').textContent = data.name || 'जानकारी नहीं है';
-                    document.getElementById('student-gender').textContent = `लिंग: ${data.gender || 'जानकारी नहीं है'}`;
-                    document.getElementById('student-dob').textContent = `जन्मतिथि: ${data.dob || 'जानकारी नहीं है'}`;
-                    document.getElementById('examiner-details').textContent = `परीक्षक का नाम: ${data.examiner || 'जानकारी नहीं है'}`;
+                    document.getElementById('student-name').textContent = data.name || 'N/A';
+                    document.getElementById('student-gender').textContent = `लिंग: ${data.gender || 'N/A'}`;
+                    document.getElementById('student-dob').textContent = `जन्म तिथि: ${data.dob || 'N/A'}`;
+                    document.getElementById('examiner-details').textContent = `परीक्षक: ${data.examiner || 'N/A'}`;
                 }
             });
 
-            // Fetch domain scores
+            // क्षेत्र स्कोर प्राप्त करें
             const domainScoresBody = document.getElementById('domain-scores-body');
             let totalScore = 0;
 
             domainRefs.forEach(domain => {
-                db.collection('users').doc(studentId).collection('Questionnaire').doc(domain).get()
+                db.collection('users').doc(studentId).collection(aadhaarNumber).doc('info').collection('parentfilledquestionnaire').doc(domain).get()
                     .then(doc => {
                         if (doc.exists) {
                             const score = doc.data().score || 0;
@@ -190,7 +191,7 @@
                             `;
                             domainScoresBody.appendChild(row);
 
-                            // Update total score and classification
+                            // कुल स्कोर और वर्गीकरण अपडेट करें
                             document.getElementById('total-score').textContent = totalScore;
                             const classification = classifyAutism(totalScore);
                             const classificationEl = document.getElementById('autism-classification');
@@ -200,7 +201,7 @@
                         }
                     })
                     .catch(error => {
-                        console.error(`Error fetching ${domain} data:`, error);
+                        console.error(`त्रुटि ${domain} डेटा लाने में:`, error);
                     });
             });
         });
