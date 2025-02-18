@@ -193,6 +193,18 @@ body {
     font-size: clamp(16px, 2vw, 18px); /* Responsive font size */
 }
 
+.therapy-recommendations {
+    margin-top: 20px;
+    padding: clamp(16px, 2.5vw, 24px); /* Responsive padding */
+    background-color: #e9f5ff;
+    border-radius: 8px;
+    font-weight: 600;
+    text-align: center;
+    color: #1a1a1a;
+    border: 1px solid #cce5ff;
+    font-size: clamp(16px, 2vw, 18px); /* Responsive font size */
+}
+
 button {
     background-color: #34d399;
     color: white;

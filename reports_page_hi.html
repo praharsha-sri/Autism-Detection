@@ -259,12 +259,12 @@
 
             const autismRange = document.createElement('div');
             autismRange.className = 'autism-range';
-            autismRange.innerHTML = `ऑटिज़्म रेंज: ${report.autismRange}`;
+            autismRange.innerHTML = `<strong>ऑटिज़्म रेंज: </strong>${report.autismRange}`;
 
             // Therapy details
     const therapyDetails = document.createElement('div');
-    therapyDetails.className = 'therapy-details';
-    therapyDetails.innerHTML = `<strong>सिफारिश की गई थेरेपी:</strong> ${report.therapyDetails}`;
+    therapyDetails.className = 'therapy-recommendations';
+    therapyDetails.innerHTML = `<strong>सिफारिश की गई चिकित्सा:</strong> ${report.therapyDetails}`;
 
 
             const generateButton = document.createElement('button');

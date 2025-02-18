@@ -289,11 +289,11 @@ async function fetchReports() {
 
             const autismRange = document.createElement('div');
             autismRange.className = 'autism-range';
-            autismRange.innerHTML = `Autism Range: ${report.autismRange}`;
+            autismRange.innerHTML = `<strong>Autism Range: </strong>${report.autismRange}`;
 
             // Therapy details
     const therapyDetails = document.createElement('div');
-    therapyDetails.className = 'therapy-details';
+    therapyDetails.className = 'therapy-recommendations';
     therapyDetails.innerHTML = `<strong>Recommended Therapy:</strong> ${report.therapyDetails}`;
 
             const generateButton = document.createElement('button');

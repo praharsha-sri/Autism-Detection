@@ -33,6 +33,11 @@
             padding: 10px;
             margin-top: 15px;
         }
+        .recommended-therapies {
+            font-size: 1.2em;
+            margin-top: 15px;
+            padding: 10px;
+        }
         .badge-no-autism { background-color: #2ecc71; }
         .badge-mild-autism { background-color: #f39c12; }
         .badge-moderate-autism { background-color: #e74c3c; }
@@ -80,6 +85,11 @@
                     <h3>आत्मकेंद्रित वर्गीकरण</h3>
                     <div id="autism-classification" class="badge classification-badge"></div>
                 </div>
+                <div class="text-center mt-4">
+                    <h3>सिफारिश की गई चिकित्सा</h3>
+                    <div id="recommended-therapy" class="recommended-therapies"></div>
+                </div>
+                
             </div>
         </div>
     </div>
@@ -139,7 +149,6 @@
             return classMap[classification] || "";
         }
 
-        // छात्र विवरण प्राप्त करें
         document.addEventListener('DOMContentLoaded', () => {
             // URL से छात्र आईडी प्राप्त करें
             const urlParams = new URLSearchParams(window.location.search);
@@ -173,37 +182,100 @@
                 }
             });
 
-            // क्षेत्र स्कोर प्राप्त करें
-            const domainScoresBody = document.getElementById('domain-scores-body');
-            let totalScore = 0;
+            // पहले चिकित्सा विवरण प्राप्त करने का प्रयास करें
+            db.collection('users').doc(studentId).collection(aadhaarNumber).doc('info').collection('parentfilledquestionnaire').doc('therapydetails').get()
+                .then(doc => {
+                    if (doc.exists && doc.data().therapyDetails) {
+                        // अगर चिकित्सा विवरण मौजूद हैं, तो उन्हें प्रदर्शित करें
+                        document.getElementById('recommended-therapy').textContent = doc.data().therapyDetails;
+                    } else {
+                        // अगर नहीं, तो डोमेन स्कोर फ़ेच करें और गणना करें
+                        fetchDomainScoresAndCalculate();
+                    }
+                })
+                .catch(error => {
+                    console.error("चिकित्सा विवरण प्राप्त करने में त्रुटि:", error);
+                    // अगर त्रुटि है, तो फिर भी चिकित्सा की गणना करने का प्रयास करें
+                    fetchDomainScoresAndCalculate();
+                });
+                
+            function fetchDomainScoresAndCalculate() {
+                // डोमेन स्कोर प्राप्त करें
+                const domainScoresBody = document.getElementById('domain-scores-body');
+                let totalScore = 0;
+                let domainsProcessed = 0;
 
-            domainRefs.forEach(domain => {
-                db.collection('users').doc(studentId).collection(aadhaarNumber).doc('info').collection('parentfilledquestionnaire').doc(domain).get()
+                domainRefs.forEach(domain => {
+                    db.collection('users').doc(studentId).collection(aadhaarNumber).doc('info').collection('parentfilledquestionnaire').doc(domain).get()
+                        .then(doc => {
+                            if (doc.exists) {
+                                const score = doc.data().score || 0;
+                                totalScore += score;
+
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${domainNames[domain]}</td>
+                                    <td>${score}</td>
+                                `;
+                                domainScoresBody.appendChild(row);
+                            }
+                            
+                            domainsProcessed++;
+                            
+                            // जब सभी डोमेन प्रोसेस हो जाते हैं, तो कुल और वर्गीकरण अपडेट करें
+                            if (domainsProcessed === domainRefs.length) {
+                                document.getElementById('total-score').textContent = totalScore;
+                                const percentage = ((totalScore/200)*100).toFixed(1);
+                                document.getElementById('percentage').textContent = `${percentage}%`;
+                                
+                                const classification = classifyAutism(totalScore);
+                                const classificationEl = document.getElementById('autism-classification');
+                                classificationEl.textContent = classification;
+                                classificationEl.className = `badge classification-badge text-white ${getClassificationBadgeClass(classification)}`;
+                                
+                                // अब चिकित्सा विवरण फिर से प्राप्त करके प्रदर्शित करें
+                                fetchTherapyDetails();
+                            }
+                        })
+                        .catch(error => {
+                            console.error(`${domain} डेटा प्राप्त करने में त्रुटि:`, error);
+                            domainsProcessed++;
+                        });
+                });
+            }
+            
+            function fetchTherapyDetails() {
+                db.collection('users').doc(studentId).collection(aadhaarNumber).doc('info').collection('parentfilledquestionnaire').doc('therapydetails').get()
                     .then(doc => {
                         if (doc.exists) {
-                            const score = doc.data().score || 0;
-                            totalScore += score;
-
-                            const row = document.createElement('tr');
-                            row.innerHTML = `
-                                <td>${domainNames[domain]}</td>
-                                <td>${score}</td>
-                            `;
-                            domainScoresBody.appendChild(row);
-
-                            // कुल स्कोर और वर्गीकरण अपडेट करें
-                            document.getElementById('total-score').textContent = totalScore;
-                            const classification = classifyAutism(totalScore);
-                            const classificationEl = document.getElementById('autism-classification');
-                            classificationEl.textContent = classification;
-                            classificationEl.className = `badge text-white ${getClassificationBadgeClass(classification)}`;
-                            document.getElementById('percentage').textContent = (totalScore/200)*100+'%';
+                            let therapyDetails;
+                            
+                            // विभिन्न संभावित फ़ील्ड नामों की जांच करें जिनमें चिकित्सा विवरण हो सकते हैं
+                            if (doc.data().therapyDetails) {
+                                therapyDetails = doc.data().therapyDetails;
+                            } else if (doc.data().recommendedTherapies) {
+                                therapyDetails = doc.data().recommendedTherapies;
+                            } else if (doc.data().therapyAbbreviations) {
+                                therapyDetails = doc.data().therapyAbbreviations;
+                            }
+                            
+                            if (therapyDetails) {
+                                document.getElementById('recommended-therapy').textContent = therapyDetails;
+                            } else {
+                                document.getElementById('recommended-therapy').textContent = "चिकित्सा विवरण उपलब्ध नहीं है";
+                            }
+                        } else {
+                            document.getElementById('recommended-therapy').textContent = "कोई चिकित्सा अनुशंसा नहीं मिली";
                         }
                     })
                     .catch(error => {
-                        console.error(`त्रुटि ${domain} डेटा लाने में:`, error);
+                        console.error("चिकित्सा विवरण प्राप्त करने में त्रुटि:", error);
+                        document.getElementById('recommended-therapy').textContent = "चिकित्सा विवरण प्राप्त करने में त्रुटि";
                     });
-            });
+            }
+            
+            // प्रक्रिया शुरू करें
+            fetchDomainScoresAndCalculate();
         });
     </script>
 
