@@ -194,6 +194,15 @@
                         scores[domain] = 'N/A';
                     }
                 }
+                // Fetch therapy details
+        let therapyDetails = "Not Available";
+        const therapyDoc = await db.collection('users').doc(user.uid)
+                        .collection(studentAadhaar)
+                        .doc('info')
+                        .collection('parentfilledquestionnaire').doc('therapydetails').get();
+        if (therapyDoc.exists) {
+            therapyDetails = therapyDoc.data().therapyDetails || "Not Available";
+        }
 
                 const reportData = {
                     id: 'current_assessment',
@@ -205,7 +214,8 @@
                         name: userName,
                         email: user.email || 'చేయలేదు',
                         uid: user.uid
-                    }
+                    },
+                    therapyDetails
                 };
 
                 reportsContainer.appendChild(createReportCard(reportData));
@@ -251,6 +261,11 @@
             autismRange.className = 'autism-range';
             autismRange.innerHTML = `ఆటిజం శ్రేణి: ${report.autismRange}`;
 
+            // Therapy details
+    const therapyDetails = document.createElement('div');
+    therapyDetails.className = 'therapy-details';
+    therapyDetails.innerHTML = `<strong>సిఫారసు చేసిన థెరపీలు:</strong> ${report.therapyDetails}`;
+
             const generateButton = document.createElement('button');
             generateButton.className = 'generate-button';
             generateButton.innerHTML = `
@@ -262,6 +277,7 @@
             card.appendChild(scoresContainer);
             card.appendChild(totalScore);
             card.appendChild(autismRange);
+            card.appendChild(therapyDetails);
             card.appendChild(generateButton);
 
             return card;
@@ -333,6 +349,7 @@ document.querySelector('#generate-pdf').addEventListener('click', generatePDF);
         function formatDate(dateString) {
             const date = new Date(dateString);
             return date.toLocaleDateString('te-IN', { year: 'numeric', month: 'long', day: 'numeric' });
+        
         }
 
         auth.onAuthStateChanged(user => {
@@ -350,6 +367,7 @@ document.querySelector('#generate-pdf').addEventListener('click', generatePDF);
                 fetchReports();
             }
         });
+        
     </script>
 </body>
 </html>

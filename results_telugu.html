@@ -332,8 +332,10 @@ const therapyRecommendations = await getTherapyRecommendations(scores, autismRan
                 };
                 // Storing result data in Firestore (parentfilledquestionnaire)
         const parentFilledQuestionnaireRef = doc(db, 'users', userId, studentAadhaar, 'info', 'parentfilledquestionnaire','therapydetails');
+        // Extracting only therapy names and converting them into a comma-separated string
+const therapyNamesString = Object.keys(filteredRecommendations).join(", ");
         await setDoc(parentFilledQuestionnaireRef, {
-            therapyDetails: filteredRecommendations,
+            therapyDetails: therapyNamesString,
         });
 
                 if (isTeacher) {

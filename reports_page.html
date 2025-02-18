@@ -224,6 +224,16 @@ async function fetchReports() {
                     }
                 }
 
+                // Fetch therapy details
+        let therapyDetails = "Not Available";
+        const therapyDoc = await db.collection('users').doc(user.uid)
+                        .collection(studentAadhaar)
+                        .doc('info')
+                        .collection('parentfilledquestionnaire').doc('therapydetails').get();
+        if (therapyDoc.exists) {
+            therapyDetails = therapyDoc.data().therapyDetails || "Not Available";
+        }
+
                 const reportData = {
                     id: 'current_assessment',
                     scores,
@@ -234,7 +244,8 @@ async function fetchReports() {
                         name: userName,
                         email: user.email || 'Not provided',
                         uid: user.uid
-                    }
+                    },
+                    therapyDetails
                 };
 
                 reportsContainer.appendChild(createReportCard(reportData));
@@ -280,6 +291,11 @@ async function fetchReports() {
             autismRange.className = 'autism-range';
             autismRange.innerHTML = `Autism Range: ${report.autismRange}`;
 
+            // Therapy details
+    const therapyDetails = document.createElement('div');
+    therapyDetails.className = 'therapy-details';
+    therapyDetails.innerHTML = `<strong>Recommended Therapy:</strong> ${report.therapyDetails}`;
+
             const generateButton = document.createElement('button');
             generateButton.className = 'generate-button';
             generateButton.innerHTML = `
@@ -297,6 +313,7 @@ async function fetchReports() {
             card.appendChild(scoresContainer);
             card.appendChild(totalScore);
             card.appendChild(autismRange);
+            card.appendChild(therapyDetails);
             card.appendChild(generateButton);
 
             return card;
@@ -472,6 +489,7 @@ function generateEnglishPDF(reportData) {
         doc.setFontSize(14);
         doc.text(`Total Score: ${reportData.totalScore || 'N/A'}`, margin, yPos);
         doc.text(`Autism Classification: ${reportData.autismRange || 'N/A'}`, margin, yPos + 10);
+        doc.text(`Recommended Therapy: ${reportData.therapyDetails|| 'N/A'}`, margin, yPos + 20);
 
         // Footer
         doc.setTextColor(150, 150, 150);
