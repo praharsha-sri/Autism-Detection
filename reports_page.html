@@ -127,13 +127,16 @@
 
 function displayChildInfo(user) {
     const childDetailsDiv = document.getElementById('child-details');
+    const studentAadhaar = sessionStorage.getItem('currentChildAadhaar');
     
     // Show loading state
     childDetailsDiv.innerHTML = '<p>Loading child information...</p>';
     
     db.collection('users').doc(user.uid)
-        .collection('Questionnaire')
-        .doc('details')
+                        .collection(studentAadhaar)
+                        .doc('info')
+                        .collection('parentfilledquestionnaire')
+            .doc('details')
         .get()
         .then(doc => {
             if (doc.exists) {
@@ -196,6 +199,7 @@ async function fetchReports() {
         const userDoc = await db.collection('users').doc(user.uid).get();
         const userData = userDoc.exists ? userDoc.data() : {};
         const userName = userData.name || user.displayName || 'Not provided';
+        const studentAadhaar = sessionStorage.getItem('currentChildAadhaar');
 
                 displayUserInfo(user);
                 displayChildInfo(user);
@@ -206,7 +210,9 @@ async function fetchReports() {
 
                 for (const domain of domains) {
                     const docRef = db.collection('users').doc(user.uid)
-                                   .collection('Questionnaire').doc(domain);
+                        .collection(studentAadhaar)
+                        .doc('info')
+                        .collection('parentfilledquestionnaire').doc(domain);
                     const docSnap = await docRef.get();
                     
                     if (docSnap.exists) {
@@ -218,6 +224,16 @@ async function fetchReports() {
                     }
                 }
 
+                // Fetch therapy details
+        let therapyDetails = "Not Available";
+        const therapyDoc = await db.collection('users').doc(user.uid)
+                        .collection(studentAadhaar)
+                        .doc('info')
+                        .collection('parentfilledquestionnaire').doc('therapydetails').get();
+        if (therapyDoc.exists) {
+            therapyDetails = therapyDoc.data().therapyDetails || "Not Available";
+        }
+
                 const reportData = {
                     id: 'current_assessment',
                     scores,
@@ -228,7 +244,8 @@ async function fetchReports() {
                         name: userName,
                         email: user.email || 'Not provided',
                         uid: user.uid
-                    }
+                    },
+                    therapyDetails
                 };
 
                 reportsContainer.appendChild(createReportCard(reportData));
@@ -272,7 +289,12 @@ async function fetchReports() {
 
             const autismRange = document.createElement('div');
             autismRange.className = 'autism-range';
-            autismRange.innerHTML = `Autism Range: ${report.autismRange}`;
+            autismRange.innerHTML = `<strong>Autism Range: </strong>${report.autismRange}`;
+
+            // Therapy details
+    const therapyDetails = document.createElement('div');
+    therapyDetails.className = 'therapy-recommendations';
+    therapyDetails.innerHTML = `<strong>Recommended Therapy:</strong> ${report.therapyDetails}`;
 
             const generateButton = document.createElement('button');
             generateButton.className = 'generate-button';
@@ -291,6 +313,7 @@ async function fetchReports() {
             card.appendChild(scoresContainer);
             card.appendChild(totalScore);
             card.appendChild(autismRange);
+            card.appendChild(therapyDetails);
             card.appendChild(generateButton);
 
             return card;
@@ -298,10 +321,13 @@ async function fetchReports() {
 
         function showLanguageModal(reportData) {
     // First, fetch child information before showing the modal
+    const studentAadhaar = sessionStorage.getItem('currentChildAadhaar');
     const user = firebase.auth().currentUser;
     if (user) {
         db.collection('users').doc(user.uid)
-            .collection('Questionnaire')
+                        .collection(studentAadhaar)
+                        .doc('info')
+                        .collection('parentfilledquestionnaire')
             .doc('details')
             .get()
             .then(doc => {
@@ -463,6 +489,7 @@ function generateEnglishPDF(reportData) {
         doc.setFontSize(14);
         doc.text(`Total Score: ${reportData.totalScore || 'N/A'}`, margin, yPos);
         doc.text(`Autism Classification: ${reportData.autismRange || 'N/A'}`, margin, yPos + 10);
+        doc.text(`Recommended Therapy: ${reportData.therapyDetails|| 'N/A'}`, margin, yPos + 20);
 
         // Footer
         doc.setTextColor(150, 150, 150);

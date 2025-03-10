@@ -171,6 +171,19 @@ const scoreKeyTranslationsTelugu = {
     "Unknown": "తెలియదు" // Default for unexpected keys
 };
 
+             // Get therapy recommendations from the data
+            const therapyRecommendations = data.therapyRecommendations || {};
+
+        // Extract therapy names from the keys of the therapyRecommendations map
+        const therapyNames = Object.keys(therapyRecommendations);
+
+        // Create therapy recommendations HTML if available
+        const therapyRecommendationsHTML = therapyNames.length > 0 
+        ? `<h4 class="mt-4 text-primary">చికిత్స</h4>
+          <ul class="list-group">
+           ${therapyNames.map(therapy => `<li class="list-group-item">${therapy}</li>`).join('')}
+       </ul>`
+    : '<p>Unkonwn</p>';
 
             // Populate modal content
             studentModalContent.innerHTML = `
@@ -187,6 +200,7 @@ const scoreKeyTranslationsTelugu = {
                         <p><strong>ఆటిజం పరిధి:</strong> ${autismRangeTranslations[data.autismRange]}</p>
                     </div>
                 </div>
+                ${therapyRecommendationsHTML}
                 <h4 class="mt-4 text-primary">స్కోర్ల వివరాలు</h4>
                 <ul class="list-group">
                      ${Object.keys(data.scores).map(key => `

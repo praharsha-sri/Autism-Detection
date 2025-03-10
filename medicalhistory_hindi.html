@@ -67,6 +67,7 @@
         }
 
         async function handleFormSubmit(event) {
+            const childAadhaar =new URLSearchParams(window.location.search).get('childAadhaar');
             event.preventDefault(); // Prevent page reload
 
             const user = auth.currentUser; // Check current user
@@ -79,11 +80,11 @@
             formData.timestamp = new Date(); // Add timestamp
 
             try {
-                const docRef = doc(db, "users", user.uid, "casehistory", "treatment");
+                const docRef = doc(db, "users", user.uid, childAadhaar, "info", "casehistory", "treatment");
                 await setDoc(docRef, formData);
 
                 console.log("चिकित्सा इतिहास डेटा सफलतापूर्वक सहेजा गया।");
-                window.location.href = 'educationalhistory_hindi.html'; // Next page
+                window.location.href = `educationalhistory_hindi.html?childAadhaar=${encodeURIComponent(childAadhaar)}`; // Next page
             } catch (error) {
                 console.error("डेटा सहेजने में त्रुटि:", error);
                 alert('डेटा सबमिट करने में विफल। कृपया पुनः प्रयास करें।');

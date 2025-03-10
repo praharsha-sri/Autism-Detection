@@ -33,6 +33,12 @@
             padding: 10px;
             margin-top: 15px;
         }
+        .recommended-therapies
+        {
+            font-size:1.2em;
+            margin-top: 15px;
+            padding: 10px;
+        }
         .badge-no-autism { background-color: #2ecc71; }
         .badge-mild-autism { background-color: #f39c12; }
         .badge-moderate-autism { background-color: #e74c3c; }
@@ -79,6 +85,10 @@
                 <div class="text-center">
                     <h3>Autism Classification</h3>
                     <div id="autism-classification" class="badge classification-badge"></div>
+                </div>
+                <div class="text-center mt-4">
+                    <h3>Recommended Therapy</h3>
+                    <div id="recommended-therapy" class="recommended-therapies"></div>
                 </div>
             </div>
         </div>
@@ -144,6 +154,7 @@
             // Get student ID from URL
             const urlParams = new URLSearchParams(window.location.search);
             const studentId = urlParams.get('id');
+            const aadhaarNumber = urlParams.get('childAadhaar');
 
             if (!studentId) {
                 alert('No student ID provided');
@@ -151,7 +162,7 @@
             }
 
             // Fetch student details
-            const detailsRef = db.collection('users').doc(studentId).collection('Questionnaire').doc('details');
+            const detailsRef = db.collection('users').doc(studentId).collection(aadhaarNumber).doc('info').collection('parentfilledquestionnaire').doc('details');
             const domainRefs = [
                 'socialRelationship', 
                 'emotionalResponsiveness', 
@@ -171,38 +182,101 @@
                     document.getElementById('examiner-details').textContent = `Examiner: ${data.examiner || 'N/A'}`;
                 }
             });
+            
+            // First, try to fetch therapy details if they exist
+            db.collection('users').doc(studentId).collection(aadhaarNumber).doc('info').collection('parentfilledquestionnaire').doc('therapydetails').get()
+                .then(doc => {
+                    if (doc.exists && doc.data().therapyDetails) {
+                        // If therapy details exist, display them
+                        document.getElementById('recommended-therapy').textContent = doc.data().therapyDetails;
+                    } else {
+                        // If not, proceed with fetching domain scores and calculating
+                        fetchDomainScoresAndCalculate();
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching therapy details:", error);
+                    // If there's an error, still try to calculate the therapies
+                    fetchDomainScoresAndCalculate();
+                });
+                
+            function fetchDomainScoresAndCalculate() {
+                // Fetch domain scores
+                const domainScoresBody = document.getElementById('domain-scores-body');
+                let totalScore = 0;
+                let domainsProcessed = 0;
 
-            // Fetch domain scores
-            const domainScoresBody = document.getElementById('domain-scores-body');
-            let totalScore = 0;
+                domainRefs.forEach(domain => {
+                    db.collection('users').doc(studentId).collection(aadhaarNumber).doc('info').collection('parentfilledquestionnaire').doc(domain).get()
+                        .then(doc => {
+                            if (doc.exists) {
+                                const score = doc.data().score || 0;
+                                totalScore += score;
 
-            domainRefs.forEach(domain => {
-                db.collection('users').doc(studentId).collection('Questionnaire').doc(domain).get()
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${domainNames[domain]}</td>
+                                    <td>${score}</td>
+                                `;
+                                domainScoresBody.appendChild(row);
+                            }
+                            
+                            domainsProcessed++;
+                            
+                            // When all domains are processed, update totals and classification
+                            if (domainsProcessed === domainRefs.length) {
+                                document.getElementById('total-score').textContent = totalScore;
+                                const percentage = ((totalScore/200)*100).toFixed(1);
+                                document.getElementById('percentage').textContent = `${percentage}%`;
+                                
+                                const classification = classifyAutism(totalScore);
+                                const classificationEl = document.getElementById('autism-classification');
+                                classificationEl.textContent = classification;
+                                classificationEl.className = `badge classification-badge text-white ${getClassificationBadgeClass(classification)}`;
+                                
+                                // Now fetch therapy details again to display them
+                                fetchTherapyDetails();
+                            }
+                        })
+                        .catch(error => {
+                            console.error(`Error fetching ${domain} data:`, error);
+                            domainsProcessed++;
+                        });
+                });
+            }
+            
+            function fetchTherapyDetails() {
+                db.collection('users').doc(studentId).collection(aadhaarNumber).doc('info').collection('parentfilledquestionnaire').doc('therapydetails').get()
                     .then(doc => {
                         if (doc.exists) {
-                            const score = doc.data().score || 0;
-                            totalScore += score;
-
-                            const row = document.createElement('tr');
-                            row.innerHTML = `
-                                <td>${domainNames[domain]}</td>
-                                <td>${score}</td>
-                            `;
-                            domainScoresBody.appendChild(row);
-
-                            // Update total score and classification
-                            document.getElementById('total-score').textContent = totalScore;
-                            const classification = classifyAutism(totalScore);
-                            const classificationEl = document.getElementById('autism-classification');
-                            classificationEl.textContent = classification;
-                            classificationEl.className = `badge text-white ${getClassificationBadgeClass(classification)}`;
-                            document.getElementById('percentage').textContent = (totalScore/200)*100+'%';
+                            let therapyDetails;
+                            
+                            // Check different possible field names that might contain therapy details
+                            if (doc.data().therapyDetails) {
+                                therapyDetails = doc.data().therapyDetails;
+                            } else if (doc.data().recommendedTherapies) {
+                                therapyDetails = doc.data().recommendedTherapies;
+                            } else if (doc.data().therapyAbbreviations) {
+                                therapyDetails = doc.data().therapyAbbreviations;
+                            }
+                            
+                            if (therapyDetails) {
+                                document.getElementById('recommended-therapy').textContent = therapyDetails;
+                            } else {
+                                document.getElementById('recommended-therapy').textContent = "No therapy details available";
+                            }
+                        } else {
+                            document.getElementById('recommended-therapy').textContent = "No therapy recommendations found";
                         }
                     })
                     .catch(error => {
-                        console.error(`Error fetching ${domain} data:`, error);
+                        console.error("Error fetching therapy details:", error);
+                        document.getElementById('recommended-therapy').textContent = "Error retrieving therapy details";
                     });
-            });
+            }
+            
+            // Start the process
+            fetchDomainScoresAndCalculate();
         });
     </script>
 

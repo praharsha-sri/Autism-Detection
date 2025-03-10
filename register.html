@@ -3,16 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - Autism Evaluation Platform</title>
+    <title>Register - Bālāmṛta </title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="styles.css" rel="stylesheet">
+    <style>
+        .children-counter {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .counter-btn {
+            width: 30px;
+            height: 30px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        .counter-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .counter-value {
+            font-size: 18px;
+            min-width: 30px;
+            text-align: center;
+        }
 
+        .child-details-container {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .child-details-container h4 {
+            margin-bottom: 15px;
+            color: #007bff;
+        }
+        
+        /* Add shake animation for invalid input */
+        .shake {
+            animation: shake 0.5s;
+        }
+        
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(5px); }
+            50% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+    </style>
+
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+    <!-- Initialize EmailJS -->
+    <script type="text/javascript">
+        (function() {
+            // Your EmailJS public key
+            emailjs.init("kePAivVPqcpg7u_cP");
+        })();
+    </script>
+    
     <!-- Firebase SDK -->
     <script type="module">
-        // Import Firebase app and services
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-    import { getFirestore, setDoc, doc, getDocs, collection, query, where } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+       import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+       import { 
+           getFirestore, 
+           setDoc, 
+           doc, 
+           getDocs, 
+           collection, 
+           query, 
+           where, 
+           getDoc,
+           updateDoc,
+           runTransaction
+       } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
     
         const firebaseConfig = {
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
@@ -29,6 +108,7 @@
         const db = getFirestore(app);
 
         function isValidAadhaar(aadhaar) {
+            // Remove all spaces for validation
             const cleanAadhaar = aadhaar.replace(/\s/g, '');
             
             if (!/^\d{12}$/.test(cleanAadhaar)) {
@@ -45,27 +125,206 @@
                 alert("Aadhaar number cannot contain alphabets or special characters.");
                 return false;
             }
-
-            if (aadhaar !== cleanAadhaar && !/^\d{4}\s?\d{4}\s?\d{4}$/.test(aadhaar)) {
-                alert("If using spaces, they should only appear after every 4 digits.");
-                return false;
-            }
             
             return true;
         }
 
-        // Registration Functionality
-        document.addEventListener('DOMContentLoaded', function () {
+        // Format Aadhaar number with spaces after every 4 digits
+        function formatAadhaar(value) {
+            // Remove all non-digits
+            const digitsOnly = value.replace(/\D/g, '');
             
-            document.getElementById('registerForm').addEventListener('submit', async function (event) {
+            // Limit to 12 digits
+            const trimmed = digitsOnly.substring(0, 12);
+            
+            // Add spaces after every 4 characters
+            let formatted = '';
+            for (let i = 0; i < trimmed.length; i++) {
+                if (i > 0 && i % 4 === 0) {
+                    formatted += ' ';
+                }
+                formatted += trimmed[i];
+            }
+            
+            return formatted;
+        }
+
+        // Function to send admin notification email using EmailJS
+        function sendAdminEmail(userData) {
+            try {
+                const { role, name, organization, email, phone, children = [] } = userData;
+                
+                // Different template IDs for different roles
+                // Replace TEACHER_TEMPLATE_ID with your actual teacher template ID
+                const templateId = role === 'parent' ? 'template_sr1g169' : 'template_ycb0nwq';
+                
+                // Common parameters for both templates
+                const templateParams = {
+                    to_email: 'gpraharshasri@gmail.com',
+                    from_name: 'Bālāmṛta Registration System',
+                    subject: `New ${role.charAt(0).toUpperCase() + role.slice(1)} Registration: ${name}`,
+                    user_name: name,
+                    user_email: email,
+                    user_phone: '+91' + phone,
+                    user_organization: organization,
+                    registration_time: new Date().toLocaleString(),
+                    reply_to: email
+                };
+                
+                // Additional parameters for parent template
+                if (role === 'parent' && children.length > 0) {
+                    // Prepare children table
+                    let childrenList = '<table style="width: 100%; border-collapse: collapse;">' +
+                                      '<tr><th style="text-align: left; padding: 8px; border-bottom: 2px solid #ddd;">Name</th>' +
+                                      '<th style="text-align: left; padding: 8px; border-bottom: 2px solid #ddd;">Aadhaar Number</th></tr>';
+                    
+                    children.forEach(child => {
+                        childrenList += `<tr>
+                            <td style="padding: 8px; border-bottom: 1px solid #eee;">${child.name}</td>
+                            <td style="padding: 8px; border-bottom: 1px solid #eee;">${child.aadhaar}</td>
+                        </tr>`;
+                    });
+                    
+                    childrenList += '</table>';
+                    
+                    // Add children-specific parameters to the template params
+                    templateParams.children_count = children.length;
+                    templateParams.children_list = childrenList;
+                }
+                
+                // Send email using EmailJS
+                emailjs.send('service_d9zo0rw', templateId, templateParams)
+                    .then(function(response) {
+                        console.log(`Email sent successfully for ${role}:`, response);
+                    }, function(error) {
+                        console.error(`Failed to send ${role} email:`, error);
+                    });
+                
+            } catch (error) {
+                console.error('Error preparing email:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const phoneInput = document.getElementById('phone');
+            const childrenContainer = document.getElementById('children-counter-container');
+            const childrenDetails = document.getElementById('childrenDetails');
+            const roleSelect = document.getElementById('role');
+            let childrenCount = 0;
+
+            // Phone number input handling
+            phoneInput.addEventListener('input', function(e) {
+                const cursorPosition = this.selectionStart;
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 10) {
+                    value = value.slice(0, 10);
+                    this.classList.add('shake');
+                    setTimeout(() => this.classList.remove('shake'), 500);
+                }
+                this.value = value;
+                if (cursorPosition < value.length) {
+                    this.setSelectionRange(cursorPosition, cursorPosition);
+                }
+            });
+            phoneInput.setAttribute('maxlength', '10');
+
+            function updateChildrenVisibility() {
+                childrenContainer.style.display = roleSelect.value === 'parent' ? 'block' : 'none';
+            }
+
+            updateChildrenVisibility();
+
+            roleSelect.addEventListener('change', function() {
+                updateChildrenVisibility();
+                childrenDetails.innerHTML = '';
+                childrenCount = 0;
+                updateChildrenCounter();
+            });
+
+            // Initialize counter display
+            function updateChildrenCounter() {
+                document.querySelector('.counter-value').textContent = childrenCount;
+                document.querySelector('.counter-btn.minus').disabled = childrenCount === 0;
+            }
+
+            // Counter buttons functionality
+            document.querySelector('.counter-btn.minus').addEventListener('click', () => {
+                if (childrenCount > 0) {
+                    childrenCount--;
+                    updateChildrenCounter();
+                    updateChildrenFields();
+                }
+            });
+
+            document.querySelector('.counter-btn.plus').addEventListener('click', () => {
+                childrenCount++;
+                updateChildrenCounter();
+                updateChildrenFields();
+            });
+
+            function updateChildrenFields() {
+                childrenDetails.innerHTML = '';
+                
+                for (let i = 1; i <= childrenCount; i++) {
+                    const childDiv = document.createElement('div');
+                    childDiv.className = 'child-details-container';
+                    childDiv.innerHTML = `
+                        <h4>Child ${i}</h4>
+                        <div class="mb-3">
+                            <label class="form-label">Name</label>
+                            <input type="text" class="form-control child-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Aadhaar Number</label>
+                            <input type="text" class="form-control child-aadhaar" maxlength="14" 
+                                   placeholder="XXXX XXXX XXXX" required>
+                            <small class="text-muted">Enter 12 digits</small>
+                        </div>
+                    `;
+                    childrenDetails.appendChild(childDiv);
+
+                    // Add Aadhaar input handling
+                    const childAadhaar = childDiv.querySelector('.child-aadhaar');
+                    setupAadhaarInput(childAadhaar);
+                }
+            }
+
+            // Function to set up Aadhaar input handling
+            function setupAadhaarInput(input) {
+                input.addEventListener('input', function(e) {
+                    const cursorPosition = this.selectionStart;
+                    const value = this.value;
+                    
+                    // Format with spaces
+                    const formatted = formatAadhaar(value);
+                    
+                    // Update input value if it changed
+                    if (value !== formatted) {
+                        this.value = formatted;
+                        
+                        // Try to maintain cursor position
+                        const newPosition = cursorPosition + (formatted.length - value.length);
+                        this.setSelectionRange(newPosition, newPosition);
+                    }
+                });
+            }
+
+            // Handle click for dynamically added Aadhaar inputs
+            document.addEventListener('click', function(e) {
+                if (e.target && e.target.classList.contains('child-aadhaar')) {
+                    setupAadhaarInput(e.target);
+                }
+            });
+
+            // Form submission
+            document.getElementById('registerForm').addEventListener('submit', async function(event) {
                 event.preventDefault();
-    
+
                 const role = document.getElementById('role').value;
                 const name = document.getElementById('name').value;
-                const organization = document.getElementById('organization').value;
+                const organization = document.getElementById('organization').value.toLowerCase(); // Convert to lowercase
                 const email = document.getElementById('contact').value;
                 const phone = document.getElementById('phone').value;
-                const aadhaar = document.getElementById('aadhaar').value;
                 const password = document.getElementById('password').value;
                 const confirmPassword = document.getElementById('confirm-password').value;
 
@@ -74,115 +333,170 @@
                     return;
                 }
 
-                if (role === "parent" && !isValidAadhaar(aadhaar)) {
+                if (phone.length !== 10) {
+                    alert("Please enter exactly 10 digits for the phone number.");
                     return;
                 }
 
-                // Validate phone number
-                if (!/^\d{10}$/.test(phone)) {
-                    alert("Please enter a valid 10-digit phone number.");
-                    return;
+                let children = [];
+                if (role === 'parent' && childrenCount > 0) {
+                    const childContainers = document.querySelectorAll('.child-details-container');
+                    for (let container of childContainers) {
+                        const childName = container.querySelector('.child-name').value;
+                        const childAadhaar = container.querySelector('.child-aadhaar').value;
+                        
+                        if (!isValidAadhaar(childAadhaar)) {
+                            alert(`Invalid Aadhaar number for child: ${childName}`);
+                            return;
+                        }
+                        
+                        children.push({
+                            name: childName,
+                            aadhaar: childAadhaar.replace(/\s/g, '')
+                        });
+                    }
                 }
 
                 try {
-                    const cleanAadhaar = aadhaar.replace(/\s/g, '');
-            
-                    const aadhaarQuerySnapshot = await getDocs(query(collection(db, "users"), where("aadhaar", "==", cleanAadhaar)));
-                    if (role === "parent" && !aadhaarQuerySnapshot.empty) {
-                        alert("Aadhaar number already registered. Please log in.");
-                        return;
+                    // Show loading state on button
+                    const registerBtn = document.getElementById('registerBtn');
+                    const originalBtnText = registerBtn.innerHTML;
+                    registerBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Registering...';
+                    registerBtn.disabled = true;
+
+                    // Check for duplicate child Aadhaar numbers
+                    for (let child of children) {
+                        const aadhaarQuerySnapshot = await getDocs(
+                            query(collection(db, "users"), 
+                            where("children", "array-contains", { aadhaar: child.aadhaar }))
+                        );
+                        if (!aadhaarQuerySnapshot.empty) {
+                            alert(`Child with Aadhaar ${child.aadhaar} is already registered.`);
+                            registerBtn.innerHTML = originalBtnText;
+                            registerBtn.disabled = false;
+                            return;
+                        }
                     }
-    
+
                     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-                const roleRef = role === "parent" ? "parents" : "teachers"; // Create separate collections for roles
-                
-                // Check if the email already exists for the same role
-                const userQuerySnapshot = await getDocs(query(collection(db, roleRef), where("email", "==", email)));
-                if (!userQuerySnapshot.empty) {
-                    alert("An account with this email already exists in the selected role.");
-                    return;
+                    const user = userCredential.user;
+
+                    await runTransaction(db, async (transaction) => {
+                        const userDocRef = doc(db, "users", user.uid);
+                        const orgDocRef = doc(db, "organizations", organization);
+
+                        // Get organization document
+                        const orgDoc = await transaction.get(orgDocRef);
+
+                        // Prepare organization data
+                        let orgData;
+                        if (!orgDoc.exists()) {
+                            // New organization
+                            orgData = {
+                                name: organization,
+                                totalTeachers: role === 'teacher' ? 1 : 0,
+                                totalParents: role === 'parent' ? 1 : 0,
+                                totalChildren: role === 'parent' ? children.length : 0,
+                                teachers: role === 'teacher' ? [{
+                                    name: name,
+                                    email: email,
+                                    userId: user.uid
+                                }] : [],
+                                parents: role === 'parent' ? [{
+                                    name: name,
+                                    email: email,
+                                    userId: user.uid,
+                                    childrenCount: children.length,
+                                    childrenName: children.map(child => child.name),
+                                    childrenAadhaar: children.map(child => child.aadhaar)
+                                }] : [],
+                                createdAt: new Date()
+                            };
+                        } else {
+                            // Existing organization
+                            orgData = orgDoc.data();
+                            if (role === 'teacher') {
+                                orgData.totalTeachers++;
+                                orgData.teachers.push({
+                                    name: name,
+                                    email: email,
+                                    userId: user.uid
+                                });
+                            } else {
+                                orgData.totalParents++;
+                                orgData.totalChildren += children.length;
+                                orgData.parents.push({
+                                    name: name,
+                                    email: email,
+                                    userId: user.uid,
+                                    childrenCount: children.length,
+                                    childrenName: children.map(child => child.name),
+                                    childrenAadhaar: children.map(child => child.aadhaar)
+                                });
+                            }
+                        }
+
+                        // Set organization data
+                        transaction.set(orgDocRef, orgData);
+
+                        // Set user data
+                        transaction.set(userDocRef, {
+                            role: role,
+                            name: name,
+                            organization: organization,
+                            email: email,
+                            phone: "+91" + phone,
+                            children: children.map(child => ({
+                                name: child.name,
+                                aadhaar: child.aadhaar
+                            })),
+                            createdAt: new Date()
+                        });
+
+                        // Create collections for each child if parent
+                        if (role === 'parent') {
+                            for (const child of children) {
+                                const aadhaarCollectionRef = collection(userDocRef, child.aadhaar);
+                                transaction.set(doc(aadhaarCollectionRef, 'info'), {
+                                    name: child.name,
+                                    aadhaar: child.aadhaar,
+                                    createdAt: new Date()
+                                });
+                            }
+                        }
+                    });
+
+                    // After successful registration, send admin notification
+                    sendAdminEmail({
+                        role,
+                        name,
+                        organization,
+                        email,
+                        phone,
+                        children
+                    });
+
+                    alert("Registration successful!");
+                    window.location.href = 'login.html';
+
+                } catch (error) {
+                    alert("Error: " + error.message);
+                    console.error("Error details:", error);
+                    
+                    // Reset button state
+                    registerBtn.innerHTML = originalBtnText;
+                    registerBtn.disabled = false;
                 }
-
-                // Store user info in Firestore under the role-specific collection
-                await setDoc(doc(db, roleRef, user.uid), {
-                    role: role,
-                    name: name,
-                    organization: organization,
-                    email: email,
-                    phone: "+91" + phone,
-                    aadhaar: role === "parent" ? cleanAadhaar : null
-                });
-
-                alert("Registration successful!");
-                window.location.href = 'login.html'; // Redirect to login page
-
-            } catch (error) {
-                alert("Error: " + error.message);
-            }
-        });
-
-            const aadhaarInput = document.getElementById('aadhaar');
-            const validationMessage = document.getElementById('aadhaar-validation');
-            aadhaarInput.addEventListener('input', function (e) {
-                let value = e.target.value.replace(/\s/g, ''); // Remove existing spaces
-                if (value.length > 0) {
-                    value = value.match(new RegExp('.{1,4}', 'g')).join(' '); // Add spaces every 4 digits
-                }
-                e.target.value = value; // Set the formatted value
             });
-
-            // Validate Aadhaar only on blur (when the input loses focus)
-            aadhaarInput.addEventListener('blur', function () {
-                const cleanAadhaar = aadhaarInput.value.replace(/\s/g, ''); // Remove spaces for validation
-                if (document.getElementById('role').value === 'parent') {
-                    if (!isValidAadhaar(cleanAadhaar)) {
-                        validationMessage.style.color = 'red';
-                        validationMessage.textContent = 'Invalid Aadhaar number format.';
-                    } else {
-                        validationMessage.style.color = 'green';
-                        validationMessage.textContent = 'Aadhaar number is valid.';
-                    }
-                }
-            });
-
-            // Clear validation message if Aadhaar field is empty
-            aadhaarInput.addEventListener('input', function () {
-                if (aadhaarInput.value.trim() === '') {
-                    validationMessage.textContent = '';
-                }
-            });
-
-            // Toggle Aadhaar input visibility based on role
-            document.getElementById('role').addEventListener('change', function () {
-                const role = this.value;
-                const aadhaarField = document.getElementById('aadhaar');
-                const aadhaarContainer = document.getElementById('aadhaar-container');
-
-                if (role === "parent") {
-                    aadhaarContainer.style.display = 'block';
-                    aadhaarField.required = true;
-                } else {
-                    aadhaarContainer.style.display = 'none';
-                    aadhaarField.required = false;
-                }
-            });
-
-            // Initial check to hide Aadhaar field if "Teacher" is selected
-            if (document.getElementById('role').value !== 'parent') {
-                document.getElementById('aadhaar-container').style.display = 'none';
-            }
         });
     </script>
 </head>
 <body>
     <header class="main-header">
         <div class="logo-container">
-            <!-- First Logo -->
             <img src="GNITS_Logo.jpeg" alt="GNITS Logo" class="logo-img">
-            <!-- Second Logo -->
             <img src="Ignitio logo.jpg" alt="IGNITO Logo" class="logo-img">
-            <h1>Autism Evaluation Platform</h1>
+            <h1>Bālāmṛta</h1>
         </div>
         <div class="auth-buttons">
             <a href="index.html" class="login-btn">Home</a>
@@ -222,12 +536,20 @@
                             <input type="text" class="form-control" id="phone" placeholder="Enter 10 digit number" required>
                         </div>
                     </div>
-                    <div class="mb-3" id="aadhaar-container">
-                        <label for="aadhaar" class="form-label">Aadhaar Number</label>
-                        <input type="text" class="form-control" id="aadhaar" placeholder="XXXX XXXX XXXX" maxlength="14">
-                        <small class="text-muted">Enter 12 digits. Spaces will be added automatically after every 4 digits.</small>
-                        <div id="aadhaar-validation" class="form-text"></div>
+                    
+                    <!-- Children Counter for Teachers -->
+                    <div class="mb-3" id="children-counter-container">
+                        <label class="form-label">Number of Children</label>
+                        <div class="children-counter">
+                            <button type="button" class="counter-btn minus" disabled>-</button>
+                            <span class="counter-value">0</span>
+                            <button type="button" class="counter-btn plus">+</button>
+                        </div>
                     </div>
+                    
+                    <!-- Dynamic Children Details -->
+                    <div id="childrenDetails"></div>
+
                     <div class="mb-3">
                         <label for="password" class="form-label">Password</label>
                         <small class="small-text">At least 8 characters, with 1 letter, 1 number, and 1 symbol.</small>
@@ -247,6 +569,5 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
 </html>

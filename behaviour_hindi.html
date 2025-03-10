@@ -93,16 +93,18 @@ const scoreValues = {
 
         async function storeQuestionnaireDataInFirebase(data) {
             const user = auth.currentUser;
-    const collectionName = new URLSearchParams(window.location.search).get('collectionName') || 'Questionnaire';
-    const studentAge =new URLSearchParams(window.location.search).get('studentAge'); // Get student age from URL
-    const studentName = new URLSearchParams(window.location.search).get('studentName'); // Get student name from URL
-    const studentDob = new URLSearchParams(window.location.search).get('studentDob'); // Get student dob from URL
-    // Ensure studentName is available
-    if (!studentName) {
-        console.error("Student name is missing.");
-        alert("Student name is missing. Please go back and fill in the details.");
-        return;
-    }
+            const urlParams = new URLSearchParams(window.location.search);
+
+            const studentName = urlParams.get('studentName');
+            const studentAadhaar = urlParams.get('studentAadhaar');
+            const studentAge = urlParams.get('studentAge');
+            const studentDob = urlParams.get('studentDob');
+
+            if (!studentName || !studentAadhaar) {
+                console.error("Student details missing.");
+                alert("Student details are missing. Please go back and fill in the details.");
+                return;
+            }
 
     if (user) {
         try {
@@ -123,10 +125,14 @@ const scoreValues = {
 
             // Store data for teacher role in the student's collection
             if (role === 'teacher') {
-                docRef = doc(db, "users", user.uid, studentCollectionName, "behaviourPatterns");
-            } else {
+                const allocationDocId = `${userData.name}_${userData.organization}`;
+                        const studentDocId = `${studentName.toLowerCase()}_${studentAadhaar}`;
+
+                        // Path: allocations/[teachername_org]/allocated_students/[studentname_aadhaar]/teacherfilledquestionnaire/details
+                        docRef = doc(db, "allocations", allocationDocId, "allocated_students", studentDocId, "teacherfilledquestionnaire", "behaviourPatterns");
+            } else if (role === 'parent') {
                 // Reference to the parent's questionnaire collection (if needed)
-                docRef = doc(db, "users", user.uid, "Questionnaire", "behaviourPatterns");
+                docRef = doc(db, "users", user.uid, studentAadhaar,"info", "parentfilledquestionnaire", "behaviourPatterns");
             }
 
             // Store the questionnaire data in Firestore
@@ -137,7 +143,7 @@ const scoreValues = {
             });
 
             console.log("Data stored successfully!");
-            window.location.href = `sensory_hindi.html?collectionName=${encodeURIComponent(collectionName)}&studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(studentAge)}&studentDob=${encodeURIComponent(studentDob)}`;
+            window.location.href = `sensory_hindi.html?&studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(studentAge)}&studentDob=${encodeURIComponent(studentDob)}&studentAadhaar=${encodeURIComponent(studentAadhaar)}`;
         } catch (error) {
             console.error("Error storing data: ", error);
         }
@@ -145,14 +151,13 @@ const scoreValues = {
         console.error("User not signed in.");
     }
 }
-
         function saveFormDataToLocalStorage() {
             const data = calculateScore();
-            localStorage.setItem('व्यवहारगत पैटर्न', JSON.stringify(data.responses));
+            localStorage.setItem('behaviourPatternsData', JSON.stringify(data.responses));
         }
 
         function loadFormDataFromLocalStorage() {
-            const savedData = JSON.parse(localStorage.getItem('व्यवहारगत पैटर्न'));
+            const savedData = JSON.parse(localStorage.getItem('behaviourPatternsData'));
             if (savedData) {
                 Object.entries(savedData).forEach(([name, value]) => {
                     const input = document.querySelector(`input[name="${name}"][value="${value}"]`);
@@ -161,11 +166,10 @@ const scoreValues = {
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeRadioButtons(['engagesInStereotyped','showsAttachment','showsHyperactivity','exhibitsAggressive','throwsTemper','engagesInSelf-injuries','insistsOnsameness']);
 
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeRadioButtons(['engagesInStereotyped', 'showsAttachment', 'showsHyperactivity','exhibitsAggressive', 'throwsTemper', 'engagesInSelf-injuries', 'insistsOnsameness']);
             loadFormDataFromLocalStorage();
-
             onAuthStateChanged(auth, (user) => {
                 if (!user) {
                     console.error("User not signed in.");
@@ -182,8 +186,8 @@ const scoreValues = {
                     showAlert();
                 }
             };
-
-            document.querySelector('.custom-alert-btn').addEventListener('click', closeAlert);
+            // Ensure the close button works after DOM is loaded.
+    document.querySelector('.custom-alert-btn').addEventListener('click', closeAlert);
         });
     </script>
 </head>
@@ -234,8 +238,9 @@ const scoreValues = {
     const params = new URLSearchParams(window.location.search);
     const studentName = encodeURIComponent(params.get('studentName'));
     const studentAge = encodeURIComponent(params.get('studentAge'));
+    const studentAadhaar = encodeURIComponent(params.get('studentAadhaar'));
     const studentDob = encodeURIComponent(params.get('studentDob'));
-    window.location.href = `speech_hindi.html?studentName=${studentName}&studentAge=${studentAge}&studentDob=${studentDob}`;
+    window.location.href = `speech_hindi.html?studentName=${studentName}&studentAge=${studentAge}&studentDob=${studentDob}&studentAadhaar=${studentAadhaar}`;
 ">पिछला(Previous)</button>
             <button type="submit">अगला(Next)</button>
         </div>

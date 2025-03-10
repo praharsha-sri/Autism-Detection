@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Allocated Students</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+        }
+
+        header {
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .container {
+            margin-top: 2rem;
+        }
+
+        .student-card {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            background-color: #ffffff;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .student-card:hover {
+            transform: scale(1.03);
+            background-color: #f1f1f1;
+        }
+
+        .simple-card {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            background-color: #ffffff;
+            margin-bottom: 1rem;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: #f1f1f1;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <h1>Allocated Students</h1>
+        <p>View and manage students' evaluation status.</p>
+    </header>
+
+    <!-- Students List -->
+    <div class="container">
+        <h3>Assigned Students</h3>
+        <div id="assigned-students-list" class="row g-4">
+            <!-- Assigned student cards will be appended here -->
+        </div>
+
+        <h3 class="mt-5">Pending Evaluations</h3>
+        <div id="pending-students-list" class="row g-4">
+            <!-- Pending student cards will be appended here -->
+        </div>
+
+        <h3 class="mt-5">Completed Evaluations</h3>
+        <div id="completed-students-list" class="row g-4">
+            <!-- Completed student cards will be appended here -->
+        </div>
+    </div>
+
+    <!-- Firebase and JavaScript -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+        import { getFirestore, collection, doc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+            authDomain: "autism-evaluation-platform.firebaseapp.com",
+            projectId: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform.appspot.com",
+            messagingSenderId: "748226978662",
+            appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+            measurementId: "G-1TGEHTTJF4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        async function fetchStudents(user) {
+            try {
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    if (userData.role !== "teacher") {
+                        alert("Access Denied!");
+                        window.location.href = "index.html";
+                        return;
+                    }
+
+                    const allocationDocId = `${userData.name}_${userData.organization}`;
+                    const allocationDocRef = doc(db, "allocations", allocationDocId);
+                    const allocationDocSnap = await getDoc(allocationDocRef);
+
+                    if (allocationDocSnap.exists()) {
+                        const allocatedStudentsRef = collection(allocationDocRef, "allocated_students");
+                        const allocatedStudentsSnap = await getDocs(allocatedStudentsRef);
+
+                        const assignedContainer = document.getElementById("assigned-students-list");
+                        const completedContainer = document.getElementById("completed-students-list");
+                        const pendingContainer = document.getElementById("pending-students-list");
+
+                        // Clear previous lists
+                        assignedContainer.innerHTML = "";
+                        completedContainer.innerHTML = "";
+                        pendingContainer.innerHTML = "";
+
+                        for (const studentDoc of allocatedStudentsSnap.docs) {
+                            const studentData = studentDoc.data();
+                            const studentId = studentDoc.id;
+
+                            // Check if the teacherfilledquestionnaire exists for this student
+                            const docRef = doc(db, "allocations", allocationDocId, "allocated_students", studentId, "teacherfilledquestionnaire", "cognitiveComponent");
+                            const docSnap = await getDoc(docRef);
+                            
+                            // Create Assigned Student Card
+                            const assignedStudentElement = document.createElement("div");
+                            assignedStudentElement.classList.add("col-md-6", "col-lg-4");
+                            assignedStudentElement.innerHTML = ` 
+                                <div class="simple-card">
+                                    <h5>${studentData.name}</h5>
+                                    <p><strong>Aadhaar:</strong> ${studentData.aadhaar}</p>
+                                </div>`;
+                            assignedContainer.appendChild(assignedStudentElement);
+                            // Create Student Card for either Pending or Completed
+                            const studentElement = document.createElement("div");
+                            studentElement.classList.add("col-md-6", "col-lg-4");
+                            // Check if the student is completed or pending
+                            if (docSnap.exists()) {
+                            // If teacherfilledquestionnaire/details exist, create a non-clickable card
+                            studentElement.innerHTML = `
+                            <div class="simple-card">
+                                <h5>${studentData.name}</h5>
+                                <p><strong>Aadhaar:</strong> ${studentData.aadhaar}</p>
+                            </div>`;
+                            completedContainer.appendChild(studentElement);
+                            } else {
+                                 // If teacherfilledquestionnaire/details don't exist, create a clickable card
+                            studentElement.innerHTML = `
+                            <div class="student-card" onclick="window.location.href='detailsform2.html?studentName=${encodeURIComponent(studentData.name.toLowerCase())}&studentAadhaar=${encodeURIComponent(studentData.aadhaar)}'">
+                             <h5>${studentData.name}</h5>
+                            <p><strong>Aadhaar:</strong> ${studentData.aadhaar}</p>
+                             </div>`;
+                     pendingContainer.appendChild(studentElement);
+                            }
+                        }
+                    } else {
+                        console.warn("No allocated students found.");
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching students:", error);
+            }
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) fetchStudents(user);
+            else window.location.href = "login.html";
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

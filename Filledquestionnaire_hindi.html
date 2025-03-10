@@ -131,70 +131,86 @@
         }
 
         function showStudentModal(index) {
-            const modalBackdrop = document.getElementById('modalBackdrop');
-            const studentModal = document.getElementById('studentModal');
-            const studentModalContent = document.getElementById('studentModalContent');
-            const data = window.submissions[index];
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    const studentModal = document.getElementById('studentModal');
+    const studentModalContent = document.getElementById('studentModalContent');
+    const data = window.submissions[index];
 
-            const autismRangeTranslations = {
-                "No Autism": "ऑटिज्म नहीं",
-                "Mild Autism": "हल्का ऑटिज्म",
-                "Moderate Autism": "मध्यम ऑटिज्म",
-                "Severe Autism": "गंभीर ऑटिज्म"
-            };
+    const autismRangeTranslations = {
+        "No Autism": "ऑटिज्म नहीं",
+        "Mild Autism": "हल्का ऑटिज्म",
+        "Moderate Autism": "मध्यम ऑटिज्म",
+        "Severe Autism": "गंभीर ऑटिज्म"
+    };
 
-            const scoreKeyTranslationsHindi = {
-                "cognitiveComponent": "संज्ञानात्मक भाग",
-                "emotionalResponsiveness": "भावनात्मक प्रतिक्रिया",
-                "sensoryAspects": "संवेदी पहलू",
-                "speechLanguageCommunication": "भाषा और बातचीत",
-                "socialRelationship": "सामाजिक संबंध",
-                "behaviourPatterns": "व्यवहार पैटर्न",
-                "Unknown": "अज्ञात"
-            };
+    const scoreKeyTranslationsHindi = {
+        "cognitiveComponent": "संज्ञानात्मक भाग",
+        "emotionalResponsiveness": "भावनात्मक प्रतिक्रिया",
+        "sensoryAspects": "संवेदी पहलू",
+        "speechLanguageCommunication": "भाषा और बातचीत",
+        "socialRelationship": "सामाजिक संबंध",
+        "behaviourPatterns": "व्यवहार पैटर्न",
+        "Unknown": "अज्ञात"
+    };
 
-            studentModalContent.innerHTML = `
-                <h2 class="text-primary mb-4">${data.studentName || 'अज्ञात'}</h2>
-                <div class="row">
-                    <div class="col-md-6">
-                        <p><strong>आयु:</strong> ${data.studentAge || 'अज्ञात'}</p>
-                        <p><strong>जन्म तिथि:</strong> ${data.studentDob || 'अज्ञात'}</p>
-                        <p><strong>समर्पण तिथि:</strong> ${data.submittedAt.toDate().toLocaleString()}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <p><strong>कुल स्कोर:</strong> ${data.totalScore}</p>
-                        <p><strong>प्रतिशत:</strong> ${data.percentageScore}%</p>
-                        <p><strong>ऑटिज्म रेंज:</strong> ${autismRangeTranslations[data.autismRange]}</p>
-                    </div>
-                </div>
+    // Get therapy recommendations from the data
+    const therapyRecommendations = data.therapyRecommendations || {};
 
-                <h4 class="mt-4 text-primary">स्कोर विवरण</h4>
-                <ul class="list-group">
-                    ${Object.keys(data.scores).map(key => `
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            ${scoreKeyTranslationsHindi[key] || key}
-                            <span class="badge bg-primary rounded-pill">${data.scores[key]}</span>
-                        </li>
-                    `).join('')}
-                </ul>
-            `;
+    // Extract therapy names from the keys of the therapyRecommendations map
+    const therapyNames = Object.keys(therapyRecommendations);
 
-            modalBackdrop.classList.add('show');
-            studentModal.classList.add('show');
-        }
+    // Create therapy recommendations HTML if available
+    const therapyRecommendationsHTML = therapyNames.length > 0 
+        ? `<h4 class="mt-4 text-primary">सुझाई गई चिकित्सा</h4>
+           <ul class="list-group">
+               ${therapyNames.map(therapy => `<li class="list-group-item">${therapy}</li>`).join('')}
+           </ul>`
+        : '<p>कोई थेरेपी सिफारिश नहीं है।</p>';
+
+    // Set the modal content
+    studentModalContent.innerHTML = `
+        <h2 class="text-primary mb-4">${data.studentName || 'अज्ञात'}</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>आयु:</strong> ${data.studentAge || 'अज्ञात'}</p>
+                <p><strong>जन्म तिथि:</strong> ${data.studentDob || 'अज्ञात'}</p>
+                <p><strong>समर्पण तिथि:</strong> ${data.submittedAt.toDate().toLocaleString()}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>कुल स्कोर:</strong> ${data.totalScore}</p>
+                <p><strong>प्रतिशत:</strong> ${data.percentageScore}%</p>
+                <p><strong>ऑटिज्म रेंज:</strong> ${autismRangeTranslations[data.autismRange]}</p>
+            </div>
+        </div>
+        ${therapyRecommendationsHTML}
+        <h4 class="mt-4 text-primary">स्कोर विवरण</h4>
+        <ul class="list-group">
+            ${Object.keys(data.scores).map(key => `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    ${scoreKeyTranslationsHindi[key] || key}
+                    <span class="badge bg-primary rounded-pill">${data.scores[key]}</span>
+                </li>
+            `).join('')}
+        </ul>
+    `;
+
+    modalBackdrop.classList.add('show');
+    studentModal.classList.add('show');
+}
+
 
         async function downloadSnapshot() {
-    const studentModalContent = document.getElementById('studentModalContent');
-    const data = window.submissions.find(submission => 
-        submission.studentName === studentModalContent.querySelector('h2').textContent.trim()
-    );
-    const studentName = data ? data.studentName : 'student';
-    const canvas = await html2canvas(studentModalContent);
-    const link = document.createElement('a');
-    link.download = `${studentName}-प्रश्नावली.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-}
+            const studentModalContent = document.getElementById('studentModalContent');
+            const data = window.submissions.find(submission => 
+                submission.studentName === studentModalContent.querySelector('h2').textContent.trim()
+            );
+            const studentName = data ? data.studentName : 'student';
+            const canvas = await html2canvas(studentModalContent);
+            const link = document.createElement('a');
+            link.download = `${studentName}-प्रश्नावली.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
 
         function closeModal() {
             const modalBackdrop = document.getElementById('modalBackdrop');

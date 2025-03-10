@@ -162,3 +162,10 @@
             color: var(--primary-color);
             cursor: pointer;
         }
+
+        .student-modal {
+            max-height: 80vh;  /* Limit modal height */
+            overflow-y: auto;  /* Enable scrolling */
+            padding: 20px;
+        }
+        

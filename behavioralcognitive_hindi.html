@@ -70,6 +70,7 @@
 
 
         async function handleFormSubmit(event) {
+            const childAadhaar =new URLSearchParams(window.location.search).get('childAadhaar');
             event.preventDefault(); // Prevent default form submission
 
             const user = auth.currentUser; // Get current user
@@ -82,14 +83,14 @@
             formData.timestamp = new Date();  // Add timestamp
             try {
                 // Store data in Firestore under users/{userId}/casehistory/behavior
-                const docRef = doc(db, "users", user.uid, "casehistory", "behavior");
+                const docRef = doc(db, "users", user.uid, childAadhaar, "info", "casehistory", "behavior");
                 await setDoc(docRef, formData);
 
                 console.log("व्यवहारिक और उच्च कार्यात्मक डेटा सफलतापूर्वक Firebase में संग्रहीत किया गया।");
                 //alert('व्यवहारिक और उच्च कार्यात्मक इतिहास सफलतापूर्वक सबमिट किया गया।');
 
                 // Redirect to the next page after submission
-                window.location.href = 'selfhelp_hindi.html'; // Change to your desired page
+                window.location.href = `selfhelp_hindi.html?childAadhaar=${encodeURIComponent(childAadhaar)}`; // Change to your desired page
             } catch (error) {
                 console.error("व्यवहारिक और उच्च कार्यात्मक डेटा Firebase में संग्रहीत करने में त्रुटि:", error);
                 alert('डेटा सबमिट करने में विफल। कृपया फिर से प्रयास करें।');

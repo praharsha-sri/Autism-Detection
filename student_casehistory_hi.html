@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>छात्र केस इतिहास फॉर्म</title>
+    <title>छात्र केस इतिहास प्रपत्र</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="parent_questionnaire.css" rel="stylesheet">
 </head>
@@ -11,7 +11,7 @@
     <br>
     <div class="container-fluid">
         <div class="row">
-            <!-- Teacher Details Section -->
+            <!-- शिक्षक विवरण अनुभाग -->
             <div class="col-12 teacher-details-section mb-4">
                 <div class="card">
                     <div class="card-body">
@@ -19,34 +19,34 @@
                         <div id="teacher-details">
                             <p id="teacher-name">नाम: </p>
                             <p id="teacher-email">ईमेल: </p>
-                            <p id="teacher-organisation">संस्था: </p>
+                            <p id="teacher-organisation">संगठन: </p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Main Content -->
+            <!-- मुख्य सामग्री -->
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <!-- Search Bar -->
+                        <!-- खोज बार -->
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <h3>छात्र केस इतिहास फॉर्म</h3>
+                                <h3>छात्र केस इतिहास प्रपत्र</h3>
                             </div>
                             <div class="col-md-6 text-end">
                                 <input 
                                     type="text" 
                                     id="search-input" 
                                     class="form-control" 
-                                    placeholder="छात्रों या अभिभावकों को खोजें..."
+                                    placeholder="छात्र या माता-पिता खोजें..."
                                 >
                             </div>
                         </div>
 
-                        <!-- Student List -->
+                        <!-- छात्र सूची -->
                         <div id="student-list" class="list-group">
-                            <!-- Students will be dynamically added here -->
+                            <!-- छात्र यहाँ गतिशील रूप से जोड़े जाएंगे -->
                         </div>
                     </div>
                 </div>
@@ -54,135 +54,129 @@
         </div>
     </div>
 
-    <!-- Firebase Scripts -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <!-- Firebase स्क्रिप्ट -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+        import { getFirestore, collection, doc, getDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-    <script>
-        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
             authDomain: "autism-evaluation-platform.firebaseapp.com",
             projectId: "autism-evaluation-platform",
-            storageBucket: "autism-evaluation-platform.firebasestorage.app",
+            storageBucket: "autism-evaluation-platform.appspot.com",
             messagingSenderId: "748226978662",
             appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
             measurementId: "G-1TGEHTTJF4"
         };
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const auth = firebase.auth();
+        // Firebase प्रारंभ करें
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        firebase.auth().onAuthStateChanged((user) => {
-            if (user) {
-                fetchTeacherDetails(user);
+        async function fetchTeacherDetails(user) {
+            try {
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    const teacherData = userDoc.data();
+                    
+                    document.getElementById('teacher-name').textContent = 
+                        `नाम: ${teacherData.name || 'उपलब्ध नहीं'}`;
+                    document.getElementById('teacher-email').textContent = 
+                        `ईमेल: ${user.email || 'उपलब्ध नहीं'}`;
+                    document.getElementById('teacher-organisation').textContent = 
+                        `संगठन: ${teacherData.organization || 'उपलब्ध नहीं'}`;
 
-                fetchStudents(user);
-            } else {
-                alert('कृपया लॉग इन करें');
+                    return teacherData;
+                }
+            } catch (error) {
+                console.error('शिक्षक विवरण प्राप्त करने में त्रुटि:', error);
             }
-        });
-        function fetchTeacherDetails(user) {
-            db.collection('users').doc(user.uid).get()
-                .then(doc => {
-                    if (doc.exists) {
-                        const teacherData = doc.data();
-                        
-                        document.getElementById('teacher-name').textContent = 
-                            `नाम: ${teacherData.name || 'प्रदान नहीं किया गया'}`;
-                        document.getElementById('teacher-email').textContent = 
-                            `ईमेल: ${user.email || 'प्रदान नहीं किया गया'}`;
-                        document.getElementById('teacher-organisation').textContent = 
-                            `संस्था: ${teacherData.organization || 'प्रदान नहीं किया गया'}`;
-
-                        sessionStorage.setItem('teacherOrganisation', teacherData.organization);
-                    }
-                })
-                .catch(error => {
-                    console.error('शिक्षक विवरण प्राप्त करने में त्रुटि:', error);
-                });
+            return null;
         }
 
-        function fetchStudents(user) {
-            const teacherOrganisation = sessionStorage.getItem('teacherOrganisation');
-            const studentList = document.getElementById('student-list');
-            studentList.innerHTML = ''; // Clear previous students
-
-            const processedParentIds = new Set();
-
-            // Get all parents without organization filter
-            db.collection('users')
-                .where('role', '==', 'parent')
-                .get()
-                .then(snapshot => {
-                    let hasMatches = false;
-
-                    snapshot.forEach(doc => {
-                        const parentData = doc.data();
-                        
-                        // Case insensitive comparison of organizations
-                        if (parentData.organization && 
-                            parentData.organization.toLowerCase() === teacherOrganisation.toLowerCase()) {
-                        
-                            hasMatches = true;
-                            processedParentIds.add(doc.id);
-
-                            // Fetch questionnaire details
-                            db.collection('users')
-                                .doc(doc.id)
-                                .collection('Questionnaire')
-                                .doc('details')
-                                .get()
-                                .then(detailsDoc => {
-                                    if (detailsDoc.exists) {
-                                        const detailsData = detailsDoc.data();
-
-                                        const studentItem = document.createElement('div');
-                                        studentItem.classList.add('list-group-item', 'list-group-item-action');
-                                        
-                                        // Show both original organization name and student details
-                                        studentItem.innerHTML = `
-                                            <div class="d-flex w-100 justify-content-between">
-                                                <div>
-                                                    <h5 class="mb-1">छात्र का नाम: ${detailsData.name || 'एन/ए'}</h5>
-                                                    <small class="text-muted">अभिभावक का नाम: ${parentData.name || 'एन/ए'}</small>
-                                                    <br>
-                                                    <small class="text-muted">संस्था: ${parentData.organization}</small>
-                                                </div>
-                                            </div>
-                                        `;
-
-                                        studentItem.addEventListener('click', () => {
-                                            window.location.href = `casehistory_details_hi.html?id=${doc.id}`;
-                                        });
-
-                                        studentList.appendChild(studentItem);
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('विवरण दस्तावेज़ प्राप्त करने में त्रुटि:', error);
-                                });
-                        }
-                    });
-
-                    // Show message if no matches found
-                    if (!hasMatches) {
-                        const noMatchesMsg = document.createElement('div');
-                        noMatchesMsg.classList.add('alert', 'alert-info', 'mt-3');
-                        noMatchesMsg.textContent = 'आपकी संस्था के लिए कोई छात्र नहीं मिला।';
-                        studentList.appendChild(noMatchesMsg);
-                    }
-                })
-                .catch(error => {
-                    console.error('छात्रों को लोड करने में त्रुटि:', error);
-                    const errorMsg = document.createElement('div');
-                    errorMsg.classList.add('alert', 'alert-danger', 'mt-3');
-                    errorMsg.textContent = 'छात्रों को लोड करने में त्रुटि। कृपया पुनः प्रयास करें।';
-                    studentList.appendChild(errorMsg);
+        async function fetchAllocatedStudents(teacherData) {
+            try {
+                const allocationDocId = `${teacherData.name}_${teacherData.organization}`;
+                const allocationDocRef = doc(db, "allocations", allocationDocId);
+                const allocatedStudentsRef = collection(allocationDocRef, "allocated_students");
+                const allocatedStudentsSnap = await getDocs(allocatedStudentsRef);
+                
+                // आवंटित छात्र आधार नंबर का सेट बनाएं
+                const allocatedAadhaarNumbers = new Set();
+                allocatedStudentsSnap.forEach(doc => {
+                    allocatedAadhaarNumbers.add(doc.data().aadhaar);
                 });
+                
+                return allocatedAadhaarNumbers;
+            } catch (error) {
+                console.error('आवंटित छात्रों को प्राप्त करने में त्रुटि:', error);
+                return new Set();
+            }
+        }
+
+        async function fetchAndDisplayStudents(teacherData, allocatedAadhaarNumbers) {
+            const studentList = document.getElementById('student-list');
+            studentList.innerHTML = ''; // पहले के छात्रों को साफ करें
+
+            try {
+                const usersRef = collection(db, "users");
+                const parentQuery = query(usersRef, where("role", "==", "parent"));
+                const parentSnapshot = await getDocs(parentQuery);
+                
+                let hasMatches = false;
+
+                for (const parentDoc of parentSnapshot.docs) {
+                    const parentData = parentDoc.data();
+                    
+                    if (parentData.organization && 
+                        parentData.organization.toLowerCase() === teacherData.organization.toLowerCase()) {
+                        
+                        const children = parentData.children || [];
+                        for (const child of children) {
+                            if (allocatedAadhaarNumbers.has(child.aadhaar)) {
+                                hasMatches = true;
+                                
+                                const studentItem = document.createElement('div');
+                                studentItem.classList.add('list-group-item', 'list-group-item-action');
+                                
+                                studentItem.innerHTML = `
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <div>
+                                            <h5 class="mb-1">छात्र का नाम: ${child.name || 'एन/ए'}</h5>
+                                            <small class="text-muted">माता-पिता का नाम: ${parentData.name || 'एन/ए'}</small>
+                                            <br>
+                                            <small class="text-muted">संगठन: ${parentData.organization}</small>
+                                            <br>
+                                            <small class="text-muted">आधार: ${child.aadhaar || 'एन/ए'}</small>
+                                        </div>
+                                    </div>
+                                `;
+
+                                studentItem.addEventListener('click', () => {
+                                    window.location.href = `casehistory_details_hi.html?id=${parentDoc.id}&childAadhaar=${child.aadhaar}`;
+                                });
+
+                                studentList.appendChild(studentItem);
+                            }
+                        }
+                    }
+                }
+
+                if (!hasMatches) {
+                    const noMatchesMsg = document.createElement('div');
+                    noMatchesMsg.classList.add('alert', 'alert-info', 'mt-3');
+                    noMatchesMsg.textContent = 'आपके संगठन के लिए कोई आवंटित छात्र नहीं मिला।';
+                    studentList.appendChild(noMatchesMsg);
+                }
+            } catch (error) {
+                console.error('छात्रों को प्राप्त करने में त्रुटि:', error);
+                const errorMsg = document.createElement('div');
+                errorMsg.classList.add('alert', 'alert-danger', 'mt-3');
+                errorMsg.textContent = 'छात्र लोड करने में त्रुटि। कृपया पुनः प्रयास करें।';
+                studentList.appendChild(errorMsg);
+            }
         }
 
         document.getElementById('search-input').addEventListener('input', function() {
@@ -190,15 +184,21 @@
             const studentItems = document.querySelectorAll('#student-list .list-group-item');
             
             studentItems.forEach(item => {
-                const studentName = item.querySelector('h5').textContent.toLowerCase();
-                const parentName = item.querySelector('small').textContent.toLowerCase();
-                
-                if (studentName.includes(searchTerm) || parentName.includes(searchTerm)) {
-                    item.style.display = '';
-                } else {
-                    item.style.display = 'none';
-                }
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(searchTerm) ? '' : 'none';
             });
+        });
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const teacherData = await fetchTeacherDetails(user);
+                if (teacherData) {
+                    const allocatedAadhaarNumbers = await fetchAllocatedStudents(teacherData);
+                    await fetchAndDisplayStudents(teacherData, allocatedAadhaarNumbers);
+                }
+            } else {
+                window.location.href = 'login.html';
+            }
         });
     </script>
 

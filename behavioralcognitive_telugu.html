@@ -63,6 +63,7 @@
         }
 
         async function handleFormSubmit(event) {
+            const childAadhaar =new URLSearchParams(window.location.search).get('childAadhaar');
             event.preventDefault();
             const user = auth.currentUser;
             if (!user) {
@@ -74,11 +75,11 @@
             formData.timestamp = new Date();
 
             try {
-                const docRef = doc(db, "users", user.uid, "casehistory", "behavior");
+                const docRef = doc(db, "users", user.uid, childAadhaar, "info", "casehistory", "behavior");
                 await setDoc(docRef, formData);
 
                 console.log("ప్రవర్తనా మరియు ఉన్నతమైన ఫంక్షన్ డేటా Firebase లో విజయవంతంగా నిల్వ చేయబడింది.");
-                window.location.href = 'selfhelp_telugu.html';
+                window.location.href = `selfhelp_telugu.html?childAadhaar=${encodeURIComponent(childAadhaar)}`;
             } catch (error) {
                 console.error("Firebase లో డేటాను నిల్వ చేయడంలో లోపం:", error);
                 alert('డేటాను సమర్పించడంలో విఫలమైంది. దయచేసి మళ్లీ ప్రయత్నించండి.');

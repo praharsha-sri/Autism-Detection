@@ -11,7 +11,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-
+    
         const firebaseConfig = {
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
             authDomain: "autism-evaluation-platform.firebaseapp.com",
@@ -21,115 +21,161 @@
             appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
             measurementId: "G-1TGEHTTJF4"
         };
-
+    
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-
-        // Store form data in Firestore
+    
         async function storeFormDataInFirestore(data, studentName) {
-            const user = auth.currentUser;
-            if (!user) {
-                console.error("User not signed in.");
-                return;
-            }
+    const user = auth.currentUser;
+    if (!user) {
+        console.error("User not signed in.");
+        return;
+    }
 
-            try {
-                const userDoc = await getDoc(doc(db, "users", user.uid));
-                if (!userDoc.exists()) {
-                    console.error("User document does not exist.");
-                    return;
-                }
-
-                const userData = userDoc.data();
-                const role = userData.role || "default";
-                let docRef;
-
-                if (role === "teacher") {
-                    const studentCollectionName = studentName.replace(/\s+/g, "_").toLowerCase();
-                    docRef = doc(db, "users", user.uid, studentCollectionName, "details");
-                } else {
-                    docRef = doc(db, "users", user.uid, "Questionnaire", "details");
-                }
-
-                await setDoc(docRef, data);
-                console.log("Data stored successfully!");
-            } catch (error) {
-                console.error("Error storing data: ", error);
-            }
+    try {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (!userDoc.exists()) {
+            console.error("User document does not exist.");
+            return;
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
-            const form = document.getElementById("autismForm");
+        const userData = userDoc.data();
+        const role = userData.role;
+        const urlParams = new URLSearchParams(window.location.search);
+        const studentAadhaar = urlParams.get('studentAadhaar');
+        const studentName = urlParams.get('studentName');
 
-            form.addEventListener("submit", async (e) => {
-                e.preventDefault(); // Prevent default form submission
-                const studentName = document.getElementById("name").value;
-                const studentAge = document.getElementById("age").value;
-                const studentDob = document.getElementById("dob").value;
-                const formData = {
-                    name: studentName,
-                    gender: document.getElementById("gender").value,
-                    date: document.getElementById("date").value,
-                    dob: studentDob,
-                    age: studentAge,
-                    examiner: document.getElementById("examiner").value,
-                    timestamp: new Date()
-                };
+        if (!studentAadhaar) {
+            console.error("Student Aadhaar not found in URL parameters.");
+            return;
+        }
 
-                const errorMessageElement = document.getElementById("error-message");
-                errorMessageElement.textContent = "";
+        if (role === 'teacher') {
+            const allocationDocId = `${userData.name}_${userData.organization}`;
+            const studentDocId = `${studentName.toLowerCase()}_${studentAadhaar}`;
 
-                // Validate required fields
-                const allFilled = Object.values(formData).every((field) => field);
-                const age = parseInt(studentAge);
-                if (isNaN(age) || age < 3 || age > 9) {
-                    errorMessageElement.textContent = "వయస్సు 3 నుండి 9 సంవత్సరాల మధ్య ఉండాలి.";
-                    return;
-                }
+            const docRef = doc(db, 
+                "allocations", 
+                allocationDocId, 
+                "allocated_students", 
+                studentDocId, 
+                "teacherfilledquestionnaire", 
+                "details"
+            );
 
-                if (allFilled) {
-                    await storeFormDataInFirestore(formData, studentName);
-                    window.location.href = `telugu_social.html?studentName=${encodeURIComponent(
-                        studentName
-                    )}&studentAge=${encodeURIComponent(studentAge)}&studentDob=${encodeURIComponent(studentDob)}`;
-                }
-            });
+            await setDoc(docRef, data);
+            console.log("Teacher's form data stored successfully!");
 
-            document.getElementById("dob").addEventListener("change", function () {
-                const dobValue = this.value;
-                if (!dobValue) return;
+        } else if (role === 'parent') {
+            const docRef = doc(db, "users", user.uid, studentAadhaar, "info", "parentfilledquestionnaire", "details");
 
-                const dob = new Date(dobValue);
-                const today = new Date();
-                let age = today.getFullYear() - dob.getFullYear();
-                const monthDifference = today.getMonth() - dob.getMonth();
+            await setDoc(docRef, data);
+            console.log("Parent's form data stored successfully!");
+        }
 
-                if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < dob.getDate())) {
-                    age--;
-                }
+        // Single redirection logic for both teacher and parent roles
+        window.location.href = `telugu_social.html?studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(data.age)}&studentDob=${encodeURIComponent(data.dob)}&studentAadhaar=${encodeURIComponent(studentAadhaar)}`;
 
-                document.getElementById("age").value = age;
-                const errorMessageElement = document.getElementById("error-message");
+    } catch (error) {
+        console.error("Error storing data:", error);
+    }
+}
 
-                if (age < 3 || age > 9) {
-                    errorMessageElement.textContent = "వయస్సు 3 నుండి 9 సంవత్సరాల మధ్య ఉండాలి.";
-                } else {
-                    errorMessageElement.textContent = "";
-                }
-            });
-
-            // Set default values
-            const today = new Date().toISOString().split("T")[0];
-            document.getElementById("date").value = today;
-            document.getElementById("dob").setAttribute("max", today);
-
-            onAuthStateChanged(auth, (user) => {
+    
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const studentName = urlParams.get('studentName');
+    
+            onAuthStateChanged(auth, async (user) => {
                 if (!user) {
                     console.error("User not signed in.");
+                    return;
+                }
+    
+                try {
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (userDoc.exists()) {
+                const role = userDoc.data().role;
+                const nameInput = document.getElementById('name');
+
+                if (role === 'teacher' && studentName) {
+                    nameInput.value = studentName;
+                } else if (role === 'parent' && studentName) {
+                    nameInput.value = studentName;
+                }
+
+                // Make the name field read-only
+                nameInput.readOnly = true;
+            }
+        }  catch (error) {
+                    console.error("Error fetching user role:", error);
                 }
             });
+    
+            const form = document.getElementById('autismForm');
+    
+            form.onsubmit = async (e) => {
+                e.preventDefault();
+    
+                const studentAge = document.getElementById('age').value;
+                const studentDob = document.getElementById('dob').value;
+                const studentAadhaar = urlParams.get('studentAadhaar');
+                const studentName = urlParams.get('studentName');
+    
+                const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
+                const role = userDoc.exists() ? userDoc.data().role : null;
+    
+                const formData = {
+                    name: studentName,
+                    gender: document.getElementById('gender').value,
+                    date: document.getElementById('date').value,
+                    dob: studentDob,
+                    age: studentAge,
+                    examiner: document.getElementById('examiner').value,
+                    timestamp: new Date(),
+                    aadhaar: studentAadhaar
+                };
+    
+                const errorMessageElement = document.getElementById('error-message');
+                errorMessageElement.textContent = '';
+    
+                let allFilled = Object.values(formData).every(field => field);
+                const age = parseInt(studentAge);
+                if (isNaN(age) || age < 3 || age > 9) {
+                    allFilled = false;
+                    errorMessageElement.textContent = 'వయస్సు 3 నుండి 9 సంవత్సరాల మధ్య ఉండాలి.';
+                }
+    
+                if (allFilled) {
+                    await storeFormDataInFirestore(formData, studentName);
+                }
+            
+            
+            }
+
         });
+    
+        // Pre-fill the current date and validate the date of birth
+        window.onload = function () {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').value = today;
+            document.getElementById('dob').setAttribute('max', today);
+    
+            document.getElementById('dob').addEventListener('change', function () {
+                const dobValue = this.value;
+                if (dobValue) {
+                    const dob = new Date(dobValue);
+                    const today = new Date();
+                    let age = today.getFullYear() - dob.getFullYear();
+                    const monthDifference = today.getMonth() - dob.getMonth();
+                    if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < dob.getDate())) {
+                        age--;
+                    }
+                    document.getElementById('age').value = age;
+                }
+            });
+        };
     </script>
 </head>
 <body>
@@ -176,85 +222,10 @@
         </div>
 
         <div class="button-container">
-            <a href="questionnaire_score_hindi.html" class="btn prev-btn">మునుపటి (Previous)</a>
+            <a href="telugu_Questionnaire_form.html" class="btn prev-btn">మునుపటి(Previous)</a>
             <button type="submit">తరువాత (Next)</button>
         </div>
     </form>
 
-    <script>
-        window.onload = function() {
-
-            var today = new Date().toISOString().split('T')[0];
-            document.getElementById('date').value = today;
-
-
-            document.getElementById('dob').setAttribute('max', today);
-        };
-
-
-        document.getElementById('dob').addEventListener('change', function() {
-            var dobValue = this.value;
-
-
-            if (dobValue.length === 10) {
-                var dob = new Date(dobValue);
-                var today = new Date();
-                var age = today.getFullYear() - dob.getFullYear();
-                var monthDifference = today.getMonth() - dob.getMonth();
-                
-                if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < dob.getDate())) {
-                    age--;
-                }
-
-                document.getElementById('age').value = age;
-                if (age < 3 || age > 9) {
-                    document.getElementById('error-message').textContent = 'వయస్సు 3 నుండి 9 సంవత్సరాల మధ్య ఉండాలి.';
-                } else {
-                    document.getElementById('error-message').textContent = '';
-                }
-            }
-        });
-
-
-        document.getElementById('autismForm').addEventListener('submit', function(event) {
-    let allFilled = true;
-    let age = parseInt(document.getElementById('age').value);
-
-    document.getElementById('error-message').textContent = '';
-
-    // Check if all required inputs are filled
-    this.querySelectorAll('input, select').forEach(function(input) {
-        if (!input.value) {
-            allFilled = false;
-        }
-    });
-
-    // Check if age is in valid range
-    if (isNaN(age) || age < 3 || age > 9) {
-        allFilled = false;
-        document.getElementById('error-message').textContent = 'వయస్సు 3 నుండి 9 సంవత్సరాల మధ్య ఉండాలి.';
-    }
-
-    if (allFilled) {
-        saveFormDataToLocalStorage(); // Save data locally
-        storeFormDataInFirestore({
-            name: document.getElementById('name').value,
-            gender: document.getElementById('gender').value,
-            date: document.getElementById('date').value,
-            dob: document.getElementById('dob').value,
-            age: document.getElementById('age').value,
-            examiner: document.getElementById('examiner').value,
-            timestamp: new Date()
-        });
-
-        // Navigate to the next page
-        window.location.href = "telugu_social.html";
-    } else {
-        // Prevent form submission if validation fails
-        event.preventDefault();
-    }
-});
-
-</script>
 </body>
 </html>

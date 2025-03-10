@@ -20,7 +20,7 @@
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-        h1 {
+        h1, h2 {
             color: #333;
         }
         table {
@@ -48,6 +48,28 @@
             border: 1px solid #cce4ff;
             border-radius: 5px;
         }
+        .therapy-section {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+        .therapy-item {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: white;
+            border-left: 4px solid #007bff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .therapy-item h3 {
+            margin: 0 0 5px 0;
+            color: #007bff;
+        }
+        .therapy-item .probability {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
         .home-btn {
             display: inline-block;
             margin-top: 20px;
@@ -61,6 +83,14 @@
         }
         .home-btn:hover {
             background-color: #0056b3;
+        }
+        #therapyRecommendations {
+            margin-top: 20px;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
         }
     </style>
 </head>
@@ -83,7 +113,14 @@
             <strong>Autism Range:</strong>
             <div id="autismRangeResult"></div>
         </div>
-        <!-- Home Page Button -->
+
+        <div class="therapy-section">
+            <h2>Recommended Therapies</h2>
+            <div id="therapyRecommendations">
+                <div class="loading">Loading recommendations...</div>
+            </div>
+        </div>
+
         <a href="#" class="home-btn" id="homeButton">Home</a>
     </div>
 
@@ -115,6 +152,80 @@
             'speechLanguageCommunication'
         ];
 
+        async function getTherapyRecommendations(scores, autismRange) {
+            try {
+                const response = await fetch('http://localhost:5000/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        behavioural: scores.behaviourPatterns || 0,
+                        sensory: scores.sensoryAspects || 0,
+                        cognitive: scores.cognitiveComponent || 0,
+                        social: scores.socialRelationship || 0,
+                        emotional: scores.emotionalResponsiveness || 0,
+                        speech: scores.speechLanguageCommunication || 0,
+                        total_autism_score: Object.values(scores).reduce((a, b) => a + b, 0),
+                        autism_range: autismRange.toLowerCase(),
+                        high_domains: getHighDomains(scores)
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const recommendations = await response.json();
+                displayTherapyRecommendations(recommendations);
+                return recommendations;
+            } catch (error) {
+                console.error('Error getting therapy recommendations:', error);
+                document.getElementById('therapyRecommendations').innerHTML = 
+                    '<div class="therapy-item">Error loading therapy recommendations. Please try again later.</div>';
+                return null;
+            }
+        }
+
+        function getHighDomains(scores) {
+            const highDomains = [];
+            const threshold = 3;
+            
+            if (scores.behaviourPatterns >= threshold) highDomains.push('behavioral');
+            if (scores.sensoryAspects >= threshold) highDomains.push('sensory');
+            if (scores.cognitiveComponent >= threshold) highDomains.push('cognitive');
+            if (scores.socialRelationship >= threshold) highDomains.push('social');
+            if (scores.emotionalResponsiveness >= threshold) highDomains.push('emotional');
+            if (scores.speechLanguageCommunication >= threshold) highDomains.push('speech');
+            
+            return highDomains.join(',');
+        }
+
+        function displayTherapyRecommendations(recommendations) {
+            const container = document.getElementById('therapyRecommendations');
+            container.innerHTML = '';
+
+            const sortedTherapies = Object.entries(recommendations)
+                .sort(([,a], [,b]) => b[0] - a[0]);
+
+            sortedTherapies.forEach(([therapy, probabilities]) => {
+                const probability = probabilities[0] * 100;
+                if (probability > 50) {
+                    const therapyElement = document.createElement('div');
+                    therapyElement.className = 'therapy-item';
+                    therapyElement.innerHTML = `
+                        <h3>${therapy.replace(/_/g, ' ').toUpperCase()}</h3>
+                        <div class="probability">Recommendation Confidence: ${probability.toFixed(1)}%</div>
+                    `;
+                    container.appendChild(therapyElement);
+                }
+            });
+
+            if (container.children.length === 0) {
+                container.innerHTML = '<div class="therapy-item">No specific therapy recommendations at this time.</div>';
+            }
+        }
+
         function classifyAutism(totalScore) {
             if (totalScore <= 70) {
                 return "No Autism";
@@ -128,87 +239,96 @@
         }
 
         async function fetchScoresAndStore(userId, studentName, studentAge, studentDob) {
-            const studentCollectionName = studentName.replace(/\s+/g, "_").toLowerCase();
-            try {
-                let totalScore = 0;
-                const scores = {};
-                const userDocRef = doc(db, 'users', userId);
-                const userDocSnap = await getDoc(userDocRef);
+    const studentAadhaar = new URLSearchParams(window.location.search).get('studentAadhaar');
+    try {
+        let totalScore = 0;
+        const scores = {};
+        const userDocRef = doc(db, 'users', userId);
+        const userDocSnap = await getDoc(userDocRef);
 
-                if (!userDocSnap.exists()) {
-                    console.log("No such user!");
-                    return;
+        if (!userDocSnap.exists()) {
+            console.log("No such user!");
+            return;
+        }
+
+        const userData = userDocSnap.data();
+        const isTeacher = userData.role === 'teacher';
+
+        // Fetching scores for each domain
+        for (const docId of documentIds) {
+            let docRef;
+            if (isTeacher) {
+                const allocationDocId = `${userData.name}_${userData.organization}`;
+                const studentDocId = `${studentName.toLowerCase()}_${studentAadhaar}`;
+                docRef = doc(db, "allocations", allocationDocId, "allocated_students", studentDocId, "teacherfilledquestionnaire", docId);
+            } else {
+                docRef = doc(db, 'users', userId, studentAadhaar, "info", "parentfilledquestionnaire", docId);
+            }
+
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const score = docSnap.data().score || 0;
+                totalScore += score;
+                scores[docId] = score;
+                document.getElementById(docId).textContent = score;
+            } else {
+                console.log(`No data found for ${docId}`);
+                document.getElementById(docId).textContent = '0';
+            }
+        }
+
+        const percentageScore = ((totalScore / 200) * 100).toFixed(2);
+        document.getElementById('totalScore').textContent = totalScore;
+        document.getElementById('percentagescore').textContent = `${percentageScore}%`;
+        const autismRange = classifyAutism(totalScore);
+        document.getElementById('autismRangeResult').textContent = autismRange;
+
+        // Fetching therapy recommendations
+        const therapyRecommendations = await getTherapyRecommendations(scores, autismRange);
+
+        const filteredRecommendations = {};
+        if (therapyRecommendations) {
+            Object.entries(therapyRecommendations).forEach(([therapy, probabilities]) => {
+                if (probabilities[0] * 100 > 50) {
+                    filteredRecommendations[therapy] = probabilities;
                 }
+            });
+        }
 
-                const userData = userDocSnap.data();
-                const isTeacher = userData.role === 'teacher';
+                const resultData = {
+                    userId: userId,
+                    studentName: studentName,
+                    studentDob: studentDob,
+                    studentAge: studentAge,
+                    scores: scores,
+                    totalScore: totalScore,
+                    percentageScore: percentageScore,
+                    autismRange: autismRange,
+                    therapyRecommendations: filteredRecommendations,
+                    submittedAt: new Date()
+                };
 
-                for (const docId of documentIds) {
-                    let docRef;
-                    if (isTeacher) {
-                        docRef = doc(db, 'users', userId, studentCollectionName, docId);
-                    } else {
-                        docRef = doc(db, 'users', userId, 'Questionnaire', docId);
-                    }
+                // Storing result data in Firestore (parentfilledquestionnaire)
+        const parentFilledQuestionnaireRef = doc(db, 'users', userId, studentAadhaar, 'info', 'parentfilledquestionnaire','therapydetails');
+        // Extracting only therapy names and converting them into a comma-separated string
+const therapyNamesString = Object.keys(filteredRecommendations).join(", ");
+        await setDoc(parentFilledQuestionnaireRef, {
+            therapyDetails: therapyNamesString,
+        });
 
-                    const docSnap = await getDoc(docRef);
-
-                    if (docSnap.exists()) {
-                        const score = docSnap.data().score || 0;
-                        totalScore += score;
-                        scores[docId] = score;
-                        document.getElementById(docId).textContent = score;
-                    } else {
-                        console.log(`No data found for ${docId}`);
-                        document.getElementById(docId).textContent = '0';
-                    }
-                }
-
-                const percentageScore = ((totalScore / 200) * 100).toFixed(2);
-                document.getElementById('totalScore').textContent = totalScore;
-                document.getElementById('percentagescore').textContent = `${percentageScore}%`;
-                const autismRange = classifyAutism(totalScore);
-                document.getElementById('autismRangeResult').textContent = autismRange;
-
-                // Store the results
                 if (isTeacher) {
-                    const overallScoreRef = doc(db, 'users', userId, studentCollectionName, 'overallscore');
-                    await setDoc(overallScoreRef, {
-                        userId: userId,
-                        studentName: studentName,
-                        studentDob: studentDob,
-                        studentAge: studentAge,
-                        scores: scores,
-                        totalScore: totalScore,
-                        percentageScore: percentageScore,
-                        autismRange: autismRange,
-                        submittedAt: new Date()
-                    });
+                    const allocationDocId = `${userData.name}_${userData.organization}`;
+                    const studentDocId = `${studentName.toLowerCase()}_${studentAadhaar}`;
+                    
+                    const overallScoreRef = doc(db, "allocations", allocationDocId, "allocated_students", studentDocId, 'overallscore', 'submissions');
+                    await setDoc(overallScoreRef, resultData);
+                    
                     const submissionsRef = collection(db, 'users', userId, 'submissions');
-                    await addDoc(submissionsRef, {
-                        userId: userId,
-                        studentName: studentName,
-                        studentDob: studentDob,
-                        studentAge: studentAge,
-                        scores: scores,
-                        totalScore: totalScore,
-                        percentageScore: percentageScore,
-                        autismRange: autismRange,
-                        submittedAt: new Date()
-                    });
+                    await addDoc(submissionsRef, resultData);
                 } else {
-                    const submissionsRef = collection(db, 'users', userId, 'submissions');
-                    await addDoc(submissionsRef, {
-                        userId: userId,
-                        studentName: studentName,
-                        studentDob: studentDob,
-                        studentAge: studentAge,
-                        scores: scores,
-                        totalScore: totalScore,
-                        percentageScore: percentageScore,
-                        autismRange: autismRange,
-                        submittedAt: new Date()
-                    });
+                    const submissionsRef = collection(db, 'users', userId, studentAadhaar, 'info', 'submissions');
+                    await addDoc(submissionsRef, resultData);
                 }
             } catch (error) {
                 console.error("Error fetching or storing scores:", error);

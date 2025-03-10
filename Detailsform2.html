@@ -9,9 +9,9 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-        import { getFirestore, doc, setDoc,getDoc} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-
+    
         // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
@@ -22,96 +22,150 @@
             appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
             measurementId: "G-1TGEHTTJF4"
         };
-
+    
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-
-        // Save form data to Firestore
+    
+        // Function to store form data in Firestore
         async function storeFormDataInFirestore(data, studentName) {
-            const user = auth.currentUser;
-            if (user) {
-                try {
-                    // Retrieve the user's role from Firestore
-            const userDoc = await getDoc(doc(db, "users", user.uid));
-            if (!userDoc.exists()) {
-                console.error("User document does not exist.");
-                return;
-            }
+    const user = auth.currentUser;
+    if (!user) {
+        console.error("User not signed in.");
+        return;
+    }
 
-            const userData = userDoc.data();
-            const role = userData.role; // Assuming 'role' field is present in the user's Firestore document
-
-            let docRef;
-                    if (role === 'teacher') {
-                        const studentCollectionName = studentName.replace(/\s+/g, "_").toLowerCase();
-                        // Reference to the 'details' document inside the student's collection
-                        docRef = doc(db, "users", user.uid, studentCollectionName, "details");
-                    } else {
-                        docRef = doc(db, "users", user.uid, "Questionnaire", "details");
-                    }
-
-                    await setDoc(docRef, data); // Store data in the 'details' document
-                    console.log("Data stored successfully!");
-                } catch (error) {
-                    console.error("Error storing data: ", error);
-                }
-            } else {
-                console.error("User not signed in.");
-            }
+    try {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (!userDoc.exists()) {
+            console.error("User document does not exist.");
+            return;
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const form = document.getElementById('autismForm');
+        const userData = userDoc.data();
+        const role = userData.role;
+        const urlParams = new URLSearchParams(window.location.search);
+        const studentAadhaar = urlParams.get('studentAadhaar');
+        const studentName = urlParams.get('studentName');
 
+        if (!studentAadhaar) {
+            console.error("Student Aadhaar not found in URL parameters.");
+            return;
+        }
+
+        if (role === 'teacher') {
+            const allocationDocId = `${userData.name}_${userData.organization}`;
+            const studentDocId = `${studentName.toLowerCase()}_${studentAadhaar}`;
+
+            const docRef = doc(db, 
+                "allocations", 
+                allocationDocId, 
+                "allocated_students", 
+                studentDocId, 
+                "teacherfilledquestionnaire", 
+                "details"
+            );
+
+            await setDoc(docRef, data);
+            console.log("Teacher's form data stored successfully!");
+
+        } else if (role === 'parent') {
+            const docRef = doc(db, "users", user.uid, studentAadhaar, "info", "parentfilledquestionnaire", "details");
+
+            await setDoc(docRef, data);
+            console.log("Parent's form data stored successfully!");
+        }
+
+        // Single redirection logic for both teacher and parent roles
+        window.location.href = `social.html?studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(data.age)}&studentDob=${encodeURIComponent(data.dob)}&studentAadhaar=${encodeURIComponent(studentAadhaar)}`;
+
+    } catch (error) {
+        console.error("Error storing data:", error);
+    }
+}
+
+    
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const studentName = urlParams.get('studentName');
+    
+            onAuthStateChanged(auth, async (user) => {
+                if (!user) {
+                    console.error("User not signed in.");
+                    return;
+                }
+    
+                try {
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (userDoc.exists()) {
+                const role = userDoc.data().role;
+                const nameInput = document.getElementById('name');
+
+                if (role === 'teacher' && studentName) {
+                    nameInput.value = studentName;
+                } else if (role === 'parent' && studentName) {
+                    nameInput.value = studentName;
+                }
+
+                // Make the name field read-only
+                nameInput.readOnly = true;
+            }
+        }  catch (error) {
+                    console.error("Error fetching user role:", error);
+                }
+            });
+   
+            const form = document.getElementById('autismForm');
+    
             form.onsubmit = async (e) => {
-                e.preventDefault(); // Prevent default form submission
-                const studentAge = document.getElementById('age').value; // Age
-                const studentName = document.getElementById('name').value; // Student name
-                const studentDob = document.getElementById('dob').value; // Student name
+                e.preventDefault();
+    
+                const studentAge = document.getElementById('age').value;
+                const studentDob = document.getElementById('dob').value;
+                const studentAadhaar = urlParams.get('studentAadhaar');
+                const studentName = urlParams.get('studentName');
+    
+                const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
+                const role = userDoc.exists() ? userDoc.data().role : null;
+    
                 const formData = {
                     name: studentName,
                     gender: document.getElementById('gender').value,
                     date: document.getElementById('date').value,
-                    dob: document.getElementById('dob').value,
-                    age: document.getElementById('age').value,
+                    dob: studentDob,
+                    age: studentAge,
                     examiner: document.getElementById('examiner').value,
-                    timestamp: new Date()
+                    timestamp: new Date(),
+                    aadhaar: studentAadhaar
                 };
-
+    
                 const errorMessageElement = document.getElementById('error-message');
                 errorMessageElement.textContent = '';
-
-                // Validate required fields and age range
+    
                 let allFilled = Object.values(formData).every(field => field);
-                const age = parseInt(formData.age);
+                const age = parseInt(studentAge);
                 if (isNaN(age) || age < 3 || age > 9) {
                     allFilled = false;
                     errorMessageElement.textContent = 'Age must be between 3 and 9 years.';
                 }
-
+    
                 if (allFilled) {
-                    await storeFormDataInFirestore(formData, studentName); // Store data in Firestore
-                    window.location.href = `social.html?studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(studentAge)}&studentDob=${encodeURIComponent(studentDob)}`;
+                    await storeFormDataInFirestore(formData, studentName);
                 }
-            };
+            
+            
+            }
 
-            // Firebase auth state listener
-            onAuthStateChanged(auth, (user) => {
-                if (!user) {
-                    console.error("User not signed in.");
-                }
-            });
         });
-
+    
         // Pre-fill the current date and validate the date of birth
-        window.onload = function() {
+        window.onload = function () {
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('date').value = today;
             document.getElementById('dob').setAttribute('max', today);
-
-            document.getElementById('dob').addEventListener('change', function() {
+    
+            document.getElementById('dob').addEventListener('change', function () {
                 const dobValue = this.value;
                 if (dobValue) {
                     const dob = new Date(dobValue);
@@ -126,6 +180,7 @@
             });
         };
     </script>
+    
 </head>
 <body>
     <h2>Indian Scale for Assessment of Autism</h2>

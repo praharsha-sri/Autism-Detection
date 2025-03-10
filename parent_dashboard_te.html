@@ -22,7 +22,12 @@
     <!-- Navigation bar -->
     <nav class="navbar navbar-expand-lg navbar-light sticky-top">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#" id="user-name">డాష్‌బోర్డ్</a>
+            <div class="navbar-brand">
+                <span id="user-name">డాష్‌బోర్డ్</span>
+                <span class="mx-2">|</span>
+                <span id="child-name" class="text-primary"></span>
+            </div>
+
             <div class="d-flex align-items-center">
                 <select id="language-switcher" class="form-select me-2">
                     <option value="en">English</option>
@@ -53,7 +58,7 @@
             <div class="col-lg-4 col-md-6">
                 <div class="card shadow-lg">
                     <div class="card-body">
-                        <a href="home_page_parent.html" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-decoration-none">
+                        <a href="casehistory_te.html" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-decoration-none">
                             <span class="fas fa-file-alt fa-2x mb-3"></span>
                             <h5>కేస్ హిస్టరీ ఫారం</h5>
                         </a>
@@ -65,7 +70,7 @@
             <div class="col-lg-4 col-md-6">
                 <div class="card shadow-lg">
                     <div class="card-body">
-                        <a href="telugu_Questionnaire_form.html" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-decoration-none">
+                        <a href="#.html" id="questionnaire-link" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-decoration-none">
                             <span class="fas fa-list-alt fa-2x mb-3"></span>
                             <h5>ప్రశ్నావళి</h5>
                         </a>
@@ -148,6 +153,28 @@
 
                     const userName = userData.name || "User";
                     document.getElementById('user-name').textContent = `${userName}'s డాష్‌బోర్డ్`;
+
+                    // Get child's Aadhaar from the database and display the child's name
+            const childAadhaar = sessionStorage.getItem('currentChildAadhaar');
+            if (userData.children) {
+                const child = userData.children.find(
+                    (child) => child.name && child.aadhaar === childAadhaar
+                );
+
+                if (child) {
+                    document.getElementById('child-name').textContent = `పిల్లల పేరు : ${child.name}`;
+                    
+                    // Set the Questionnaire link with the child's details
+                    const questionnaireLink = document.getElementById('questionnaire-link');
+                    questionnaireLink.href = `telugu_Questionnaire_form.html?studentName=${encodeURIComponent(child.name)}&studentAadhaar=${encodeURIComponent(child.aadhaar)}`;
+
+                    // Store the Aadhaar in sessionStorage for use in other pages
+                    sessionStorage.setItem("aadhaar", child.aadhaar);
+                    sessionStorage.setItem("name", child.name);
+                } else {
+                    console.warn("Child Aadhaar mapping not found");
+                }
+            }
 
                     const selectedLanguage = localStorage.getItem('selectedLanguage');
                     document.getElementById('language-switcher').value = selectedLanguage;

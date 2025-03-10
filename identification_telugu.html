@@ -93,11 +93,12 @@
             };
 
             try {
-                const docRef = doc(db, "users", user.uid, "casehistory", "identification");
+                const childAadhaar = sessionStorage.getItem('currentChildAadhaar');
+                const docRef = doc(db, "users", user.uid, childAadhaar, "info", "casehistory", "identification");
                 await setDoc(docRef, formData);
 
                 console.log("ఫారమ్ డేటా Firebase లో నిల్వ చేయబడింది.");
-                window.location.href = 'parental_telugu.html';
+                window.location.href = `parental_telugu.html?childAadhaar=${encodeURIComponent(childAadhaar)}`;
             } catch (error) {
                 console.error("Firebase లో డేటా నిల్వ చేయడంలో పొరపాటు:", error);
                 alert('డేటాను సమర్పించడంలో విఫలమయ్యింది.');

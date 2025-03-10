@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automatic Student-Teacher Allocation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .allocation-card {
+            transition: all 0.3s ease;
+        }
+        .allocation-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .student-item {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
+        }
+        .stats-card {
+            background: linear-gradient(45deg, #4b6cb7 0%, #182848 100%);
+            color: white;
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .loading-overlay.active {
+            display: flex;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">Automatic Student-Teacher Allocation</a>
+            <div class="d-flex">
+                <a href="admin_dashboard.html" class="btn btn-light me-2">Back to Dashboard</a>
+                <button id="logoutBtn" class="btn btn-light">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <select id="orgSelect" class="form-select">
+                    <option value="">Select Organization</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <button id="autoAllocate" class="btn btn-primary">Perform Automatic Allocation</button>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Teachers</h5>
+                        <h2 id="teacherCount">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Students</h5>
+                        <h2 id="studentCount">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Students per Teacher</h5>
+                        <h2 id="studentsPerTeacher">0</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="allocationsContainer" class="row">
+            <!-- Allocation cards will be added here -->
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { 
+            getFirestore, 
+            collection, 
+            getDocs, 
+            doc, 
+            getDoc, 
+            setDoc,
+            deleteDoc 
+        } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+            authDomain: "autism-evaluation-platform.firebaseapp.com",
+            projectId: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform.appspot.com",
+            messagingSenderId: "748226978662",
+            appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+            measurementId: "G-1TGEHTTJF4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        const elements = {
+            orgSelect: document.getElementById('orgSelect'),
+            allocationsContainer: document.getElementById('allocationsContainer'),
+            teacherCount: document.getElementById('teacherCount'),
+            studentCount: document.getElementById('studentCount'),
+            studentsPerTeacher: document.getElementById('studentsPerTeacher'),
+            autoAllocate: document.getElementById('autoAllocate'),
+            loadingOverlay: document.getElementById('loadingOverlay'),
+            logoutBtn: document.getElementById('logoutBtn')
+        };
+
+        function showLoading() {
+            elements.loadingOverlay.classList.add('active');
+        }
+
+        function hideLoading() {
+            elements.loadingOverlay.classList.remove('active');
+        }
+
+        async function loadOrganizations() {
+            try {
+                showLoading();
+                const querySnapshot = await getDocs(collection(db, "organizations"));
+                elements.orgSelect.innerHTML = '<option value="">Select Organization</option>';
+                querySnapshot.forEach((doc) => {
+                    elements.orgSelect.innerHTML += `
+                        <option value="${doc.id}">${doc.data().name || doc.id}</option>
+                    `;
+                });
+            } catch (error) {
+                console.error("Error loading organizations:", error);
+                alert("Error loading organizations");
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function getStudentsFromParents(parents) {
+        let students = new Map(); // Using Map to ensure unique students by Aadhaar
+        parents.forEach(parent => {
+            const names = parent.childrenName || [];
+            const aadhaarNumbers = parent.childrenAadhaar || [];
+            
+            // Process each Aadhaar number
+            aadhaarNumbers.forEach((aadhaar, index) => {
+                if (aadhaar) { // Only process if Aadhaar exists
+                    const name = names[index] || 'na';
+                    const studentId = `${name.toLowerCase()}_${aadhaar}`.replace(/\s+/g, '_');
+                    students.set(aadhaar, {
+                        name: names[index] || 'NA',
+                        aadhaar: aadhaar,
+                        studentId: studentId
+                    });
+                }
+            });
+        });
+        return Array.from(students.values());
+    }
+
+    async function performAllocation(orgName, teachers, students) {
+    try {
+        showLoading();
+
+        // Calculate students per teacher
+        const studentsPerTeacher = Math.ceil(students.length / teachers.length);
+        let studentIndex = 0;
+
+        for (const teacher of teachers) {
+            const teacherStudents = [];
+            for (let i = 0; i < studentsPerTeacher && studentIndex < students.length; i++) {
+                teacherStudents.push(students[studentIndex]);
+                studentIndex++;
+            }
+
+            // Generate unique docId based on organization and teacher
+            const docId = `${teacher.name}_${orgName}`.replace(/\s+/g, '_').toLowerCase();
+            const teacherAllocationRef = doc(db, "allocations", docId);
+
+            // Check if this allocation already exists
+            const existingAllocation = await getDoc(teacherAllocationRef);
+            if (!existingAllocation.exists()) {
+                // Create new allocation document if it doesn't exist
+                await setDoc(teacherAllocationRef, {
+                    teacherName: teacher.name,
+                    teacherEmail: teacher.email,
+                    organizationName: orgName,
+                    studentCount: teacherStudents.length,
+                    timestamp: new Date().toISOString()
+                });
+            }
+
+            // Add students to subcollection
+            for (const student of teacherStudents) {
+                const studentId = student.aadhaar
+                    ? `${(student.name || 'na').toLowerCase()}_${student.aadhaar}`.replace(/\s+/g, '_')
+                    : null;
+
+                if (studentId) {
+                    const studentRef = doc(teacherAllocationRef, "allocated_students", studentId);
+                    const studentDoc = await getDoc(studentRef);
+
+                    if (!studentDoc.exists()) {
+                        await setDoc(studentRef, {
+                            name: student.name || 'NA',
+                            aadhaar: student.aadhaar,
+                            allocationDate: new Date().toISOString()
+                        });
+                    }
+                }
+            }
+        }
+
+        displayAllocations(orgName, teachers, students);
+        alert("Allocation completed successfully!");
+    } catch (error) {
+        console.error("Error performing allocation:", error);
+        alert("Error performing allocation: " + error.message);
+    } finally {
+        hideLoading();
+    }
+}
+
+    function updateStats(teachers, students) {
+        // Count based on unique Aadhaar numbers
+        const uniqueStudentCount = new Set(students.map(s => s.aadhaar)).size;
+        elements.teacherCount.textContent = teachers.length;
+        elements.studentCount.textContent = uniqueStudentCount;
+        elements.studentsPerTeacher.textContent = 
+            teachers.length ? Math.ceil(uniqueStudentCount / teachers.length) : 0;
+    }
+
+    function displayAllocations(orgName, teachers, students) {
+        elements.allocationsContainer.innerHTML = '';
+        const studentsPerTeacher = Math.ceil(students.length / teachers.length);
+        let studentIndex = 0;
+
+        teachers.forEach(teacher => {
+            const teacherStudents = [];
+            for (let i = 0; i < studentsPerTeacher && studentIndex < students.length; i++) {
+                teacherStudents.push(students[studentIndex]);
+                studentIndex++;
+            }
+
+            const card = `
+                <div class="col-md-4 mb-4">
+                    <div class="card allocation-card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0">${teacher.name}</h5>
+                            <small>${teacher.email}</small>
+                        </div>
+                        <div class="card-body">
+                            <h6>Assigned Students: ${teacherStudents.length}</h6>
+                            ${teacherStudents.map(student => `
+                                <div class="student-item">
+                                    <strong>${student.name}</strong><br>
+                                    <small class="text-muted">Aadhaar: ${student.aadhaar}</small>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            elements.allocationsContainer.innerHTML += card;
+        });
+    }
+
+        elements.orgSelect.addEventListener('change', async (e) => {
+            if (!e.target.value) {
+                elements.allocationsContainer.innerHTML = '';
+                updateStats([], []);
+                return;
+            }
+
+            try {
+                showLoading();
+                const orgDoc = await getDoc(doc(db, "organizations", e.target.value));
+                if (orgDoc.exists()) {
+                    const orgData = orgDoc.data();
+                    const teachers = orgData.teachers || [];
+                    const students = getStudentsFromParents(orgData.parents || []);
+                    updateStats(teachers, students);
+                    displayAllocations(orgData.name || e.target.value, teachers, students);
+                }
+            } catch (error) {
+                console.error("Error loading organization:", error);
+                alert("Error loading organization details");
+            } finally {
+                hideLoading();
+            }
+        });
+
+        elements.autoAllocate.addEventListener('click', async () => {
+            const orgId = elements.orgSelect.value;
+            if (!orgId) {
+                alert("Please select an organization first");
+                return;
+            }
+
+            try {
+                const orgDoc = await getDoc(doc(db, "organizations", orgId));
+                if (orgDoc.exists()) {
+                    const orgData = orgDoc.data();
+                    const teachers = orgData.teachers || [];
+                    const students = getStudentsFromParents(orgData.parents || []);
+                    
+                    if (teachers.length === 0) {
+                        alert("No teachers available in this organization");
+                        return;
+                    }
+                    if (students.length === 0) {
+                        alert("No students available in this organization");
+                        return;
+                    }
+
+                    await performAllocation(orgData.name || orgId, teachers, students);
+                }
+            } catch (error) {
+                console.error("Error during allocation:", error);
+                alert("Error performing allocation");
+            }
+        });
+
+        elements.logoutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                window.location.href = 'login.html';
+            } catch (error) {
+                console.error("Logout error:", error);
+                alert("Error logging out");
+            }
+        });
+
+        // Initialize the page
+        loadOrganizations();
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -62,6 +62,7 @@
         }
 
         async function handleFormSubmit(event) {
+            const childAadhaar =new URLSearchParams(window.location.search).get('childAadhaar');
             event.preventDefault();
 
             const user = auth.currentUser;
@@ -74,11 +75,11 @@
             formData.timestamp = new Date();
 
             try {
-                const docRef = doc(db, "users", user.uid, "casehistory", "playhistory");
+                const docRef = doc(db, "users", user.uid, childAadhaar, "info", "casehistory", "playhistory");
                 await setDoc(docRef, formData);
 
                 console.log("ఆట మరియు అభివృద్ధి చరిత్ర ఫైర్బేస్‌లో విజయవంతంగా భద్రపరచబడింది.");
-                window.location.href = 'behavioralcognitive_telugu.html';
+                window.location.href = `behavioralcognitive_telugu.html?childAadhaar=${encodeURIComponent(childAadhaar)}`;
             } catch (error) {
                 console.error("ఫైర్బేస్‌లో డేటా భద్రపరచడంలో లోపం:", error);
                 alert('డేటా సబ్మిట్ చేయడంలో విఫలమైంది. దయచేసి మళ్లీ ప్రయత్నించండి.');

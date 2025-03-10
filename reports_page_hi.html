@@ -120,7 +120,13 @@
         function displayChildInfo(user) {
             const childDetailsDiv = document.getElementById('child-details');
 
-            db.collection('users').doc(user.uid).collection('Questionnaire').doc('details').get().then(doc => {
+            const studentAadhaar = sessionStorage.getItem('currentChildAadhaar');
+
+            db.collection('users').doc(user.uid)
+                        .collection(studentAadhaar)
+                        .doc('info')
+                        .collection('parentfilledquestionnaire')
+            .doc('details').get().then(doc => {
                 if (doc.exists) {
                     const childData = doc.data();
                     const info = {
@@ -171,10 +177,13 @@
                 const domains = Object.keys(domainNames);
                 const scores = {};
                 let totalScore = 0;
+                const studentAadhaar = sessionStorage.getItem('currentChildAadhaar');
 
                 for (const domain of domains) {
                     const docRef = db.collection('users').doc(user.uid)
-                                   .collection('Questionnaire').doc(domain);
+                        .collection(studentAadhaar)
+                        .doc('info')
+                        .collection('parentfilledquestionnaire').doc(domain);
                     const docSnap = await docRef.get();
 
                     if (docSnap.exists) {
@@ -185,6 +194,15 @@
                         scores[domain] = 'N/A';
                     }
                 }
+                // Fetch therapy details
+        let therapyDetails = "Not Available";
+        const therapyDoc = await db.collection('users').doc(user.uid)
+                        .collection(studentAadhaar)
+                        .doc('info')
+                        .collection('parentfilledquestionnaire').doc('therapydetails').get();
+        if (therapyDoc.exists) {
+            therapyDetails = therapyDoc.data().therapyDetails || "Not Available";
+        }
 
                 const reportData = {
                     id: 'current_assessment',
@@ -196,7 +214,8 @@
                         name: userName,
                         email: user.email || 'उपलब्ध नहीं',
                         uid: user.uid
-                    }
+                    },
+                    therapyDetails
                 };
 
                 reportsContainer.appendChild(createReportCard(reportData));
@@ -240,7 +259,13 @@
 
             const autismRange = document.createElement('div');
             autismRange.className = 'autism-range';
-            autismRange.innerHTML = `ऑटिज़्म रेंज: ${report.autismRange}`;
+            autismRange.innerHTML = `<strong>ऑटिज़्म रेंज: </strong>${report.autismRange}`;
+
+            // Therapy details
+    const therapyDetails = document.createElement('div');
+    therapyDetails.className = 'therapy-recommendations';
+    therapyDetails.innerHTML = `<strong>सिफारिश की गई चिकित्सा:</strong> ${report.therapyDetails}`;
+
 
             const generateButton = document.createElement('button');
             generateButton.className = 'generate-button';
@@ -251,6 +276,7 @@
             card.appendChild(scoresContainer);
             card.appendChild(totalScore);
             card.appendChild(autismRange);
+            card.appendChild(therapyDetails);
             card.appendChild(generateButton);
 
             return card;

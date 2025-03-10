@@ -93,8 +93,9 @@
                 const studentName = new URLSearchParams(window.location.search).get('studentName'); // Get student name from URL
                 const studentAge = new URLSearchParams(window.location.search).get('studentAge'); // Get student age from URL
                 const studentDob = new URLSearchParams(window.location.search).get('studentDob'); // Get student dob from URL
+                const studentAadhaar = new URLSearchParams(window.location.search).get('studentAadhaar');
                 const studentCollectionName = studentName.replace(/\s+/g, "_").toLowerCase();
-                url += `studentName=${encodeURIComponent(studentCollectionName)}&studentAge=${encodeURIComponent(studentAge)}&studentDob=${encodeURIComponent(studentDob)}`;
+                url += `studentName=${encodeURIComponent(studentCollectionName)}&studentAge=${encodeURIComponent(studentAge)}&studentDob=${encodeURIComponent(studentDob)}&studentAadhaar=${encodeURIComponent(studentAadhaar)}`;
             } else {
                 // Remove trailing '&' if present
                 url = url.slice(0, -1);

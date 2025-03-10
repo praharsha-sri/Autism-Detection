@@ -59,6 +59,7 @@
         }
 
     async function handleFormSubmit(event) {
+      const childAadhaar =new URLSearchParams(window.location.search).get('childAadhaar');
         event.preventDefault(); // Prevent default form submission
 
         const user = auth.currentUser; // Get current user
@@ -72,14 +73,14 @@
 
         try {
             // Store data in Firestore under users/{userId}/casehistory/family
-            const docRef = doc(db, "users", user.uid, "casehistory", "family");
+            const docRef = doc(db, "users", user.uid, childAadhaar, "info", "casehistory", "family");
             await setDoc(docRef, formData);
 
             console.log("కుటుంబ చరిత్ర డేటా Firebase లో విజయవంతంగా నిల్వ చేయబడింది.");
             // alert('కుటుంబ చరిత్ర విజయవంతంగా సమర్పించబడింది.');
 
             // Redirect to the next page after submission
-            window.location.href = 'playhistory_telugu.html'; // Change to your desired page
+            window.location.href = `playhistory_telugu.html?childAadhaar=${encodeURIComponent(childAadhaar)}`; // Change to your desired page
         } catch (error) {
             console.error("Firebase లో కుటుంబ చరిత్ర డేటాను నిల్వ చేయడంలో లోపం:", error);
             alert('డేటా సబ్మిట్ చేయడంలో విఫలమయ్యింది. దయచేసి మళ్లీ ప్రయత్నించండి.');

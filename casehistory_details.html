@@ -48,10 +48,6 @@
         .detail-value {
             color: #34495e;
         }
-        .no-data {
-            color: #7f8c8d;
-            font-style: italic;
-        }
         #download-pdf {
             margin-bottom: 20px;
         }
@@ -99,7 +95,7 @@
             apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
             authDomain: "autism-evaluation-platform.firebaseapp.com",
             projectId: "autism-evaluation-platform",
-            storageBucket: "autism-evaluation-platform.firebasestorage.app",
+            storageBucket: "autism-evaluation-platform.appspot.com",
             messagingSenderId: "748226978662",
             appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
             measurementId: "G-1TGEHTTJF4"
@@ -158,55 +154,57 @@
         };
 
         function createSection(title, data, mappings) {
-    if (!data || Object.keys(data).length === 0) return null;
+            if (!data || Object.keys(data).length === 0) return null;
 
-    delete data.timestamp; // Remove unnecessary fields
+            delete data.timestamp; // Remove unnecessary fields
 
-    const sectionDiv = document.createElement('div');
-    sectionDiv.className = 'mb-4 row';
+            const sectionDiv = document.createElement('div');
+            sectionDiv.className = 'mb-4 row';
 
-    // Section header
-    const headerDiv = document.createElement('div');
-    headerDiv.className = 'section-header col-12';
-    headerDiv.innerHTML = `<h3>${title}</h3>`;
-    sectionDiv.appendChild(headerDiv);
+            // Section header
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'section-header col-12';
+            headerDiv.innerHTML = `<h3>${title}</h3>`;
+            sectionDiv.appendChild(headerDiv);
 
-    // Create detail cards in two columns
-    const detailContainer = document.createElement('div');
-    detailContainer.className = 'row g-3';
+            // Create detail cards in two columns
+            const detailContainer = document.createElement('div');
+            detailContainer.className = 'row g-3';
 
-    Object.keys(mappings).forEach(key => {
-        const label = mappings[key];
-        const value = data[key];
+            Object.keys(mappings).forEach(key => {
+                const label = mappings[key];
+                const value = data[key];
 
-        if (value !== undefined && value !== '') {
-            const detailCard = document.createElement('div');
-            detailCard.className = 'detail-card col-md-6';
-            detailCard.innerHTML = `
-                <div class="row">
-                    <div class="col-6 detail-label">${label}</div>
-                    <div class="col-6 detail-value">${value || 'Not Provided'}</div>
-                </div>
-            `;
-            detailContainer.appendChild(detailCard);
+                if (value !== undefined && value !== '') {
+                    const detailCard = document.createElement('div');
+                    detailCard.className = 'detail-card col-md-6';
+                    detailCard.innerHTML = `
+                        <div class="row">
+                            <div class="col-6 detail-label">${label}</div>
+                            <div class="col-6 detail-value">${value}</div>
+                        </div>
+                    `;
+                    detailContainer.appendChild(detailCard);
+                }
+            });
+
+            sectionDiv.appendChild(detailContainer);
+            return sectionDiv;
         }
-    });
-
-    sectionDiv.appendChild(detailContainer);
-    return sectionDiv;
-}
-
 
         // Fetch case history details
         function fetchCaseHistory() {
             const urlParams = new URLSearchParams(window.location.search);
             const parentId = urlParams.get('id');
+            const aadhaarNumber = urlParams.get('childAadhaar'); // Get aadhaar from URL
             const contentContainer = document.getElementById('case-history-content');
 
-            if (!parentId) {
-                alert('No parent ID provided');
+            if (!parentId || !aadhaarNumber) {
+                alert('Missing required parameters');
                 return;
             }
+
+            console.log('Fetching case history for:', { parentId, aadhaarNumber }); // Debug log
 
             // Sections to fetch in specific order
             const sections = [
@@ -221,21 +219,24 @@
             // Fetch all sections
             sections.forEach(section => {
                 db.collection('users')
-                  .doc(parentId)
-                  .collection('casehistory')
-                  .doc(section.doc)
-                  .get()
-                  .then(doc => {
-                      if (doc.exists) {
-                          const sectionElement = createSection(section.name, doc.data(), section.mappings);
-                          if (sectionElement) {
-                              contentContainer.appendChild(sectionElement);
-                          }
-                      }
-                  })
-                  .catch(error => {
-                      console.error(`Error fetching ${section.name}:`, error);
-                  });
+                    .doc(parentId)
+                    .collection(aadhaarNumber) // Access the aadhaarNumber collection
+                    .doc('info') // Access the 'info' document
+                    .collection('casehistory') // Access the 'casehistory' collection
+                    .doc(section.doc) // Access the specific section document
+                    .get()
+                    .then(doc => {
+                        if (doc.exists) {
+                            console.log(`Found data for section: ${section.name}`); // Debug log
+                            const sectionElement = createSection(section.name, doc.data(), section.mappings);
+                            if (sectionElement) {
+                                contentContainer.appendChild(sectionElement);
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error(`Error fetching ${section.name}:`, error);
+                    });
             });
         }
 
@@ -259,11 +260,10 @@
         // Attach event listener to the button
         document.getElementById('download-pdf').addEventListener('click', downloadPDF);
 
-
-    // Add additional script to load jsPDF
-    const jsPDFScript = document.createElement('script');
-    jsPDFScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-    document.head.appendChild(jsPDFScript);
+        // Add additional script to load jsPDF
+        const jsPDFScript = document.createElement('script');
+        jsPDFScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        document.head.appendChild(jsPDFScript);
 
         // Add PDF Download Event Listener
         document.addEventListener('DOMContentLoaded', () => {
