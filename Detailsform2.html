@@ -78,7 +78,7 @@
         }
 
         // Single redirection logic for both teacher and parent roles
-        window.location.href = `social.html?studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(data.age)}&studentDob=${encodeURIComponent(data.dob)}&studentAadhaar=${encodeURIComponent(studentAadhaar)}`;
+        window.location.href = `Social.html?studentName=${encodeURIComponent(studentName)}&studentAge=${encodeURIComponent(data.age)}&studentDob=${encodeURIComponent(data.dob)}&studentAadhaar=${encodeURIComponent(studentAadhaar)}`;
 
     } catch (error) {
         console.error("Error storing data:", error);
@@ -185,7 +185,7 @@
 <body>
     <h2>Indian Scale for Assessment of Autism</h2>
 
-    <form id="autismForm" action="social.html" method="POST">
+    <form id="autismForm" action="Social.html" method="POST">
         <div class="question">
             <label for="name">Name of the child <span class="required">*</span></label>
             <input type="text" id="name" name="name" class="form-control" required>
