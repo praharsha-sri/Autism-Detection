@@ -104,5 +104,9 @@ def predict_therapies(input_data):
         predictions[therapy] = prob.tolist()
     return predictions
 
-# Load models at startup
-load_models()
+if __name__ == '__main__':
+    # Load models before starting the app
+    if load_models():
+        app.run(port=5000, debug=True)
+    else:
+        print("Failed to load models. Cannot start the application.")
