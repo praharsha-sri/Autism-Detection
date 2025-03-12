@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="te">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ఉపాధ్యాయుడు నింపిన ప్రశ్నావళి</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Arial', sans-serif;
+        }
+        .student-header {
+            background-color: #3498db;
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+        }
+        .student-details-card {
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        .domain-table {
+            background-color: white;
+        }
+        .domain-table th {
+            background-color: #2980b9;
+            color: white;
+        }
+        .classification-badge {
+            font-size: 1.2em;
+            padding: 10px;
+            margin-top: 15px;
+        }
+        .recommended-therapies {
+            font-size: 1.2em;
+            margin-top: 15px;
+            padding: 10px;
+        }
+        .badge-no-autism { background-color: #2ecc71; }
+        .badge-mild-autism { background-color: #f39c12; }
+        .badge-moderate-autism { background-color: #e74c3c; }
+        .badge-severe-autism { background-color: #9b59b6; }
+        .no-data-found {
+            padding: 30px;
+            font-size: 1.2em;
+            text-align: center;
+            color: #7f8c8d;
+        }
+        .back-button {
+            margin-bottom: 20px;
+        }
+        .loading-spinner {
+            text-align: center;
+            padding: 30px;
+        }
+        .timeout-warning {
+            color: #e74c3c;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="back-button">
+            <a href="javascript:history.back()" class="btn btn-primary"><i class="fas fa-arrow-left"></i> డాష్‌బోర్డ్‌కు తిరిగి వెళ్ళండి</a>
+        </div>
+        
+        <div id="student-info-card" class="card student-details-card">
+            <div class="student-header text-center">
+                <h2 id="student-name-header">ఉపాధ్యాయుడు నింపిన ప్రశ్నావళి</h2>
+                <div id="basic-info">
+                    <p id="student-aadhaar">ఆధార్: </p>
+                    <p id="examiner-name">పరీక్షకుడు: </p>
+                </div>
+            </div>
+            
+            <div class="card-body">
+                <div id="loading-indicator" class="loading-spinner">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">లోడ్ అవుతోంది...</span>
+                    </div>
+                    <p class="mt-2">ఉపాధ్యాయుడు ప్రశ్నావళి డేటా కోసం శోధిస్తోంది...</p>
+                    <p id="timeout-warning" class="timeout-warning" style="display: none;">
+                        ఊహించినదానికంటే ఎక్కువ సమయం పడుతోంది... ఉపాధ్యాయుడు ఇంకా ప్రశ్నావళిని నింపి ఉండకపోవచ్చు.
+                    </p>
+                </div>
+                
+                <div id="no-data-message" class="no-data-found" style="display: none;">
+                    <p>ఉపాధ్యాయుడు ఇంకా ప్రశ్నావళిని నింపలేదు.</p>
+                    <p>దయచేసి తర్వాత తిరిగి చూడండి లేదా మరింత సమాచారం కోసం ఉపాధ్యాయుడిని సంప్రదించండి.</p>
+                </div>
+                
+                <div id="questionnaire-content" style="display: none;">
+                    <div class="table-responsive">
+                        <table class="table table-striped domain-table">
+                            <thead>
+                                <tr>
+                                    <th>డొమైన్</th>
+                                    <th>స్కోర్</th>
+                                </tr>
+                            </thead>
+                            <tbody id="domain-scores-body">
+                                <!-- Domains will be populated dynamically -->
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th>మొత్తం స్కోర్</th>
+                                    <th id="total-score">0</th>
+                                </tr>
+                                <tr>
+                                    <th>శాతం</th>
+                                    <th id="percentage">0%</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <div class="text-center">
+                        <h3>ఆటిజం వర్గీకరణ</h3>
+                        <div id="autism-classification" class="badge classification-badge"></div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_8gFPJrjBhjs4Zj5YDyYcoZQjfl6Amr0",
+            authDomain: "autism-evaluation-platform.firebaseapp.com",
+            projectId: "autism-evaluation-platform",
+            storageBucket: "autism-evaluation-platform.firebasestorage.app",
+            messagingSenderId: "748226978662",
+            appId: "1:748226978662:web:cddef872e6bfc1fb131ea7",
+            measurementId: "G-1TGEHTTJF4"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Domain Names Mapping with Telugu translations
+        const domainNames = {
+            socialRelationship: "సామాజిక సంబంధాలు మరియు పారస్పరికత",
+            emotionalResponsiveness: "భావోద్వేగ ప్రతిస్పందన",
+            speechLanguageCommunication: "ప్రసంగం-భాష మరియు కమ్యూనికేషన్",
+            behaviourPatterns: "ప్రవర్తన నమూనాలు",
+            sensoryAspects: "సంవేదన అంశాలు",
+            cognitiveComponent: "జ్ఞానాత్మక భాగం"
+        };
+
+        // Autism Classification Function with Telugu translations
+        function classifyAutism(totalScore) {
+            if (totalScore <= 70) {
+                return "ఆటిజం లేదు";
+            } else if (totalScore <= 106) {
+                return "తేలికపాటి ఆటిజం";
+            } else if (totalScore <= 153) {
+                return "మధ్యస్థ ఆటిజం";
+            } else {
+                return "తీవ్రమైన ఆటిజం";
+            }
+        }
+
+        // Function to get classification badge class
+        function getClassificationBadgeClass(classification) {
+            const classMap = {
+                "ఆటిజం లేదు": "badge-no-autism",
+                "తేలికపాటి ఆటిజం": "badge-mild-autism",
+                "మధ్యస్థ ఆటిజం": "badge-moderate-autism",
+                "తీవ్రమైన ఆటిజం": "badge-severe-autism"
+            };
+            return classMap[classification] || "";
+        }
+        
+        // Function to create a table row safely
+        function createTableRow(domain, score) {
+            const row = document.createElement('tr');
+            
+            const domainCell = document.createElement('td');
+            domainCell.textContent = domain;
+            row.appendChild(domainCell);
+            
+            const scoreCell = document.createElement('td');
+            scoreCell.textContent = score;
+            row.appendChild(scoreCell);
+            
+            return row;
+        }
+        
+        // Function to show no data message
+        function showNoDataMessage() {
+            document.getElementById('loading-indicator').style.display = 'none';
+            document.getElementById('no-data-message').style.display = 'block';
+        }
+        
+        // Function to set text content safely
+        function setTextContent(elementId, text) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = text;
+            }
+        }
+        
+        // Function to fetch domain data
+        async function fetchDomainData(collectionPath, domainName) {
+            try {
+                const doc = await collectionPath.doc(domainName).get();
+                if (doc.exists) {
+                    return doc.data().score || 0;
+                }
+                return 0;
+            } catch (error) {
+                console.error(`Error fetching ${domainName}:`, error);
+                return 0;
+            }
+        }
+        
+        // Main function to fetch and display data
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Get student Aadhaar from session storage
+            const aadhaarNumber = sessionStorage.getItem('aadhaar');
+            const studentName = sessionStorage.getItem('name');
+            
+            console.log("Aadhaar number from session:", aadhaarNumber);
+            console.log("Student name from session:", studentName);
+            
+            // Display student info immediately
+            if (studentName) {
+                setTextContent('student-name-header', studentName);
+            }
+            
+            if (aadhaarNumber) {
+                setTextContent('student-aadhaar', `ఆధార్: ${aadhaarNumber}`);
+            } else {
+                setTextContent('student-aadhaar', `ఆధార్: అందుబాటులో లేదు`);
+            }
+            
+            // Set a timeout to show warning if taking too long
+            const timeoutWarning = setTimeout(() => {
+                document.getElementById('timeout-warning').style.display = 'block';
+            }, 5000);
+            
+            // Set a final timeout to stop searching and show not found message
+            const finalTimeout = setTimeout(() => {
+                clearTimeout(timeoutWarning);
+                showNoDataMessage();
+                console.log("Timed out while searching for teacher questionnaire data");
+            }, 15000);
+            
+            if (!aadhaarNumber) {
+                clearTimeout(timeoutWarning);
+                clearTimeout(finalTimeout);
+                showNoDataMessage();
+                setTextContent('no-data-message', 'విద్యార్థి ఆధార్ సమాచారం కనుగొనబడలేదు. దయచేసి డాష్‌బోర్డ్‌కు తిరిగి వెళ్లి మళ్లీ ప్రయత్నించండి.');
+                return;
+            }
+
+            try {
+                // Search all allocations
+                const allocationsRef = db.collection('allocations');
+                const allocationsSnapshot = await allocationsRef.get();
+
+                let teacherQuestionnairePath = null;
+                
+                for (const doc of allocationsSnapshot.docs) {
+                    const allocatedStudentsRef = doc.ref.collection('allocated_students');
+                    const allocatedStudentsSnapshot = await allocatedStudentsRef.get();
+                    
+                    for (const studentDoc of allocatedStudentsSnapshot.docs) {
+                        const studentDocId = studentDoc.id;
+                        const lastUnderscoreIndex = studentDocId.lastIndexOf('_');
+                        
+                        if (lastUnderscoreIndex !== -1) {
+                            const docAadhaar = studentDocId.substring(lastUnderscoreIndex + 1);
+                            
+                            if (docAadhaar === aadhaarNumber) {
+                                teacherQuestionnairePath = studentDoc.ref.collection('teacherfilledquestionnaire');
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (teacherQuestionnairePath) break;
+                }
+                
+                // Clear the timeouts
+                clearTimeout(timeoutWarning);
+                clearTimeout(finalTimeout);
+                
+                // If we didn't find the student's teacher questionnaire
+                if (!teacherQuestionnairePath) {
+                    showNoDataMessage();
+                    return;
+                }
+                
+                // Check if the teacher questionnaire collection has data
+                const teacherQuestionnaire = await teacherQuestionnairePath.get();
+                
+                if (teacherQuestionnaire.empty) {
+                    showNoDataMessage();
+                    return;
+                }
+                
+                // We found data
+                document.getElementById('loading-indicator').style.display = 'none';
+                document.getElementById('questionnaire-content').style.display = 'block';
+                
+                // Try to get the examiner name from details document
+                try {
+                    const detailsDoc = await teacherQuestionnairePath.doc('details').get();
+                    if (detailsDoc.exists && detailsDoc.data().examiner) {
+                        setTextContent('examiner-name', `పరీక్షకుడు: ${detailsDoc.data().examiner}`);
+                    } else {
+                        setTextContent('examiner-name', 'పరీక్షకుడు: పేర్కొనబడలేదు');
+                    }
+                } catch (error) {
+                    console.error("Error fetching examiner details:", error);
+                    setTextContent('examiner-name', 'పరీక్షకుడు: అందుబాటులో లేదు');
+                }
+                
+                // Domains to fetch
+                const domainRefs = [
+                    'socialRelationship', 
+                    'emotionalResponsiveness', 
+                    'speechLanguageCommunication', 
+                    'behaviourPatterns', 
+                    'sensoryAspects', 
+                    'cognitiveComponent'
+                ];
+                
+                const domainScoresBody = document.getElementById('domain-scores-body');
+                let totalScore = 0;
+                
+                // Fetch each domain
+                for (const domain of domainRefs) {
+                    const score = await fetchDomainData(teacherQuestionnairePath, domain);
+                    totalScore += score;
+                    domainScoresBody.appendChild(createTableRow(domainNames[domain], score));
+                }
+                
+                // Update totals and classification
+                setTextContent('total-score', totalScore);
+                setTextContent('percentage', `${((totalScore/200)*100).toFixed(1)}%`);
+                
+                const classification = classifyAutism(totalScore);
+                const classificationEl = document.getElementById('autism-classification');
+                classificationEl.textContent = classification;
+                classificationEl.className = `badge classification-badge text-white ${getClassificationBadgeClass(classification)}`;
+                
+            } catch (error) {
+                // Clear the timeouts
+                clearTimeout(timeoutWarning);
+                clearTimeout(finalTimeout);
+                
+                console.error("Error fetching teacher questionnaire data:", error);
+                showNoDataMessage();
+                setTextContent('no-data-message', 'ఉపాధ్యాయుడు ప్రశ్నావళి డేటాను పొందడంలో లోపం. దయచేసి తర్వాత మళ్లీ ప్రయత్నించండి.');
+            }
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
