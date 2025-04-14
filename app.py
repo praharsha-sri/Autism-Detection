@@ -2,7 +2,7 @@ import pickle
 import json
 import numpy as np
 import pandas as pd
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import xgboost as xgb
 import traceback
@@ -104,7 +104,9 @@ def predict_therapies(input_data):
         predictions[therapy] = prob.tolist()
     return predictions
 
-if __name__=='__main__':
-    app.run()
-if __name__ != '__main__':
-    load_models()  # Load models on startup
+if __name__ == '__main__':
+    # Load models before starting the app
+    if load_models():
+        app.run(port=5000, debug=True)
+    else:
+        print("Failed to load models. Cannot start the application.")
